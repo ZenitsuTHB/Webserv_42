@@ -1,34 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                         :::      ::::::::  */
-/*  test.c                                               :+:      :+:    :+:  */
+/*  server_socket.c                                      :+:      :+:    :+:  */
 /*                                                     +:+ +:+         +:+    */
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:43:49 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/21 22:46:19 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/02/21 22:54:26 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
-
-/*class	SimpleSocket
-{
-	public:
-		~SimpleSocket( void );
-		SimpleSocket( void );
-		SimpleSocket( int domain, int service, int protocol );
-
-	private:
-		int	_domain;
-		int	_type;
-		int	_protocol;
-		int	_socket;
-}*/
 
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 
 int	main(void)
 {
@@ -88,7 +74,7 @@ The Binding of Socket
 	int	bind_rtrn = bind(socket_server, (struct sockaddr *)&address_server,
 			sizeof(struct sockaddr_in));
 	if (bind_rtrn == -1)
-		return (perror("The Binding of Fails\n"), 2);
+		return (perror("The Binding of Fails"), 2);
 
 /*
 =======================
@@ -105,7 +91,7 @@ Make the socket a passive socket (Server socket)
 	char					buffer[10240];
 	int						rd_bytes;
 
-	char	*message = "Hola Mundo\n";
+	char	*message = "Hola Mundo, soy el SERVER\n";
 
 	int	listen_rtrn = listen(socket_server, 10);
 	if (listen_rtrn == -1)
