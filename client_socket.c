@@ -6,69 +6,92 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:47:19 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/21 22:56:01 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/02/22 19:38:43 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
-/*
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 
 int	main(void)
 {
+/*
+=======================
+Creation of a socket
+=======================
+*/
+	/*	*
+	 *	Creacion de socket
+	 */
 	int	socket_client;
 
 	int	domain;
 	int	type;
 	int	protocol;
 
+	domain = AF_INET;// Dominio para IPs (es una flag)
+	type = SOCK_STREAM;// Estabecer un flujo de bytes
+	protocol = 0;// Usa el protocolo por defecto al tipo
+
 	socket_client = socket(domain, type, protocol);
+	if (socket_client == -1)
+		return (perror("Unsucked"), 1);
 
-	struct
-}
+/*
+=======================
+Connection of socket to communication address
+=======================
 */
-#include <stdio.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <arpa/inet.h>
+	/*	*
+	 *	Connectar el Socket a un Address
+	 */
+	struct sockaddr_in	address_client;
 
-#define PORT 8080
+	address_client.sin_family = AF_INET;
+	//address_client.sin_port = 8080; PUERTO TIENE QUE SE HTONS-ADO
+	address_client.sin_port = htons(8080);// Mismo puerto que el Server
+	address_client.sin_addr.s_addr = INADDR_ANY;// Usa cualquier IP
 
-int main(int argc, char const *argv[])
-{
-    int sock = 0; long valread;
-    struct sockaddr_in serv_addr;
-    char *hello = "Hello from client";
-    char buffer[1024] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Socket creation error \n");
-        return -1;
-    }
-    
-    memset(&serv_addr, 0, sizeof(serv_addr));
-    
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)
-    {
-        printf("\nInvalid address/ Address not supported \n");
-        return -1;
-    }
-    
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        printf("\nConnection Failed \n");
-        return -1;
-    }
-    send(sock , hello , strlen(hello) , 0 );
-    //printf("Hello message sent\n");
-    valread = read( sock , buffer, 1024);
-    printf("%s\n",buffer );
-    return 0;
+
+	/*	*
+	 *	Connexión con el Address
+	 */
+	int	connect_rtrn = connect(socket_client,
+			(struct sockaddr *)&address_client, sizeof(struct sockaddr_in));
+	if (connect_rtrn == -1)
+		return (close(socket_client), perror("Cannot Connet Socket"), 2);
+
+/*
+=======================
+Communication to Server
+=======================
+*/
+	/*	*
+	 *	Envio de mensaje al Server
+	 */
+	char	buffer[10240];
+	int		rd_bytes;
+
+	char	*message = "Me quiero morir, yo soy el cliente\n";
+
+	int	write_rtrn = write(socket_client, message, strlen(message));
+	if (write_rtrn == -1)
+		return (close(socket_client), perror("No pude escribir"), 3);
+
+	/*	*
+	 *	Lectura de respuesta del Server
+	 */
+	bzero(buffer, sizeof(buffer));
+	rd_bytes = read(socket_client, buffer, sizeof(buffer));
+	if (rd_bytes == -1)
+		return (close(socket_client), perror("No pude leer :/"), 4);
+	buffer[rd_bytes] = '\0';
+
+	/*	*
+	 *	Manejo de la respuesta del Server
+	 */
+	printf("Response:\n%s\n", buffer);
 }

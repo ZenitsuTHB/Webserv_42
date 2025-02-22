@@ -1,6 +1,6 @@
 #<-------------------------------|VARIABLES|---------------------------------->#
 
-NAME = address
+NAME = webserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98# -fsanitize=address
 
@@ -32,6 +32,14 @@ BBLACK= \033[1;30m#             Bold Black
 #<---------------------------------|RULES|------------------------------------>#
 
 all: $(NAME)
+
+test: server client
+
+server: server_socket.c
+	cc server_socket.c -o server
+
+client: client_socket.c
+	cc client_socket.c -o client
 
 $(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
 	@echo "\n$(RED)Compiling program:$(DF)"
