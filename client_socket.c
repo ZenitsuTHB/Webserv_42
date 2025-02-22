@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:47:19 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/22 19:38:43 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/02/22 19:43:36 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#define PORT 8080
 
 int	main(void)
 {
@@ -52,7 +54,7 @@ Connection of socket to communication address
 
 	address_client.sin_family = AF_INET;
 	//address_client.sin_port = 8080; PUERTO TIENE QUE SE HTONS-ADO
-	address_client.sin_port = htons(8080);// Mismo puerto que el Server
+	address_client.sin_port = htons(PORT);// Mismo puerto que el Server
 	address_client.sin_addr.s_addr = INADDR_ANY;// Usa cualquier IP
 
 

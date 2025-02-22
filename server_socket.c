@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:43:49 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/22 17:58:55 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/02/22 19:43:46 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#define PORT 8080
 
 int	main(void)
 {
@@ -59,7 +61,7 @@ The Binding of Socket
 	int					port;
 	int					ip_address;
 
-	port = 8080;// No se, este num me gusta
+	port = PORT;// No se, este num me gusta
 	ip_address = INADDR_ANY;// Asignar automaticamente la ip, misma del pc
 
 	bzero(&address_server, sizeof(struct sockaddr_in));
