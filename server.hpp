@@ -33,6 +33,7 @@ simpleSocket::simpleSocket(int domain, int type, int protocol, int port, u_long 
     address.sin_port = htons(port);
     address.sin_addr.s_addr = htonl(interface);
     {/*s.sin_addr.s_addr = INADDR_ANY;*/}
+
     // Establish connection
     sock = socket(domain, type, protocol);
     testConnection(sock);
