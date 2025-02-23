@@ -27,6 +27,18 @@ Creation of a socket
 */
 	/*	*
 	 *	Creacion de socket
+	 *	Un socket es un mecanismo de comunicacion entre procesos.
+	 *	link https://www.whiletruethendream.com/sockets-tcp/
+	 *	SOCKET TYPES 
+	 *	1) Stream sockets (SOCK_STREAM), dominio internet TCP sockets
+	 *	2) Datagram sockets (SOCK_DGRAM), dominio internet UDP sockets
+	 *	3) Raw sockets, permite de definir un protocolo de transporte propio.
+	 *	
+	 *	Sockets TCP comunicacion entre maquinas !=tes 
+	 *	conectadas por internet client----> serv ----> client.
+	 *	_pasivos_ es un socket que escucha y se mantiene a la espera de un socket activo
+	 *	trate de conectarse a el(SERVER).
+	 *	_activos_ trata de conectarse activamente a un socket pasivo (CLIENT)
 	 */
 	int	socket_client;
 
