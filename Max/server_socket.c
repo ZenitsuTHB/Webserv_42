@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:43:49 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/21 22:54:26 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/02/22 19:43:46 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+#define PORT 8080
 
 int	main(void)
 {
@@ -59,7 +61,7 @@ The Binding of Socket
 	int					port;
 	int					ip_address;
 
-	port = 8080;// No se, este num me gusta
+	port = PORT;// No se, este num me gusta
 	ip_address = INADDR_ANY;// Asignar automaticamente la ip, misma del pc
 
 	bzero(&address_server, sizeof(struct sockaddr_in));
@@ -106,6 +108,7 @@ Make the socket a passive socket (Server socket)
 	{
 		addr_len = sizeof(struct sockaddr_storage);
 		bzero(buffer, sizeof(buffer));
+		bzero(&address_request, sizeof(address_request));
 		/*	*
 		 *	Admisión
 		 */
@@ -125,6 +128,10 @@ Make the socket a passive socket (Server socket)
 		 *	Manejo
 		 */
 		printf("\n##### Request handled #####\n- Content:\n%s\n", buffer);
+		printf("Request\nIP: %#x\nPort: %d\nStruct len: %d\n",
+				((struct sockaddr_in *)&address_request)->sin_port,
+				((struct sockaddr_in *)&address_request)->sin_addr.s_addr,
+				addr_len);
 		/*	*
 		 *	Respuesta
 		 */
