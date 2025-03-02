@@ -4,3 +4,7 @@
 *.d
 *.o
 *.txt
+*.swp
+*.swo
+*.out
+*test*
