@@ -115,9 +115,11 @@ Make the socket a passive socket (Server socket)
 		printf("\n##### Waiting for request #####\n");
 		socket_request = accept(socket_server,
 				(struct sockaddr *)&address_request, &addr_len);
+		printf("1\n");
 		if (socket_request == -1)
 			break ;
 		rd_bytes = read(socket_request, buffer, sizeof(buffer));
+		printf("2\n");
 		if (rd_bytes == -1)
 		{
 			close(socket_request);
@@ -136,6 +138,7 @@ Make the socket a passive socket (Server socket)
 		 *	Respuesta
 		 */
 		write(socket_request, message, strlen(message));
+		printf("3\n");
 		close(socket_request);
 		printf("\n##### Response sent #####\n");
 		i++;

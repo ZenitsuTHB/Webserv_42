@@ -6,7 +6,8 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98# -fsanitize=address
 
 #<---------------------------------|FILES|------------------------------------>#
 
-SRC_F = main.cpp
+SRC_F = main.cpp Server.cpp Socket.cpp
+SRC_D = ./sources/
 
 OBJ_F = $(SRC_F:.cpp=.o)
 OBJ_D = ./objects/
@@ -33,13 +34,13 @@ BBLACK= \033[1;30m#             Bold Black
 
 all: $(NAME)
 
-test: server client
+test: server.exe client.exe
 
-server: server_socket.c
-	cc server_socket.c -o server
+server.exe: server_socket.c
+	cc server_socket.c -o server.exe
 
-client: client_socket.c
-	cc client_socket.c -o client
+client.exe: client_socket.c
+	cc client_socket.c -o client.exe
 
 $(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
 	@echo "\n$(RED)Compiling program:$(DF)"
@@ -47,7 +48,7 @@ $(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
 	$(BIGREEN)$(OBJ_F) $(BCYAN)-o $(RED)$(NAME)$(DF)"
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
-${OBJ_D}%.o: %.cpp Makefile
+${OBJ_D}%.o: $(SRC_D)%.cpp Makefile
 	@$(CC) $(CFLAGS) -MMD -c $< -o $@
 	@mv $(@:.o=.d) $(DEP_D)
 	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS) -MMD $(BCYAN)-c \

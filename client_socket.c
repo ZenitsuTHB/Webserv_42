@@ -77,7 +77,7 @@ Communication to Server
 	char	buffer[10240];
 	int		rd_bytes;
 
-	char	*message = "Me quiero morir, yo soy el cliente\n";
+	char	*message = "soy Gilipollas";
 
 	int	write_rtrn = write(socket_client, message, strlen(message));
 	if (write_rtrn == -1)
