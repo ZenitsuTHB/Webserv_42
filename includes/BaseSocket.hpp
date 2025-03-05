@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:19 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:25:20 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/05 19:29:25 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ class	BaseSocket
 		void	setSockFd( int fd );
 		void	setAddress( struct sockaddr_in address, socklen_t len);
 
-		int	getSockFd( void ) const { return (_sockFd) };
-		int	getPort( void ) const { return (htons(_address.sin_port)) }
-		int	getIp( void ) const { return (htons(_address.sin_addr.s_addr)) }
+		int	getSockFd( void ) const { return (_sockFd); };
+		int	getPort( void ) const { return (htons(_address.sin_port)); }
+		int	getIp( void ) const { return (htons(_address.sin_addr.s_addr)); }
 
 		BaseSocket	& operator = ( BaseSocket const &obj );
 

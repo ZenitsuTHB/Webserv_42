@@ -6,11 +6,12 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:25:21 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/05 19:28:58 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "BaseSocket.hpp"
+#include "../includes/BaseSocket.hpp"
+#include <unistd.h>
 #include <iostream>
 #include <stdio.h>
 
@@ -20,7 +21,7 @@ BaseSocket::~BaseSocket(void)
 }
 
 BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
-	_address(sizeof(_address))
+	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;
 	_address.sin_port = 0;
@@ -29,7 +30,7 @@ BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
 }
 
 BaseSocket::BaseSocket(int fd): _sockFd(fd), _domain(0), _type(0), _protocol(0),
-	_address(sizeof(_address))
+	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;
 	_address.sin_port = 0;
@@ -37,7 +38,7 @@ BaseSocket::BaseSocket(int fd): _sockFd(fd), _domain(0), _type(0), _protocol(0),
 }
 
 BaseSocket::BaseSocket(int domain, int type, int protocol):
-	_address(sizeof(_address))
+	_addrLen(sizeof(_address))
 {
 	_address.sin_family = domain;
 	_address.sin_port = 0;
@@ -62,7 +63,7 @@ void	BaseSocket::setAddress( struct sockaddr_in address, socklen_t len)
 {
 	if (len > _addrLen)
 		std::cerr << "<BaseSocket> Setted address lenght too long" << std::endl;
-	_address = len;
+	_addrLen = len;
 	_address = address;
 }
 
@@ -114,4 +115,9 @@ BaseSocket	&BaseSocket:: operator = (BaseSocket const &obj)
 		_addrLen = obj._addrLen;
 	}
 	return (*this);
+}
+
+int	main(void)
+{
+	return (1);
 }
