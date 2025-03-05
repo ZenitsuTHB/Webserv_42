@@ -1,33 +1,43 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.hpp                                         :+:      :+:    :+:   */
+/*   Listen.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/04 10:39:33 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/04 13:38:10 by adrmarqu         ###   ########.fr       */
+/*   Created: 2025/03/05 18:02:23 by adrmarqu          #+#    #+#             */
+/*   Updated: 2025/03/05 19:22:20 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef LISTEN_HPP
+#define LISTEN_HPP
 
 #include "Socket.hpp"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <iostream>
 
-class Server
+class Listen: public Socket
 {
 	public:
 
-		Server(void);
-		~Server(void);
-		
-		void	run(void);
+		Listen(void);
+		Listen(int numCon);
+		~Listen(void);
+
+		void	listen(Socket &socket);
+		void	accept(Socket &socket);
+		int		getBacklog() const;
 
 	private:
-	
-		Socket	*_socket;
-		int		_socketReq;
+
+		int		_backlog;
 
 };
 
