@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 11:09:07 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/04 13:31:18 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:56:57 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void	Socket::bindSocket(int port, int ip)
 	_port = port;
 	_ipAddress = ip;
 
-	memset(&_addr, 0, sizeof(_addr));
+	bzero(&_addr, sizeof(_addr));
 	_addr.sin_family = _domain;
 	_addr.sin_port = htons(port);
 	_addr.sin_addr.s_addr = htonl(INADDR_ANY);

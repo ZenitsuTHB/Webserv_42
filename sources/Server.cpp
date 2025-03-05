@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 10:54:28 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/04 13:50:55 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/05 13:52:15 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,9 +41,11 @@ void	Server::run()
 		bzero(buffer, sizeof(buffer));
 		bzero(&addr_req, sizeof(addr_req));
 
+		std::cout << "Esperando conexion" << std::endl;
 		_socketReq = accept(_socket->getSocketFd(), (struct sockaddr*)&addr_req, &addr_len);
 		if (_socketReq == -1)
 			perror("Error to accept");
+		std::cout << "Conexion aceptada" << std::endl;
 		rd_bytes = read(_socketReq, buffer, sizeof(buffer));
 		if (rd_bytes == -1)
 			return ;
