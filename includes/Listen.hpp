@@ -6,14 +6,14 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 18:02:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/05 19:22:20 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/05 19:27:23 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef LISTEN_HPP
 #define LISTEN_HPP
 
-#include "Socket.hpp"
+#include "BaseSocket.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,7 +23,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 
-class Listen: public Socket
+class Listen: public BaseSocket
 {
 	public:
 
@@ -31,8 +31,8 @@ class Listen: public Socket
 		Listen(int numCon);
 		~Listen(void);
 
-		void	listen(Socket &socket);
-		void	accept(Socket &socket);
+		void	listen(BaseSocket &socket);
+		void	accept(BaseSocket &socket);
 		int		getBacklog() const;
 
 	private:
