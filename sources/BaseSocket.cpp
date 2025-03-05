@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:40:49 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/05 19:54:26 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,24 +47,9 @@ BaseSocket::BaseSocket(int domain, int type, int protocol):
 	return ;
 }
 
-BaseSocket::BaseSocket(BaseSocket const &obj)
+BaseSocket::BaseSocket(BaseSocket const &obj): _sockFd(-1)
 {
 	*this = obj;
-}
-
-void	BaseSocket::setSockFd(int fd)
-{
-	if (_sockFd != -1)
-		::close(_sockFd);
-	_sockFd = fd;
-}
-
-void	BaseSocket::setAddress( struct sockaddr_in address, socklen_t len)
-{
-	if (len > _addrLen)
-		std::cerr << "<BaseSocket> Setted address lenght too long" << std::endl;
-	_addrLen = len;
-	_address = address;
 }
 
 void	BaseSocket::create(int domain, int type, int protocol)
@@ -101,6 +86,21 @@ void	BaseSocket::close(void)
 		return ;
 	::close(_sockFd);
 	_sockFd = -1;
+}
+
+void	BaseSocket::setSockFd(int fd)
+{
+	if (_sockFd != -1)
+		::close(_sockFd);
+	_sockFd = fd;
+}
+
+void	BaseSocket::setAddress( struct sockaddr_in address, socklen_t len)
+{
+	if (len > _addrLen)
+		std::cerr << "<BaseSocket> Setted address lenght too long" << std::endl;
+	_addrLen = len;
+	_address = address;
 }
 
 BaseSocket	&BaseSocket:: operator = (BaseSocket const &obj)
