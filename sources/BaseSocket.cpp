@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:28:58 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/05 19:30:10 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,9 +115,4 @@ BaseSocket	&BaseSocket:: operator = (BaseSocket const &obj)
 		_addrLen = obj._addrLen;
 	}
 	return (*this);
-}
-
-int	main(void)
-{
-	return (1);
 }
