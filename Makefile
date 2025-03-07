@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98# -fsanitize=address
 
 #<---------------------------------|FILES|------------------------------------>#
 
-SRC_F = main.cpp Server.cpp Socket.cpp Listen.cpp
+SRC_F = BaseSocket.cpp ConnectSocket.cpp BaseClient.cpp
 SRC_D = ./sources/
 
 OBJ_F = $(SRC_F:.cpp=.o)

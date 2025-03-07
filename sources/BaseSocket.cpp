@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:54:26 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/07 19:05:00 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ BaseSocket::BaseSocket(int fd): _sockFd(fd), _domain(0), _type(0), _protocol(0),
 }
 
 BaseSocket::BaseSocket(int domain, int type, int protocol):
-	_addrLen(sizeof(_address))
+	_sockFd(-1), _addrLen(sizeof(_address))
 {
 	_address.sin_family = domain;
 	_address.sin_port = 0;
