@@ -12,6 +12,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include "../includes/BaseServer.hpp"
 
 BaseServer::~BaseServer(void)
@@ -24,6 +25,19 @@ BaseServer::~BaseServer(void)
 BaseServer::BaseServer(int domain, int type, int protocol):
 	_socket(domain, type, protocol), _clientList(NULL), _clientNum(0)
 {
+	int	flags;
+	int	fd;
+	
+	fd = _socket.getSockFd();
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+	{
+		perror("<ListenSocket> fcntl failed");
+		return ;
+	}
+	flags |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, flags) == -1)
+		perror("<ListenSocket> Error to add O_NONBLOCK");
 	return ;
 }
 
