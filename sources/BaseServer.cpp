@@ -27,17 +27,29 @@ BaseServer::BaseServer(int domain, int type, int protocol):
 {
 	int	flags;
 	int	fd;
-	
+	int	opt;
+
 	fd = _socket.getSockFd();
+	opt = 1;
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+	{
+		_socket.close();
+		perror("<ListenSocket> Error in opt");
+		return ;
+	}
 	flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 	{
+		_socket.close();
 		perror("<ListenSocket> fcntl failed");
 		return ;
 	}
 	flags |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, flags) == -1)
+	{
+		_socket.close();
 		perror("<ListenSocket> Error to add O_NONBLOCK");
+	}
 	return ;
 }
 
@@ -162,7 +174,7 @@ BaseServer	&BaseServer:: operator = (BaseServer const &obj)
 	return (*this);
 }
 
-/*
+
 #include <iostream>
 int	main(void)
 {
@@ -171,12 +183,18 @@ int	main(void)
 	int			i;
 
 	server.start(INADDR_ANY, 8080, SOMAXCONN);
-	i = server.accept();
-	std::cout << "Accepted index: " << i << std::endl;
-	request = server.recive(i);
-	std::cout << "Request:" << std::endl << request << std::endl;
-	server.respond("Hola soy el Servidor", i);
-	std::cout << "Responded" << std::endl;
-	server.close(i);
-	std::cout << "Closed" << std::endl;
-}*/
+	while (true)
+	{
+		i = server.accept();
+		if (i == -1)
+			continue ;
+		std::cout << "Accepted index: " << i << std::endl;
+		request = server.recive(i);
+		std::cout << "Request:" << std::endl << request << std::endl;
+		server.respond("Hola soy el Servidor", i);
+		std::cout << "Responded" << std::endl;
+		server.close(i);
+		std::cout << "Closed" << std::endl;
+		break ;
+	}
+}

@@ -46,8 +46,7 @@ void	ListenSocket::bind(int ip, int port)
 void	ListenSocket::listen(int backlog)
 {
 	if (::listen(getSockFd(), backlog) == -1)
-		return perror("<ListenSocket> Lisenin no aprobaoh");
-	
+		return (perror("<ListenSocket> Lisenin no aprobaoh"));
 	_backlog = backlog;
 }
 
@@ -71,8 +70,7 @@ BaseSocket	ListenSocket::accept(void) const
 	}
 	request.setSockFd(reqFd);
 	request.setAddress(reqAddr, sizeof(reqAddr));
-	
-	return request;
+	return (request);
 }
 
 ListenSocket	&ListenSocket:: operator = (ListenSocket const &obj)
@@ -81,5 +79,5 @@ ListenSocket	&ListenSocket:: operator = (ListenSocket const &obj)
 	{
 		BaseSocket::operator = (obj);
 	}
-	return *this;
+	return (*this);
 }
