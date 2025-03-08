@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                         :::      ::::::::  */
-/*  BaseServer.hpp                                       :+:      :+:    :+:  */
+/*  Server.hpp                                           :+:      :+:    :+:  */
 /*                                                     +:+ +:+         +:+    */
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:48:42 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/08 02:33:30 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/08 14:16:44 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,12 @@
 
 # define BUFF_SIZE 100
 
-class	BaseServer
+class	Server
 {
 	public:
-		~BaseServer( void );
-		BaseServer( int domain, int type, int protocol );
-		BaseServer( BaseServer const &obj );
+		~Server( void );
+		Server( int domain, int type, int protocol );
+		Server( Server const &obj );
 
 		void		start( int ip, int port, int backlog );
 		int			accept( void );
@@ -31,7 +31,7 @@ class	BaseServer
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
 
-		BaseServer	& operator = ( BaseServer const &obj );
+		Server	& operator = ( Server const &obj );
 
 	private:
 		ListenSocket	_socket;

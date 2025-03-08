@@ -1,28 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                         :::      ::::::::  */
-/*  BaseServer.cpp                                       :+:      :+:    :+:  */
+/*  Server.cpp                                           :+:      :+:    :+:  */
 /*                                                     +:+ +:+         +:+    */
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/08 03:16:25 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/08 14:16:42 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include "../includes/BaseServer.hpp"
+#include "../includes/Server.hpp"
 
-BaseServer::~BaseServer(void)
+Server::~Server(void)
 {
 	for (int i = 0; i < _clientNum; i++)
 		_clientList[i].close();
 	delete [] _clientList;
 }
 
-BaseServer::BaseServer(int domain, int type, int protocol):
+Server::Server(int domain, int type, int protocol):
 	_socket(domain, type, protocol), _clientList(NULL), _clientNum(0)
 {
 	int	flags;
@@ -34,38 +34,38 @@ BaseServer::BaseServer(int domain, int type, int protocol):
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
 	{
 		_socket.close();
-		perror("<BaseServer> Error in opt");
+		perror("<Server> Error in opt");
 		return ;
 	}
 	flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 	{
 		_socket.close();
-		perror("<BaseServer> fcntl failed");
+		perror("<Server> fcntl failed");
 		return ;
 	}
 	flags |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, flags) == -1)
 	{
 		_socket.close();
-		perror("<BaseServer> Error to add O_NONBLOCK");
+		perror("<Server> Error to add O_NONBLOCK");
 	}
 	return ;
 }
 
-BaseServer::BaseServer(BaseServer const &obj):
+Server::Server(Server const &obj):
 	_socket(obj._socket), _clientList(NULL), _clientNum(0)
 {
 	*this = obj;
 }
 
-void	BaseServer::start(int ip, int port, int backlog)
+void	Server::start(int ip, int port, int backlog)
 {
 	_socket.bind(ip, port);
 	_socket.listen(backlog);
 }
 
-int	BaseServer::accept(void)
+int	Server::accept(void)
 {
 	BaseSocket	client;
 	BaseSocket	*newList;
@@ -75,7 +75,7 @@ int	BaseServer::accept(void)
 		return (-1);
 	newList = new BaseSocket[_clientNum + 1];
 	if (!newList)
-		return (perror("<BaseServer> Couldn't mallocate client array"), -1);
+		return (perror("<Server> Couldn't mallocate client array"), -1);
 	for (int i = 0; i < _clientNum; ++i)
 		newList[i] = _clientList[i];
 	newList[_clientNum] = client;
@@ -102,19 +102,19 @@ bool	endRequest(std::string message)
 	return (true);
 }
 
-std::string	BaseServer::receive(int idx) const
+std::string	Server::receive(int idx) const
 {
 	std::string	request;
 	char		buffer[BUFF_SIZE + 1];
 	int			bytes;
 
 	if (idx < 0 || idx >= _clientNum)
-		return ("<BaseServer> Invalid Index");
+		return ("<Server> Invalid Index");
 	while (true)
 	{
 		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
 		if (bytes == -1)
-			return (perror("<BaseServer> Error reading"), std::string());
+			return (perror("<Server> Error reading"), std::string());
 		buffer[bytes] = '\0';
 		request.append(buffer);
 		if (endRequest(request))
@@ -123,7 +123,7 @@ std::string	BaseServer::receive(int idx) const
 	return (request);
 }
 
-void	BaseServer::respond(std::string response, int idx) const
+void	Server::respond(std::string response, int idx) const
 {
 	int	bytes;
 
@@ -132,10 +132,10 @@ void	BaseServer::respond(std::string response, int idx) const
 	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
 			response.length());
 	if (bytes == -1)
-		return (perror("<BaseServer> Error responding"));
+		return (perror("<Server> Error responding"));
 }
 
-void	BaseServer::close(int idx)
+void	Server::close(int idx)
 {
 	BaseSocket	*newList;
 
@@ -151,7 +151,7 @@ void	BaseServer::close(int idx)
 	}
 	newList = new BaseSocket[_clientNum];
 	if (!newList)
-		return (perror("<BaseServer> Couldn't mallocate client array"));
+		return (perror("<Server> Couldn't mallocate client array"));
 	for (int i = 0, j = 0; i <= _clientNum; ++i)
 	{
 		if (j != idx)
@@ -164,7 +164,7 @@ void	BaseServer::close(int idx)
 	_clientList = newList;
 }
 
-BaseServer	&BaseServer:: operator = (BaseServer const &obj)
+Server	&Server:: operator = (Server const &obj)
 {
 	if (this != &obj)
 	{
@@ -178,7 +178,7 @@ BaseServer	&BaseServer:: operator = (BaseServer const &obj)
 #include <iostream>
 int	main(void)
 {
-	BaseServer	server(AF_INET, SOCK_STREAM, 0);
+	Server	server(AF_INET, SOCK_STREAM, 0);
 	std::string	request;
 	int			i;
 
