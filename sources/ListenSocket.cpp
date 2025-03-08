@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 
 #include <stdio.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "../includes/ListenSocket.hpp"
 
 ListenSocket::~ListenSocket(void)
@@ -44,8 +46,20 @@ void	ListenSocket::bind(int ip, int port)
 
 void	ListenSocket::listen(int backlog)
 {
-	if (::listen(getSockFd(), backlog) == -1)
-		return (perror("<ListenSocket> Lisenin no aprobaoh"));
+	int	fd = getSockFd();
+
+	if (::listen(fd, backlog) == -1)
+		return perror("<ListenSocket> Lisenin no aprobaoh");
+
+	int	flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		return perror("<ListenSocket> fcntl failed");
+
+	flags |= O_NONBLOCK;
+
+	if (fcntl(fd, F_SETFL, flags) == -1)
+		return perror("<ListenSocket> Error to add O_NONBLOCK");
+	
 	_backlog = backlog;
 }
 
@@ -58,11 +72,18 @@ BaseSocket	ListenSocket::accept(void) const
 
 	reqLen = sizeof(reqAddr);
 	reqFd = ::accept(getSockFd(), (struct sockaddr *)&reqAddr, &reqLen);
-	if (reqFd == -1)
-		return (perror("<ListenSocket> Request failed to accept"), request);
+	if (reqFd < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return perror("<ListenSocket> There are not conexions, waiting..."), request;
+		else
+			return perror("<ListenSocket> Request failed to accept"), request;
+	}
+
 	request.setSockFd(reqFd);
 	request.setAddress(reqAddr, sizeof(reqAddr));
-	return (request);
+	
+	return request;
 }
 
 ListenSocket	&ListenSocket:: operator = (ListenSocket const &obj)
@@ -71,5 +92,5 @@ ListenSocket	&ListenSocket:: operator = (ListenSocket const &obj)
 	{
 		BaseSocket::operator = (obj);
 	}
-	return (*this);
+	return *this;
 }
