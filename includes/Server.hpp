@@ -14,6 +14,7 @@
 # define BASESERVER_HPP
 
 # include <string>
+# include <list>
 # include "ListenSocket.hpp"
 
 # define BUFF_SIZE 100
@@ -27,16 +28,17 @@ class	Server
 
 		void		start( int ip, int port, int backlog );
 		int			accept( void );
-		std::string	receive( int idx ) const;
-		void		respond( std::string response, int idx ) const;
-		void		close( int idx );
+		std::string	receive( std::list<BaseSocket>::iterator it ) const;
+		void		respond( std::string response, std::list<BaseSocket>::iterator it ) const;
+		void		close( std::list<BaseSocket>::iterator it );
 
 		Server	& operator = ( Server const &obj );
 
 	private:
-		ListenSocket	_socket;
-		BaseSocket		*_clientList;
-		int				_clientNum;
+		ListenSocket			_socket;
+		BaseSocket				*_clientList;
+		std::list<BaseSocket>	_clientList2;
+		int						_clientNum;
 };
 
 #endif

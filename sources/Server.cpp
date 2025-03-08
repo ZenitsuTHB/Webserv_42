@@ -17,13 +17,12 @@
 
 Server::~Server(void)
 {
-	for (int i = 0; i < _clientNum; i++)
-		_clientList[i].close();
-	delete [] _clientList;
+	for (std::list<BaseSocket>::iterator it = _clientList.begin(); it != _clientList.end(); ++it)
+		_clientList.erase(it);
 }
 
 Server::Server(int domain, int type, int protocol):
-	_socket(domain, type, protocol), _clientList(NULL), _clientNum(0)
+	_socket(domain, type, protocol), _clientNum(0)
 {
 	int	flags;
 	int	fd;
@@ -54,7 +53,7 @@ Server::Server(int domain, int type, int protocol):
 }
 
 Server::Server(Server const &obj):
-	_socket(obj._socket), _clientList(NULL), _clientNum(0)
+	_socket(obj._socket), _clientNum(0)
 {
 	*this = obj;
 }
@@ -68,21 +67,11 @@ void	Server::start(int ip, int port, int backlog)
 int	Server::accept(void)
 {
 	BaseSocket	client;
-	BaseSocket	*newList;
 
 	client = _socket.accept();
 	if (client.getSockFd() == -1)
 		return (-1);
-	newList = new BaseSocket[_clientNum + 1];
-	if (!newList)
-		return (perror("<Server> Couldn't mallocate client array"), -1);
-	for (int i = 0; i < _clientNum; ++i)
-		newList[i] = _clientList[i];
-	newList[_clientNum] = client;
-	delete [] _clientList;
-	_clientList = newList;
-	++_clientNum;
-	return (_clientNum - 1);
+	_clientList.push_back(client);
 }
 
 /*	*
@@ -102,17 +91,15 @@ bool	endRequest(std::string message)
 	return (true);
 }
 
-std::string	Server::receive(int idx) const
+std::string	Server::receive(std::list<BaseSocket>::iterator it) const
 {
 	std::string	request;
 	char		buffer[BUFF_SIZE + 1];
 	int			bytes;
 
-	if (idx < 0 || idx >= _clientNum)
-		return ("<Server> Invalid Index");
 	while (true)
 	{
-		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
+		bytes = read(it->getSockFd(), buffer, BUFF_SIZE);
 		if (bytes == -1)
 			return (perror("<Server> Error reading"), std::string());
 		buffer[bytes] = '\0';
@@ -123,45 +110,20 @@ std::string	Server::receive(int idx) const
 	return (request);
 }
 
-void	Server::respond(std::string response, int idx) const
+void	Server::respond(std::string response, std::list<BaseSocket>::iterator it) const
 {
 	int	bytes;
 
-	if (idx < 0 || idx >= _clientNum)
-		return ;
-	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
+	bytes = write(it->getSockFd(), response.c_str(),
 			response.length());
 	if (bytes == -1)
 		return (perror("<Server> Error responding"));
 }
 
-void	Server::close(int idx)
+void	Server::close(std::list<BaseSocket>::iterator it)
 {
-	BaseSocket	*newList;
-
-	if (idx < 0 || idx >= _clientNum)
-		return ;
-	_clientList[idx].close();
-	--_clientNum;
-	if (!_clientNum)
-	{
-		delete [] _clientList;
-		_clientList = NULL;
-		return ;
-	}
-	newList = new BaseSocket[_clientNum];
-	if (!newList)
-		return (perror("<Server> Couldn't mallocate client array"));
-	for (int i = 0, j = 0; i <= _clientNum; ++i)
-	{
-		if (j != idx)
-		{
-			newList[j] = _clientList[j];
-			++j;
-		}
-	}
-	delete [] _clientList;
-	_clientList = newList;
+	it->close();
+	_clientList.erase(it);
 }
 
 Server	&Server:: operator = (Server const &obj)
