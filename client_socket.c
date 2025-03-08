@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/02/21 22:47:19 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/02/22 19:43:36 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/08 02:54:13 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ Communication to Server
 	char	buffer[10240];
 	int		rd_bytes;
 
-	char	*message = "soy Gilipollas";
+	char	*message = "soy Gilipollas\r\n\r\n";
 
 	int	write_rtrn = write(socket_client, message, strlen(message));
 	if (write_rtrn == -1)
