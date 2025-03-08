@@ -74,6 +74,9 @@ fclean: clean
 	@rm -rf $(NAME)
 	@echo "$(RED)rm -rf $(RED)PROGRAM: $(NAME)$(DF)\n"
 
+cleanTest:
+	rm -rf client.exe server.exe
+
 re: fclean all
 
 -include $(DEP)
