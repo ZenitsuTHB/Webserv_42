@@ -34,21 +34,21 @@ BaseServer::BaseServer(int domain, int type, int protocol):
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
 	{
 		_socket.close();
-		perror("<ListenSocket> Error in opt");
+		perror("<BaseServer> Error in opt");
 		return ;
 	}
 	flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 	{
 		_socket.close();
-		perror("<ListenSocket> fcntl failed");
+		perror("<BaseServer> fcntl failed");
 		return ;
 	}
 	flags |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, flags) == -1)
 	{
 		_socket.close();
-		perror("<ListenSocket> Error to add O_NONBLOCK");
+		perror("<BaseServer> Error to add O_NONBLOCK");
 	}
 	return ;
 }
@@ -75,7 +75,7 @@ int	BaseServer::accept(void)
 		return (-1);
 	newList = new BaseSocket[_clientNum + 1];
 	if (!newList)
-		return (perror("Couldn't mallocate client array"), -1);
+		return (perror("<BaseServer> Couldn't mallocate client array"), -1);
 	for (int i = 0; i < _clientNum; ++i)
 		newList[i] = _clientList[i];
 	newList[_clientNum] = client;
@@ -102,19 +102,19 @@ bool	endRequest(std::string message)
 	return (true);
 }
 
-std::string	BaseServer::recive(int idx) const
+std::string	BaseServer::receive(int idx) const
 {
 	std::string	request;
 	char		buffer[BUFF_SIZE + 1];
 	int			bytes;
 
 	if (idx < 0 || idx >= _clientNum)
-		return ("Invalid Index");
+		return ("<BaseServer> Invalid Index");
 	while (true)
 	{
 		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
 		if (bytes == -1)
-			return (perror("Error reading"), std::string());
+			return (perror("<BaseServer> Error reading"), std::string());
 		buffer[bytes] = '\0';
 		request.append(buffer);
 		if (endRequest(request))
@@ -132,7 +132,7 @@ void	BaseServer::respond(std::string response, int idx) const
 	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
 			response.length());
 	if (bytes == -1)
-		return (perror("Error responding"));
+		return (perror("<BaseServer> Error responding"));
 }
 
 void	BaseServer::close(int idx)
@@ -151,7 +151,7 @@ void	BaseServer::close(int idx)
 	}
 	newList = new BaseSocket[_clientNum];
 	if (!newList)
-		return (perror("Couldn't mallocate client array"));
+		return (perror("<BaseServer> Couldn't mallocate client array"));
 	for (int i = 0, j = 0; i <= _clientNum; ++i)
 	{
 		if (j != idx)
@@ -189,7 +189,7 @@ int	main(void)
 		if (i == -1)
 			continue ;
 		std::cout << "Accepted index: " << i << std::endl;
-		request = server.recive(i);
+		request = server.receive(i);
 		std::cout << "Request:" << std::endl << request << std::endl;
 		server.respond("Hola soy el Servidor", i);
 		std::cout << "Responded" << std::endl;

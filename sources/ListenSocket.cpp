@@ -20,7 +20,7 @@ ListenSocket::~ListenSocket(void)
 }
 
 ListenSocket::ListenSocket(int domain, int type, int protocol):
-	BaseSocket(domain, type, protocol)
+	BaseSocket(domain, type, protocol), _backlog(-1)
 {
 	return ;
 }
@@ -78,6 +78,7 @@ ListenSocket	&ListenSocket:: operator = (ListenSocket const &obj)
 	if (this != &obj)
 	{
 		BaseSocket::operator = (obj);
+		_backlog = obj._backlog;
 	}
 	return (*this);
 }

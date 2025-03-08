@@ -27,7 +27,7 @@ class	BaseServer
 
 		void		start( int ip, int port, int backlog );
 		int			accept( void );
-		std::string	recive( int idx ) const;
+		std::string	receive( int idx ) const;
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
 

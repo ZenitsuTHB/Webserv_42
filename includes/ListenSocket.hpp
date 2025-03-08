@@ -20,7 +20,7 @@ class	ListenSocket: public BaseSocket
 	public:
 		~ListenSocket( void );
 		ListenSocket( int domain, int type, int protocol );
-		ListenSocket( int domain, int type, int protocol, int backlog);
+		ListenSocket( int domain, int type, int protocol, int backlog );
 		ListenSocket( ListenSocket const &obj );
 
 		void		bind( int ip, int port );
