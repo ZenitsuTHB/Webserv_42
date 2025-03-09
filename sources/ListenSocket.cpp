@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:01:48 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/07 21:49:44 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/08 16:01:36 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,14 +59,13 @@ BaseSocket	ListenSocket::accept(void) const
 
 	reqLen = sizeof(reqAddr);
 	reqFd = ::accept(getSockFd(), (struct sockaddr *)&reqAddr, &reqLen);
-	if (reqFd < 0)
+	if (reqFd == -1)
 	{
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			return (perror("<ListenSocket> There are not conexions, waiting..."
-						), request);
+			perror("<ListenSocket> There are not conexions, waiting...");
 		else
-			return (perror("<ListenSocket> Request failed to accept"),
-					request);
+			perror("<ListenSocket> Request failed to accept");
+		return (request);
 	}
 	request.setSockFd(reqFd);
 	request.setAddress(reqAddr, sizeof(reqAddr));
