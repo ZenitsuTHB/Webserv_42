@@ -142,9 +142,9 @@ void	Server::close(int idx)
 {
 	if (idx < 0 || (size_t)idx >= _clientList.size() || _clientList.empty())
 		return ;
+	printf("Cerrando a: [%d]: %d\n", idx, _clientList[idx].getSockFd());
 	_clientList[idx].close();
-	std::vector<BaseSocket>::iterator it = _clientList.begin() + idx;
-	_clientList.erase(it);
+	_clientList.erase(_clientList.begin() + idx);
 }
 
 std::string	Server::manage(std::string request) const
@@ -180,13 +180,17 @@ void	Server::run(void)
 
 			clientFd = _clientList[i].getSockFd();
 			if (clientFd > maxFd)
+			{
 				maxFd = clientFd;
+			}
 			FD_SET(clientFd, &set);
 			std::cout << "Setting [" << i << "]: " << clientFd << std::endl;
 		}
 		time.tv_usec = 5000;
 		time.tv_sec = 0;
 		maxFd = select(maxFd + 1, &set, NULL, NULL, &time);//EL PUTO +1
+		if (maxFd == -1)
+			perror("Selected fallo");
 		/*	*
 		 *	CONTESTAR TODOS LOS FDs QUE ESTAN DISPONIBLES A LEER
 		 */
