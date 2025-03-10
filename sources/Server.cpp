@@ -142,7 +142,6 @@ void	Server::close(int idx)
 {
 	if (idx < 0 || (size_t)idx >= _clientList.size() || _clientList.empty())
 		return ;
-	printf("Cerrando a: [%d]: %d\n", idx, _clientList[idx].getSockFd());
 	_clientList[idx].close();
 	_clientList.erase(_clientList.begin() + idx);
 }

@@ -84,7 +84,7 @@ void	BaseSocket::close(void)
 {
 	if (_sockFd == -1)
 		return ;
-	//printf("Closing: %d\n", _sockFd);
+	printf("Closing: %d\n", _sockFd);
 	::close(_sockFd);
 	_sockFd = -1;
 }
@@ -108,7 +108,7 @@ BaseSocket	&BaseSocket:: operator = (BaseSocket const &obj)
 {
 	if (this != &obj || _sockFd != obj._sockFd)
 	{
-		close();
+		//close();
 		_sockFd = obj._sockFd;
 		_domain = obj._domain;
 		_type = obj._type;
