@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:01:48 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/08 16:01:36 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/10 02:05:09 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,7 @@ BaseSocket	ListenSocket::accept(void) const
 	reqFd = ::accept(getSockFd(), (struct sockaddr *)&reqAddr, &reqLen);
 	if (reqFd == -1)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			perror("<ListenSocket> There are not conexions, waiting...");
-		else
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
 			perror("<ListenSocket> Request failed to accept");
 		return (request);
 	}

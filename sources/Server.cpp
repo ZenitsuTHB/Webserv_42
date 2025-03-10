@@ -6,13 +6,16 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/08 14:16:42 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/10 12:10:14 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <iostream>
+#include <sys/select.h>
 #include "../includes/Server.hpp"
 
 Server::~Server(void)
@@ -69,10 +72,14 @@ int	Server::accept(void)
 {
 	BaseSocket	client;
 	BaseSocket	*newList;
+	int			statusFlag;
 
 	client = _socket.accept();
 	if (client.getSockFd() == -1)
 		return (-1);
+	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
+	if (fcntl(client.getSockFd(), F_SETFL, statusFlag) == -1)
+		return (client.close(), -1);
 	newList = new BaseSocket[_clientNum + 1];
 	if (!newList)
 		return (perror("<Server> Couldn't mallocate client array"), -1);
@@ -115,6 +122,8 @@ std::string	Server::receive(int idx) const
 		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
 		if (bytes == -1)
 			return (perror("<Server> Error reading"), std::string());
+		if (bytes == 0)
+			break ;
 		buffer[bytes] = '\0';
 		request.append(buffer);
 		if (endRequest(request))
@@ -154,14 +163,83 @@ void	Server::close(int idx)
 		return (perror("<Server> Couldn't mallocate client array"));
 	for (int i = 0, j = 0; i <= _clientNum; ++i)
 	{
-		if (j != idx)
+		if (i != idx)
 		{
-			newList[j] = _clientList[j];
+			newList[j] = _clientList[i];
 			++j;
 		}
 	}
 	delete [] _clientList;
 	_clientList = newList;
+}
+
+std::string	Server::manage(std::string request) const
+{
+	std::cout << "Request received:" << std::endl << request << std::endl;
+	return ("This is the Server Respond\r\n\r\n");
+}
+
+void	Server::run(void)
+{
+	fd_set			set;
+	int				idx;
+	int				maxFd;
+	struct timeval	time;
+
+	while (true)
+	{
+		std::cout << "Accepting client..." << std::endl;
+		idx = accept();
+		if (idx != -1)
+			std::cout << "New client: " << idx << "(" << _clientNum
+				<< ")" << std::endl;
+		sleep(1);
+		/*	*
+		 *	PONER LOS FDs EN EL SET A VIGILAR CON SELECT
+		 */
+		std::cout << "Selecting fd to read..." << std::endl;
+		FD_ZERO(&set);
+		maxFd = 0;
+		for (int i = 0; i < _clientNum; i++)
+		{
+			int	clientFd;
+
+			clientFd = _clientList[i].getSockFd();
+			if (clientFd > maxFd)
+				maxFd = clientFd;
+			FD_SET(clientFd, &set);
+			std::cout << "Setting [" << i << "]: " << clientFd << std::endl;
+		}
+		time.tv_usec = 5000;
+		time.tv_sec = 0;
+		maxFd = select(maxFd + 1, &set, NULL, NULL, &time);//EL PUTO +1
+		/*	*
+		 *	CONTESTAR TODOS LOS FDs QUE ESTAN DISPONIBLES A LEER
+		 */
+		std::cout << "Selected: " << maxFd << " of " << _clientNum << std::endl;
+		sleep(4);
+		if (!maxFd)
+			continue ;
+
+		std::cout << "Looking for reads" << std::endl;
+		for (int i = 0, j = 0; i < _clientNum && j < maxFd; ++i)
+		{
+			sleep(1);
+			std::string	request;
+			std::string	response;
+			if (!FD_ISSET(_clientList[i].getSockFd(), &set))
+				continue ;
+			std::cout << "Server managing: [" << i << "]" << std::endl;
+			request = receive(i);
+			response = manage(request);
+			respond(response, i);
+			close(i);
+			--i;
+			j++;
+			if (_clientNum == 0)
+				return ;
+		}
+	}
 }
 
 Server	&Server:: operator = (Server const &obj)
@@ -175,14 +253,16 @@ Server	&Server:: operator = (Server const &obj)
 }
 
 
-#include <iostream>
 int	main(void)
 {
 	Server	server(AF_INET, SOCK_STREAM, 0);
+
+	server.start(INADDR_ANY, 8080, SOMAXCONN);
+	server.run();
+	/*
 	std::string	request;
 	int			i;
 
-	server.start(INADDR_ANY, 8080, SOMAXCONN);
 	while (true)
 	{
 		i = server.accept();
@@ -196,5 +276,5 @@ int	main(void)
 		server.close(i);
 		std::cout << "Closed" << std::endl;
 		break ;
-	}
+	}*/
 }
