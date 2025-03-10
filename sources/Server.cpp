@@ -6,11 +6,12 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/10 12:10:14 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/10 12:56:59 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <unistd.h>
+#include <sys/errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -121,13 +122,17 @@ std::string	Server::receive(int idx) const
 	{
 		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
 		if (bytes == -1)
+		{
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break ;
 			return (perror("<Server> Error reading"), std::string());
+		}
 		if (bytes == 0)
 			break ;
 		buffer[bytes] = '\0';
 		request.append(buffer);
-		if (endRequest(request))
-			break ;
+		//if (endRequest(request))
+		//	break ;
 	}
 	return (request);
 }
@@ -236,8 +241,6 @@ void	Server::run(void)
 			close(i);
 			--i;
 			j++;
-			if (_clientNum == 0)
-				return ;
 		}
 	}
 }
