@@ -17,17 +17,15 @@
 #include <fcntl.h>
 #include <iostream>
 #include <sys/select.h>
+#include <algorithm>
 #include "../includes/Server.hpp"
 
 Server::~Server(void)
 {
-	for (int i = 0; i < _clientNum; i++)
-		_clientList[i].close();
-	delete [] _clientList;
 }
 
 Server::Server(int domain, int type, int protocol):
-	_socket(domain, type, protocol), _clientList(NULL), _clientNum(0)
+	_socket(domain, type, protocol)
 {
 	int	flags;
 	int	fd;
@@ -58,7 +56,7 @@ Server::Server(int domain, int type, int protocol):
 }
 
 Server::Server(Server const &obj):
-	_socket(obj._socket), _clientList(NULL), _clientNum(0)
+	_socket(obj._socket)
 {
 	*this = obj;
 }
@@ -72,7 +70,6 @@ void	Server::start(int ip, int port, int backlog)
 int	Server::accept(void)
 {
 	BaseSocket	client;
-	BaseSocket	*newList;
 	int			statusFlag;
 
 	client = _socket.accept();
@@ -81,16 +78,8 @@ int	Server::accept(void)
 	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
 	if (fcntl(client.getSockFd(), F_SETFL, statusFlag) == -1)
 		return (client.close(), -1);
-	newList = new BaseSocket[_clientNum + 1];
-	if (!newList)
-		return (perror("<Server> Couldn't mallocate client array"), -1);
-	for (int i = 0; i < _clientNum; ++i)
-		newList[i] = _clientList[i];
-	newList[_clientNum] = client;
-	delete [] _clientList;
-	_clientList = newList;
-	++_clientNum;
-	return (_clientNum - 1);
+	_clientList.push_back(client);
+	return (_clientList.size());
 }
 
 /*	*
@@ -116,7 +105,7 @@ std::string	Server::receive(int idx) const
 	char		buffer[BUFF_SIZE + 1];
 	int			bytes;
 
-	if (idx < 0 || idx >= _clientNum)
+	if (idx < 0 || (size_t)idx >= _clientList.size())
 		return ("<Server> Invalid Index");
 	while (true)
 	{
@@ -141,7 +130,7 @@ void	Server::respond(std::string response, int idx) const
 {
 	int	bytes;
 
-	if (idx < 0 || idx >= _clientNum)
+	if (idx < 0 || (size_t)idx >= _clientList.size())
 		return ;
 	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
 			response.length());
@@ -151,31 +140,11 @@ void	Server::respond(std::string response, int idx) const
 
 void	Server::close(int idx)
 {
-	BaseSocket	*newList;
-
-	if (idx < 0 || idx >= _clientNum)
+	if (idx < 0 || (size_t)idx >= _clientList.size() || _clientList.empty())
 		return ;
 	_clientList[idx].close();
-	--_clientNum;
-	if (!_clientNum)
-	{
-		delete [] _clientList;
-		_clientList = NULL;
-		return ;
-	}
-	newList = new BaseSocket[_clientNum];
-	if (!newList)
-		return (perror("<Server> Couldn't mallocate client array"));
-	for (int i = 0, j = 0; i <= _clientNum; ++i)
-	{
-		if (i != idx)
-		{
-			newList[j] = _clientList[i];
-			++j;
-		}
-	}
-	delete [] _clientList;
-	_clientList = newList;
+	std::vector<BaseSocket>::iterator it = _clientList.begin() + idx;
+	_clientList.erase(it);
 }
 
 std::string	Server::manage(std::string request) const
@@ -196,7 +165,7 @@ void	Server::run(void)
 		std::cout << "Accepting client..." << std::endl;
 		idx = accept();
 		if (idx != -1)
-			std::cout << "New client: " << idx << "(" << _clientNum
+			std::cout << "New client: " << idx << "(" << _clientList.size()
 				<< ")" << std::endl;
 		sleep(1);
 		/*	*
@@ -205,7 +174,7 @@ void	Server::run(void)
 		std::cout << "Selecting fd to read..." << std::endl;
 		FD_ZERO(&set);
 		maxFd = 0;
-		for (int i = 0; i < _clientNum; i++)
+		for (int i = 0; (size_t)i < _clientList.size(); i++)
 		{
 			int	clientFd;
 
@@ -221,13 +190,13 @@ void	Server::run(void)
 		/*	*
 		 *	CONTESTAR TODOS LOS FDs QUE ESTAN DISPONIBLES A LEER
 		 */
-		std::cout << "Selected: " << maxFd << " of " << _clientNum << std::endl;
+		std::cout << "Selected: " << maxFd << " of " << _clientList.size() << std::endl;
 		sleep(4);
 		if (!maxFd)
 			continue ;
 
 		std::cout << "Looking for reads" << std::endl;
-		for (int i = 0, j = 0; i < _clientNum && j < maxFd; ++i)
+		for (int i = 0, j = 0; (size_t)i < _clientList.size() && j < maxFd; ++i)
 		{
 			sleep(1);
 			std::string	request;
@@ -250,7 +219,6 @@ Server	&Server:: operator = (Server const &obj)
 	if (this != &obj)
 	{
 		_socket = obj._socket;
-		_clientNum = obj._clientNum;
 	}
 	return (*this);
 }

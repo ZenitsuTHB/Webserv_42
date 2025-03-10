@@ -14,6 +14,7 @@
 # define SERVER_HPP
 
 # include <string>
+# include <vector>
 # include "ListenSocket.hpp"
 
 # define BUFF_SIZE 100
@@ -36,9 +37,8 @@ class	Server
 		Server	& operator = ( Server const &obj );
 
 	private:
-		ListenSocket	_socket;
-		BaseSocket		*_clientList;
-		int				_clientNum;
+		ListenSocket			_socket;
+		std::vector<BaseSocket>	_clientList;
 };
 
 #endif
