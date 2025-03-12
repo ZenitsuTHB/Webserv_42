@@ -32,14 +32,15 @@ class	Server
 		std::string	manage( std::string request ) const;
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
-		int		storeFdsset( fd_set  &set );
+		int		storeFdsset( );
 		void		run( void );
 
 		Server	& operator = ( Server const &obj );
 
 	private:
 		ListenSocket			_socket;
-		std::vector<BaseSocket>	_clientList;
+		std::vector<struct pollfd>	_pollfds;
+		std::vector<BaseSocket>		_clientList;
 };
 
 #endif

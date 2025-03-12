@@ -16,7 +16,8 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <iostream>
-#include <sys/select.h>
+//#include <sys/select.h>
+#include <poll.h>
 #include <algorithm>
 #include "../includes/Server.hpp"
 
@@ -152,75 +153,82 @@ std::string	Server::manage(std::string request) const
 	return ("This is the Server Respond\r\n\r\n");
 }
 
-int	Server::storeFdsset( fd_set  &set )
+int	Server::storeFdsset( )
 {
-	int	idx;
-	int	maxFd;
-	struct	timeval	time;
+	int idx;
 
 	std::cout << "Accepting client..." << std::endl;
 	idx = accept();
 	if (idx != -1)
-		std::cout << "New client: " << idx << "(" << _clientList.size()
-			<< ")" << std::endl;
-	sleep(1);
-	/*	*
-	 *	PONER LOS FDs EN EL SET A VIGILAR CON SELECT
-	 */
-	std::cout << "Selecting fd to read..." << std::endl;
-	FD_ZERO(&set);
-	maxFd = 0;
-	for (int i = 0; (size_t)i < _clientList.size(); i++)
 	{
-		int	clientFd;
-	
-		clientFd = _clientList[i].getSockFd();
-		if (clientFd > maxFd)
-		{
-			maxFd = clientFd;
-		}
-		FD_SET(clientFd, &set);
-		std::cout << "Setting [" << i << "]: " << clientFd << std::endl;
+		std::cout << "New client: " << idx << "(" << _clientList.size() 
+			  << ")" << std::endl;
+		sleep(1);
+		std::cout << "Filling the pollfd to read..." << std::endl;
+		struct pollfd	pfd;
+		pfd.fd = _clientList.back().getSockFd();
+		pfd.events = POLLIN;//surveiller la lecture
+		_pollfds.push_back( pfd );
 	}
-	time.tv_usec = 5000;
-	time.tv_sec = 0;
-	maxFd = select(maxFd + 1, &set, NULL, NULL, &time);
-	return (maxFd);
+	int ready = poll( _pollfds.data(), _pollfds.size(), 2000);
+	return ( ready );
 }
 
 void	Server::run(void)
 {
-	fd_set			set;
 
 	while (true)
 	{
-		int maxFd = storeFdsset( set );
+		int maxFd = storeFdsset( );
 		if (maxFd == -1)
-			perror("Selected fallo");
-		/*	*
-		 *	CONTESTAR TODOS LOS FDs QUE ESTAN DISPONIBLES A LEER
-		 */
-		std::cout << "Selected: " << maxFd << " of " << _clientList.size() << std::endl;
-		sleep(4);
-		if (!maxFd)
-			continue ;
-
-		std::cout << "Looking for reads" << std::endl;
-		for (int i = 0, j = 0; (size_t)i < _clientList.size() && j < maxFd; ++i)
 		{
-			sleep(1);
-			std::string	request;
-			std::string	response;
-			if (!FD_ISSET(_clientList[i].getSockFd(), &set))
-				continue ;
-			std::cout << "Server managing: [" << i << "]" << std::endl;
-			request = receive(i);
-			response = manage(request);
-			respond(response, i);
-			close(i);
-			--i;
-			j++;
+			perror( "poll failed !" );
+			continue ;
 		}
+		sleep(4);
+		if (maxFd == 0)
+		{
+			perror( "Time OUT  ! No Client is ready yet !" );
+			continue ;
+		}
+
+		std::cout << "Looking for reads\n" << std::endl;
+		for (size_t i = 0; i < _pollfds.size(); )
+		{
+			if (!(_pollfds[i].revents & POLLIN))
+			{
+				++i;
+				continue;
+			}
+
+			std::cout << "Server managing: [" << i << "]" << std::endl;
+			std::string request = receive(i);
+			std::string response = manage(request);
+			respond(response, i);
+
+			close(i);
+			_pollfds.erase(_pollfds.begin() + i); // Supprimer l'entrée pollfd
+	//	size_t i = 0;
+	//	int checked_clients =0;
+	//	int clientsTochecke = _pollfds.size();
+	//	while ( i < _clientList.size() && checked_clients < clientsTochecke ) 
+	//	{
+	//		std::cout << "Selected: " << i << " of " << _clientList.size() << std::endl;
+	//		sleep(4);//to delete
+	//		if ( !( _pollfds[i].revents & POLLIN ) )
+	//		{
+	//			i++;
+	//			continue ;
+	//		}
+	//		std::string request = receive( i );
+	//		std::string response = manage( request );
+	//		respond( response, i );
+	//		close( i );
+	//		--i;
+	//		checked_clients++;
+		}
+
+
 	}
 }
 
@@ -240,22 +248,4 @@ int	main(void)
 
 	server.start(INADDR_ANY, 8080, SOMAXCONN);
 	server.run();
-	/*
-	std::string	request;
-	int			i;
-
-	while (true)
-	{
-		i = server.accept();
-		if (i == -1)
-			continue ;
-		std::cout << "Accepted index: " << i << std::endl;
-		request = server.receive(i);
-		std::cout << "Request:" << std::endl << request << std::endl;
-		server.respond("Hola soy el Servidor", i);
-		std::cout << "Responded" << std::endl;
-		server.close(i);
-		std::cout << "Closed" << std::endl;
-		break ;
-	}*/
 }

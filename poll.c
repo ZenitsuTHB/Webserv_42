@@ -32,7 +32,8 @@ int       main(int argc, char *argv[])
 
            /* Open each file on command line, and add it to 'pfds' array. */
 
-           for (nfds_t j = 0; j < nfds; j++) {
+           for (nfds_t j = 0; j < nfds; j++) 
+	   {
                pfds[j].fd = open(argv[j + 1], O_RDONLY);
                if (pfds[j].fd == -1)
                    errExit("open");
@@ -45,7 +46,8 @@ int       main(int argc, char *argv[])
            /* Keep calling poll() as long as at least one file descriptor is
               open. */
 
-           while (num_open_fds > 0) {
+           while (num_open_fds > 0) 
+	   {
                printf("About to poll()\n");
                ready = poll(pfds, nfds, -1);
                if (ready == -1)
@@ -55,10 +57,12 @@ int       main(int argc, char *argv[])
 
                /* Deal with array returned by poll(). */
 		sleep(1);
-               for (nfds_t j = 0; j < nfds; j++) {
-                   if (pfds[j].revents != 0) {
+               for (nfds_t j = 0; j < nfds; j++) 
+	       {
+                   if (pfds[j].revents != 0) 
+		   {
 
-                       printf("  fd=%d; events: %s%s%s\n", pfds[j].fd,
+                        printf("  fd=%d; events: %s%s%s\n", pfds[j].fd,
                               (pfds[j].revents & POLLIN)  ? "POLLIN "  : "",
                               (pfds[j].revents & POLLHUP) ? "POLLHUP " : "",
                               (pfds[j].revents & POLLERR) ? "POLLERR " : "");
