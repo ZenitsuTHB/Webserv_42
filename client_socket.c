@@ -74,7 +74,7 @@ Communication to Server
 	/*	*
 	 *	Envio de mensaje al Server
 	 */
-	sleep(300);
+	sleep(10);
 	char	buffer[10240];
 	int		rd_bytes;
 

@@ -32,6 +32,7 @@ class	Server
 		std::string	manage( std::string request ) const;
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
+		int		storeFdsset( fd_set  &set );
 		void		run( void );
 
 		Server	& operator = ( Server const &obj );

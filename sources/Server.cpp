@@ -152,42 +152,49 @@ std::string	Server::manage(std::string request) const
 	return ("This is the Server Respond\r\n\r\n");
 }
 
+int	Server::storeFdsset( fd_set  &set )
+{
+	int	idx;
+	int	maxFd;
+	struct	timeval	time;
+
+	std::cout << "Accepting client..." << std::endl;
+	idx = accept();
+	if (idx != -1)
+		std::cout << "New client: " << idx << "(" << _clientList.size()
+			<< ")" << std::endl;
+	sleep(1);
+	/*	*
+	 *	PONER LOS FDs EN EL SET A VIGILAR CON SELECT
+	 */
+	std::cout << "Selecting fd to read..." << std::endl;
+	FD_ZERO(&set);
+	maxFd = 0;
+	for (int i = 0; (size_t)i < _clientList.size(); i++)
+	{
+		int	clientFd;
+	
+		clientFd = _clientList[i].getSockFd();
+		if (clientFd > maxFd)
+		{
+			maxFd = clientFd;
+		}
+		FD_SET(clientFd, &set);
+		std::cout << "Setting [" << i << "]: " << clientFd << std::endl;
+	}
+	time.tv_usec = 5000;
+	time.tv_sec = 0;
+	maxFd = select(maxFd + 1, &set, NULL, NULL, &time);
+	return (maxFd);
+}
+
 void	Server::run(void)
 {
 	fd_set			set;
-	int				idx;
-	int				maxFd;
-	struct timeval	time;
 
 	while (true)
 	{
-		std::cout << "Accepting client..." << std::endl;
-		idx = accept();
-		if (idx != -1)
-			std::cout << "New client: " << idx << "(" << _clientList.size()
-				<< ")" << std::endl;
-		sleep(1);
-		/*	*
-		 *	PONER LOS FDs EN EL SET A VIGILAR CON SELECT
-		 */
-		std::cout << "Selecting fd to read..." << std::endl;
-		FD_ZERO(&set);
-		maxFd = 0;
-		for (int i = 0; (size_t)i < _clientList.size(); i++)
-		{
-			int	clientFd;
-
-			clientFd = _clientList[i].getSockFd();
-			if (clientFd > maxFd)
-			{
-				maxFd = clientFd;
-			}
-			FD_SET(clientFd, &set);
-			std::cout << "Setting [" << i << "]: " << clientFd << std::endl;
-		}
-		time.tv_usec = 5000;
-		time.tv_sec = 0;
-		maxFd = select(maxFd + 1, &set, NULL, NULL, &time);//EL PUTO +1
+		int maxFd = storeFdsset( set );
 		if (maxFd == -1)
 			perror("Selected fallo");
 		/*	*
