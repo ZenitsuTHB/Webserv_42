@@ -25,7 +25,7 @@ Server::~Server(void)
 {
 }
 
-Server::Server(int domain, int type, int protocol):
+Server::Server(int domain, int type, int protocol) :
 	_socket(domain, type, protocol)
 {
 	int	flags;
@@ -56,7 +56,7 @@ Server::Server(int domain, int type, int protocol):
 	return ;
 }
 
-Server::Server(Server const &obj):
+Server::Server(Server const &obj)
 	_socket(obj._socket)
 {
 	*this = obj;
