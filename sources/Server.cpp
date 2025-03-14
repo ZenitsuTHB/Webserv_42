@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <iostream>
-//#include <sys/select.h>
+#include <sys/epoll.h>
 #include <poll.h>
 #include <algorithm>
 #include "../includes/Server.hpp"
@@ -56,7 +56,7 @@ Server::Server(int domain, int type, int protocol) :
 	return ;
 }
 
-Server::Server(Server const &obj)
+Server::Server(Server const &obj) :
 	_socket(obj._socket)
 {
 	*this = obj;
@@ -174,8 +174,22 @@ int	Server::storeFdsset( )
 	return ( ready );
 }
 
+#define MAX_EVENTS 3
+
 void	Server::run(void)
 {
+
+	struct	epoll_event	ev, events[MAX_EVENTS];
+	int	epoll_fd = epoll_create1( 0 );
+
+	if ( epoll_fd == -1 )
+	{
+		fprintf( stderr, "failed to create epoll instance\n");
+		return ( 1 );
+	}
+
+	ev.events = EPOLLIN;
+	ev.data.fd = 
 
 	while (true)
 	{
@@ -208,24 +222,6 @@ void	Server::run(void)
 
 			close(i);
 			_pollfds.erase(_pollfds.begin() + i); // Supprimer l'entrée pollfd
-	//	size_t i = 0;
-	//	int checked_clients =0;
-	//	int clientsTochecke = _pollfds.size();
-	//	while ( i < _clientList.size() && checked_clients < clientsTochecke ) 
-	//	{
-	//		std::cout << "Selected: " << i << " of " << _clientList.size() << std::endl;
-	//		sleep(4);//to delete
-	//		if ( !( _pollfds[i].revents & POLLIN ) )
-	//		{
-	//			i++;
-	//			continue ;
-	//		}
-	//		std::string request = receive( i );
-	//		std::string response = manage( request );
-	//		respond( response, i );
-	//		close( i );
-	//		--i;
-	//		checked_clients++;
 		}
 
 

@@ -6,7 +6,7 @@
 /*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/13 18:04:13 by avolcy            #+#    #+#             */
-/*   Updated: 2025/03/13 19:50:46 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/03/14 19:28:38 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,11 @@
 // valid values are : EPOLL_CTL_ADD - EPOLL_CTL_MOD - EPOLL_CTL_DEL
 int	main()
 {
+	// create struct of event
+	// an array of struct event with the maximum event possible
 	struct	epoll_event	event, events[MAX_EVENTS];
+
+	// initialize an epoll instance
 	int	epoll_fd = epoll_create1( 0 );
 
 	if ( epoll_fd == -1 )
@@ -33,6 +37,7 @@ int	main()
 		return ( 1 );
 	}
 	
+	// 
 	event.events = EPOLLIN;
 	event.data.fd = 0;
 
