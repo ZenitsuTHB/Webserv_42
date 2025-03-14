@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/07 19:05:00 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/11 18:35:55 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,6 @@ void	BaseSocket::close(void)
 {
 	if (_sockFd == -1)
 		return ;
-	printf("Closing: %d\n", _sockFd);
 	::close(_sockFd);
 	_sockFd = -1;
 }
@@ -108,7 +107,6 @@ BaseSocket	&BaseSocket:: operator = (BaseSocket const &obj)
 {
 	if (this != &obj || _sockFd != obj._sockFd)
 	{
-		//close();
 		_sockFd = obj._sockFd;
 		_domain = obj._domain;
 		_type = obj._type;

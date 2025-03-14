@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/10 12:56:59 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/03/11 18:52:42 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <fcntl.h>
 #include <iostream>
 #include <sys/select.h>
-#include <algorithm>
 #include "../includes/Server.hpp"
 
 Server::~Server(void)
