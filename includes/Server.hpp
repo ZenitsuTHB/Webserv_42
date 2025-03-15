@@ -17,7 +17,8 @@
 # include <vector>
 # include "ListenSocket.hpp"
 
-# define BUFF_SIZE 100
+# define BUFF_SIZE 10
+# define MAX_EVENTS 2
 
 class	Server
 {
@@ -38,8 +39,12 @@ class	Server
 		Server	& operator = ( Server const &obj );
 
 	private:
-		ListenSocket			_socket;
-		std::vector<struct pollfd>	_pollfds;
+		int			_epoll_fd;
+		ListenSocket		_socket;
+		struct epoll_event	_event;
+		struct epoll_event	_events[MAX_EVENTS];
+		//std::vector<struct epoll_event>	_event;
+		//std::vector<struct epoll_event>	_events[MAX_EVENTS];
 		std::vector<BaseSocket>		_clientList;
 };
 

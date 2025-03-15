@@ -153,25 +153,30 @@ std::string	Server::manage(std::string request) const
 	return ("This is the Server Respond\r\n\r\n");
 }
 
-int	Server::storeFdsset( )
+void	Server::storeFdsset( )
 {
+	_epoll_fd = epoll_create1( 0 );
+	if ( epoll_fd == -1 )
+	{
+		fprintf( stderr, "failed to create epoll instance\n");
+		return ;
+	}
+	
 	int idx;
-
 	std::cout << "Accepting client..." << std::endl;
 	idx = accept();
 	if (idx != -1)
 	{
-		std::cout << "New client: " << idx << "(" << _clientList.size() 
-			  << ")" << std::endl;
-		sleep(1);
-		std::cout << "Filling the pollfd to read..." << std::endl;
-		struct pollfd	pfd;
-		pfd.fd = _clientList.back().getSockFd();
-		pfd.events = POLLIN;//surveiller la lecture
-		_pollfds.push_back( pfd );
+		event.events = EPOLLIN;
+		event.data.fd = _clientList.back().getsocket();
+		std::cout << "New client: " << idx << "(" << _clientList.size() << ")" << std::endl;
 	}
-	int ready = poll( _pollfds.data(), _pollfds.size(), 2000);
-	return ( ready );
+	if ( epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _event.data.fd, &_event ))
+	{
+		fprintf( stderr, "Failed to add file descriptor to epoll\n");
+                close( _epoll_fd );
+                return ;
+	}
 }
 
 #define MAX_EVENTS 3
@@ -179,41 +184,29 @@ int	Server::storeFdsset( )
 void	Server::run(void)
 {
 
-	struct	epoll_event	ev, events[MAX_EVENTS];
-	int	epoll_fd = epoll_create1( 0 );
+	int	event_count = 0;
+	size_t	bytes_read = 0;
+	char	read_buf[READ_SIZE + 1];
 
-	if ( epoll_fd == -1 )
-	{
-		fprintf( stderr, "failed to create epoll instance\n");
-		return ( 1 );
-	}
-
-	ev.events = EPOLLIN;
-	ev.data.fd = 
-
+	storeFdsset( );
 	while (true)
 	{
-		int maxFd = storeFdsset( );
-		if (maxFd == -1)
+		int event_count = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 3000);
+		if (event_count == -1)
 		{
-			perror( "poll failed !" );
+			perror( "epoll failed !" );
 			continue ;
 		}
 		sleep(4);
-		if (maxFd == 0)
+		if (event_count== 0)
 		{
 			perror( "Time OUT  ! No Client is ready yet !" );
 			continue ;
 		}
 
 		std::cout << "Looking for reads\n" << std::endl;
-		for (size_t i = 0; i < _pollfds.size(); )
+		for ( int i = 0; i < event_count; i++ )
 		{
-			if (!(_pollfds[i].revents & POLLIN))
-			{
-				++i;
-				continue;
-			}
 
 			std::cout << "Server managing: [" << i << "]" << std::endl;
 			std::string request = receive(i);
@@ -221,7 +214,6 @@ void	Server::run(void)
 			respond(response, i);
 
 			close(i);
-			_pollfds.erase(_pollfds.begin() + i); // Supprimer l'entrée pollfd
 		}
 
 
