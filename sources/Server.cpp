@@ -226,14 +226,22 @@ Server	&Server:: operator = (Server const &obj)
 	return (*this);
 }
 
+#include "../includes/ServerData.hpp"
 
-int	main(void)
+int	main(int ac, char **av)
 {
-	Server	server(AF_INET, SOCK_STREAM, 0);
+	if (ac != 2)
+		return 1;
+	
+	ServerData	server(av[1]);
+
+	return 0;
+
+	/*Server	server(AF_INET, SOCK_STREAM, 0);
 
 	server.start(INADDR_ANY, 8080, SOMAXCONN);
 	server.run();
-	/*
+	
 	std::string	request;
 	int			i;
 
