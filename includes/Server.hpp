@@ -16,8 +16,10 @@
 # include <string>
 # include <vector>
 # include "ListenSocket.hpp"
+# include <sys/epoll.h>
 
 # define BUFF_SIZE 100
+# define MAX_EVENTS 5
 
 class	Server
 {
@@ -32,15 +34,17 @@ class	Server
 		std::string	manage( std::string request ) const;
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
-		int		storeFdsset( );
+		int		storeFdsset( int );
 		void		run( void );
 
 		Server	& operator = ( Server const &obj );
 
 	private:
+		int				_clientfd;
 		ListenSocket			_socket;
-		std::vector<struct pollfd>	_pollfds;
 		std::vector<BaseSocket>		_clientList;
+		int				_epoll_fd;
+		struct	epoll_event		_events[MAX_EVENTS];
 };
 
 #endif

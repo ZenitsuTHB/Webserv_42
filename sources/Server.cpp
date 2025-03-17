@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <iostream>
-//#include <sys/select.h>
 #include <poll.h>
 #include <algorithm>
 #include "../includes/Server.hpp"
@@ -53,6 +52,7 @@ Server::Server(int domain, int type, int protocol):
 		_socket.close();
 		perror("<Server> Error to add O_NONBLOCK");
 	}
+	_clientfd = -1;
 	return ;
 }
 
@@ -73,6 +73,7 @@ int	Server::accept(void)
 	BaseSocket	client;
 	int			statusFlag;
 
+	std::cout << "<SERVER> Accepting client..." << std::endl;
 	client = _socket.accept();
 	if (client.getSockFd() == -1)
 		return (-1);
@@ -153,79 +154,83 @@ std::string	Server::manage(std::string request) const
 	return ("This is the Server Respond\r\n\r\n");
 }
 
-int	Server::storeFdsset( )
+int	Server::storeFdsset( int idx )//idx debugging purpose
 {
-	int idx;
-
-	std::cout << "Accepting client..." << std::endl;
-	idx = accept();
-	if (idx != -1)
+	std::cout << "New client: " << idx << "(" << _clientList.size() 
+		  << ")" << std::endl;
+	if ( _clientList.empty())
 	{
-		std::cout << "New client: " << idx << "(" << _clientList.size() 
-			  << ")" << std::endl;
-		sleep(1);
-		std::cout << "Filling the pollfd to read..." << std::endl;
-		struct pollfd	pfd;
-		pfd.fd = _clientList.back().getSockFd();
-		pfd.events = POLLIN;//surveiller la lecture
-		_pollfds.push_back( pfd );
+		std::cerr << "<SERVER> The client list seems to be empty" << std::endl;
+		return ( 0 );
 	}
-	int ready = poll( _pollfds.data(), _pollfds.size(), 2000);
+
+	struct epoll_event newClient;
+
+	_clientfd  = _clientList.back().getSockFd();
+	if( _clientfd == -1 )
+	{
+		std::cerr << "Invalid clientfd !" << std::endl;
+		return ( 0 );
+	}
+
+	newClient.events = EPOLLIN;
+	newClient.data.fd = _clientfd;
+	std::cout << "<SERVER> Storing client... Filling the epollfd to read..." << std::endl;
+
+	int ready = epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _clientfd , &newClient );
 	return ( ready );
 }
 
 void	Server::run(void)
 {
+	int idx = -1;
+	int maxFd = -1;
 
 	while (true)
 	{
-		int maxFd = storeFdsset( );
+		idx = accept();
+		std::cout << "this is from accept : [ " << idx << " ]\n";
+		if (idx != -1)
+			maxFd = storeFdsset( idx );
 		if (maxFd == -1)
 		{
-			perror( "poll failed !" );
+			perror( "<SERVER> epoll_ctl failed !\n" );
+			close( _clientfd );
 			continue ;
 		}
-		sleep(4);
-		if (maxFd == 0)
+		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 2000 );
+		if ( counter == -1 )
 		{
-			perror( "Time OUT  ! No Client is ready yet !" );
+			perror( "<SERVER> Error epoll_wait\n" );
+			continue ;
+		}
+		if ( counter == 0 )
+		{
+			std::cout << " <SERVER> Time OUT  ! No Client is ready yet !\n";
 			continue ;
 		}
 
-		std::cout << "Looking for reads\n" << std::endl;
-		for (size_t i = 0; i < _pollfds.size(); )
+		std::cout << "<SERVER> Looking for reads\n" << std::endl;
+		for ( int i = 0; i < counter; i++ )
 		{
-			if (!(_pollfds[i].revents & POLLIN))
-			{
-				++i;
+			int clientfd = _events[i].data.fd;
+
+			if ( !(_events[i].events & EPOLLIN))
 				continue;
+			
+			
+			std::cout << "<SERVER> managing: [" << i << "]" << std::endl;
+			std::string request = receive( clientfd );
+			if ( request.empty() )
+			{
+				std::cout << "Closing client: " << clientfd << std::endl;
+				epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, clientfd, NULL );
+				close( clientfd );
+				continue ;
 			}
-
-			std::cout << "Server managing: [" << i << "]" << std::endl;
-			std::string request = receive(i);
 			std::string response = manage(request);
-			respond(response, i);
+			respond(response, clientfd);
 
-			close(i);
-			_pollfds.erase(_pollfds.begin() + i); // Supprimer l'entrée pollfd
-	//	size_t i = 0;
-	//	int checked_clients =0;
-	//	int clientsTochecke = _pollfds.size();
-	//	while ( i < _clientList.size() && checked_clients < clientsTochecke ) 
-	//	{
-	//		std::cout << "Selected: " << i << " of " << _clientList.size() << std::endl;
-	//		sleep(4);//to delete
-	//		if ( !( _pollfds[i].revents & POLLIN ) )
-	//		{
-	//			i++;
-	//			continue ;
-	//		}
-	//		std::string request = receive( i );
-	//		std::string response = manage( request );
-	//		respond( response, i );
-	//		close( i );
-	//		--i;
-	//		checked_clients++;
 		}
 
 
