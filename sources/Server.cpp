@@ -53,6 +53,13 @@ Server::Server(int domain, int type, int protocol):
 		perror("<Server> Error to add O_NONBLOCK");
 	}
 	_clientfd = -1;
+	_epoll_fd = epoll_create1( 0 );
+	if (_epoll_fd == -1)
+	{
+    		perror("<SERVER> Failed to create epoll instance");
+    		return ;
+	}
+
 	return ;
 }
 
@@ -75,12 +82,14 @@ int	Server::accept(void)
 
 	std::cout << "<SERVER> Accepting client..." << std::endl;
 	client = _socket.accept();
+	std::cout << "\n<SERVER> client socket infos..." << client << std::endl;
 	if (client.getSockFd() == -1)
 		return (-1);
 	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
 	if (fcntl(client.getSockFd(), F_SETFL, statusFlag) == -1)
 		return (client.close(), -1);
 	_clientList.push_back(client);
+	std::cout << "<SERVER> I just took the size of the list..." << _clientList.size() << std::endl;
 	return (_clientList.size());
 }
 
@@ -156,8 +165,8 @@ std::string	Server::manage(std::string request) const
 
 int	Server::storeFdsset( int idx )//idx debugging purpose
 {
-	std::cout << "New client: " << idx << "(" << _clientList.size() 
-		  << ")" << std::endl;
+	std::cout << "<SERVER> New client: " << idx << " of : ( " << _clientList.size() 
+		  << " )" << std::endl;
 	if ( _clientList.empty())
 	{
 		std::cerr << "<SERVER> The client list seems to be empty" << std::endl;
@@ -175,30 +184,32 @@ int	Server::storeFdsset( int idx )//idx debugging purpose
 
 	newClient.events = EPOLLIN;
 	newClient.data.fd = _clientfd;
-	std::cout << "<SERVER> Storing client... Filling the epollfd to read..." << std::endl;
+	std::cout << "<SERVER> Storing client... fd is : [" << this->_clientfd << "] Filling the epollfd to read..." << std::endl;
 
-	int ready = epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _clientfd , &newClient );
+	int ready = epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _clientfd, &newClient );
+	std::cout << "\n<SERVER> This is the epoll result : " << ready << std::endl;
 	return ( ready );
 }
 
 void	Server::run(void)
 {
-	int idx = -1;
-	int maxFd = -1;
+	int idx = 0;
+	int fdReady = 0;
 
 	while (true)
 	{
-		idx = accept();
-		std::cout << "this is from accept : [ " << idx << " ]\n";
-		if (idx != -1)
-			maxFd = storeFdsset( idx );
-		if (maxFd == -1)
+		idx = accept( );
+		sleep( 3 );
+		std::cout << "<SERVER> this is from accept : [ " << idx << " ]\n";
+		if ( idx != -1 )
+			fdReady = storeFdsset( idx );
+		if ( fdReady == -1 )
 		{
 			perror( "<SERVER> epoll_ctl failed !\n" );
 			close( _clientfd );
 			continue ;
 		}
-		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 2000 );
+		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 5000 );
 		if ( counter == -1 )
 		{
 			perror( "<SERVER> Error epoll_wait\n" );
@@ -206,7 +217,7 @@ void	Server::run(void)
 		}
 		if ( counter == 0 )
 		{
-			std::cout << " <SERVER> Time OUT  ! No Client is ready yet !\n";
+			std::cout << "<SERVER> Time OUT ! No Client is ready yet !\n";
 			continue ;
 		}
 

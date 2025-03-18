@@ -67,6 +67,7 @@ BaseSocket	ListenSocket::accept(void) const
 	}
 	request.setSockFd(reqFd);
 	request.setAddress(reqAddr, sizeof(reqAddr));
+	std::cout << "<ListenSocket> " << request << std::endl;
 	return (request);
 }
 

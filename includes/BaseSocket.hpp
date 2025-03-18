@@ -13,6 +13,7 @@
 #ifndef BASESOCKET_HPP
 # define BASESOCKET_HPP
 
+# include <iostream>
 # include <sys/socket.h>
 # include <netinet/in.h>
 
@@ -38,6 +39,14 @@ class	BaseSocket
 		int	getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
 
 		BaseSocket	& operator = ( BaseSocket const &obj );
+	       
+		friend std::ostream & operator << (std::ostream & os, const BaseSocket & sock )
+		{
+			os << "\nCurrent _domain  : " << sock.getPort() << std::endl;
+			os << "Current _protocol: " << sock.getIp() << std::endl;
+			os << "Current _sockFd  : " << sock.getSockFd() << std::endl;
+			return ( os );
+		}
 
 	private:
 		int					_sockFd;
