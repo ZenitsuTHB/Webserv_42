@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 19:11:48 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/18 13:15:22 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/18 14:52:39 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,7 @@ Servidor
 	listen
 	server_name
 	default_server
+	host
 	root
 	index
 	error_page
@@ -131,11 +132,11 @@ struct	ServerConfig
 {
 	bool								isDefault = default_server
 	size_t								clientBodySizeLimit = client_max_body_size
-	std::string							host = server_name
+	std::string							host = host
 	std::vector<int>					ports = listen
 	std::vector<std::string>			serverNames = server_name
 	std::map<std::string, RouteConfig>	routes = location
-	std::map<int, std::string>			errorPages error_page
+	std::map<int, std::string>			errorPages = error_page
 };
 
 struct	LogConfig
@@ -153,6 +154,7 @@ struct	LogConfig
 #include <iostream>
 #include <vector>
 #include <map>
+#include <set>
 
 struct RouteConfig
 {
@@ -172,10 +174,10 @@ struct	ServerConfig
 	bool								isDefault;
 	size_t								clientBodySizeLimit;
 	std::string							host;
-	std::vector<int>					ports;
+	std::set<int>						ports;
 	std::vector<std::string>			serverNames;
-	std::map<std::string, RouteConfig>	locations;
 	std::map<int, std::string>			errorPages;
+	std::map<std::string, RouteConfig>	locations;
 };
 
 struct	LogConfig
@@ -218,10 +220,10 @@ class ServerData
 		void		parserConfig(std::ifstream &file);
 		void		parserServer(std::ifstream &file, bool token);
 		//void		parserRoute(std::ifstream &file, std::string data);
-		//void		parserVar(std::string const &var, std::string value);
+		void		parserVar(std::string const &var, std::string value, ServerConfig &server);
 		
 		bool		isToken(std::ifstream &file);
-		TypeData	whatIsThis(std::string var, std::string data, bool &exitBlock);
+		TypeData	whatIsThis(std::string var, std::string &data, bool &exitBlock);
 };
 
 #endif
