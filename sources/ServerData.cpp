@@ -6,150 +6,166 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/16 11:42:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/16 14:59:35 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/18 13:15:19 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ServerData.hpp"
 #include <fstream>
-
-static void	printError(std::string msg, std::string arg)
-{
-	std::cerr << msg << ": " << arg << std::endl;
-}
+#include <sstream>
 
 ServerData::~ServerData()
 {
 }
 
-ServerData::ServerData(char const *path)
+ServerData::ServerData(char const *path): _end(false)
 {
-	LineType		server;
 	std::ifstream	file(path);
-
 	if (!file.is_open())
-	{
 		std::cerr << "Error to open the file: " << path << std::endl;
-		return ;
-	}
-
-	std::string	line;
-	while (std::getline(file, line))
-	{
-		server = isServer(line);
-		switch (server)
-		{
-			case EMPTY:
-				continue ;
-			case SERVER:
-				//getServerData(file);
-			case ERROR:
-				return ;
-		}
-	}
+	
+	parserConfig(file);
 
 	file.close();
 }
-/*
-void	ServerData::getServerData(std::ifstream file)
-{
-	LineType		type;
-	ServerConfig	server;
-	std::string		line;
 
-	while (std::getline(file, line))
+void	ServerData::parserConfig(std::ifstream &file)
+{
+	std::string	line;
+	std::string	varname;
+	std::string	data;
+	size_t		init;
+
+	// Buscar un server
+	// Buscar un {
+	// Guardar datos del server o encontrar un location
+	// Buscar un { si encuentras location
+	// Guardar datos de location
+	// Parar si encuentras un }
+	// Buscar otro server si encuentras un }
+
+	while (getline(file, line) && !_end)
 	{
-		type = isLocation(line);
-		switch (type)
+		// Si la linea esta vacia ir a la siguiente linea
+		if (line.empty())
+			continue ;
+
+		// Separar la linea en varname y el resto (data)
+		std::istringstream	iss(line);
+		iss >> varname;
+		std::getline(iss, data);
+		
+		// Quitar espacios a data
+
+		init = 0;
+		while (init < data.size() && std::isspace(data[init]))
+			init++;
+		data = data.substr(init);
+
+		// Mirar que varname sea server
+		
+		if (varname == "server{" || (varname == "server" && data == "{"))
+			parserServer(file, true);
+		else if (varname == "server")
+			parserServer(file, false);
+		else
 		{
-			case EMPTY:
-				continue ;
-			case VAR:
-				// getVarData(line);
-			case LOCATION:
-				// getLocationData(file, line);
-				continue ;
-			case END:
-				break ;
-			case ERROR:
-				return ;
+			std::cerr << "Sintax error: " << line << std::endl;
+			return ;
 		}
 	}
-	_confi.servers.push_back(server);
 }
 
-//void	ServerData::getLocationData(std::ifstream file, std::string line)
-//{
+bool	 ServerData::isToken(std::ifstream &file)
+{
+	std::string line;
+
+	while (getline(file, line) && line.empty()) {}
 	
-//}
+	size_t	init = 0;
+	while (init < line.size() && std::isspace(line[init]))
+		init++;
+	line = line.substr(init);
+	if (line == "{")
+		return true;
+	return false;
+}
 
-LineType	ServerData::isLocation(std::string line)
+void	ServerData::parserServer(std::ifstream &file, bool token)
 {
-	if (line.empty())
-		return EMPTY;
+	std::string	line;
+	std::string	varname;
+	std::string	data;
+	bool		exitBlock = false;
 
-	size_t	start = line.find_first_not_of(" \t");
-	size_t	end = line.find_last_not_of(" \t");
+	// Mirar si tiene token por si es server \n{
 
-	std::string	newLine = line.substr(start, end - start + 1);
-
-	if (newLine == "}")
-		return END;
-
-	if (newLine.compare(0, 8, "location") != 0)
+	if (!token && !isToken(file))
 	{
-		if (newLine.find('{') == std::string::npos)
-			return VAR;
-		else
-			return printError("Sintax error", line), ERROR;
+		std::cerr << "Sintax error: server do not have a {" << std::endl;
+		_end = 1;
+		return ;
 	}
 
-	size_t	x = 8;
-	while (x < newLine.size() && std::isspace(newLine[x]))
-		x++;
-
-	if (newLine.size() == x || newLine[x] == '{')
-		return printError("Sintax error", line), ERROR;
-
-	bool key = false;
-	for (size_t i = x; i < newLine.size(); i++)
+	// Conseguir los datos del server
+	
+	while (getline(file, line) && !_end && !exitBlock)
 	{
-		if (std::isspace(newLine[i]))
+		// Si la linea esta vacia ir a la siguiente linea
+		if (line.empty())
 			continue ;
-		if (!key && newLine[i] == '{')
-			key = true;
-		else
-			return printError("Sintax error", line), ERROR;
-	}
-	if (!key)
-		return printError("Sintax error", line), ERROR;
-	return LOCATION;
-}*/
 
-LineType	ServerData::isServer(std::string line)
+		// Separar la linea en varname y el resto (data)
+		std::istringstream	iss(line);
+		iss >> varname;
+		std::getline(iss, data);
+		
+		// Quitar espacios a data
+
+		size_t init = 0;
+		while (init < data.size() && std::isspace(data[init]))
+			init++;
+		data = data.substr(init);
+
+		// Una funcion que mire lo que es y si tiene un '}'
+
+		switch (whatIsThis(varname, data, exitBlock))
+		{
+			case ROUTE:
+				std::cout << "Es una ruta: " << line << std::endl;
+				//parserRoute(file, data);
+				continue ;
+			case VAR:
+				std::cout << "Es una variable: " << line << std::endl;
+				//parserVar(varname, data);
+				continue ;
+			case TOKEN:
+				std::cout << "Es un token: " << line << std::endl;
+				break ;
+			case ERROR:
+				std::cerr << "Sintax error: " << line << std::endl;
+				_end = true;
+		}
+	}
+}
+
+TypeData	ServerData::whatIsThis(std::string var, std::string data, bool &exitBlock)
 {
-	if (line.empty())
-		return EMPTY;
-
-	size_t	start = line.find_first_not_of(" \t");
-	size_t	end = line.find_last_not_of(" \t");
-
-	std::string	newLine = line.substr(start, end - start + 1);
-
-	if (newLine.compare(0, 6, "server") != 0)
-		return printError("Sintax error", line), ERROR;
-
-	bool key = false;
-	for (size_t i = 6; i < newLine.size(); i++)
+	if (var == "location")
+		return ROUTE;
+	else if (var == "}")
 	{
-		if (std::isspace(newLine[i]))
-			continue ;
-		if (!key && newLine[i] == '{')
-			key = true;
-		else
-			return printError("Sintax error", line), ERROR;
+		exitBlock = true;
+		return TOKEN;
 	}
-	if (!key)
-		return printError("Sintax error", line), ERROR;
-	return SERVER;
+	else if (!data.empty())
+		return VAR;
+	else
+		return ERROR;
+	
+}
+
+ConfigFile	ServerData::getConfi() const
+{
+	return _confi;		
 }

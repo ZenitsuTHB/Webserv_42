@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 19:11:48 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/16 15:00:22 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/18 13:15:22 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -193,14 +193,12 @@ struct	ConfigFile
 	LogConfig					logging;
 };
 
-enum	LineType
+enum	TypeData
 {
-	SERVER = 0,
-	//LOCATION,
-	//VAR,
-	//END,
-	ERROR,
-	EMPTY
+	ROUTE = 0,
+	VAR,
+	TOKEN,
+	ERROR
 };
 
 class ServerData
@@ -215,12 +213,15 @@ class ServerData
 	private:
 
 		ConfigFile	_confi;
+		bool		_end;
 
-		LineType	isServer(std::string line);
-		LineType	isLocation(std::string line);
-
-		void		getServerData(std::ifstream file);
-		void		getLocationData(std::ifstream file, std::string line);
+		void		parserConfig(std::ifstream &file);
+		void		parserServer(std::ifstream &file, bool token);
+		//void		parserRoute(std::ifstream &file, std::string data);
+		//void		parserVar(std::string const &var, std::string value);
+		
+		bool		isToken(std::ifstream &file);
+		TypeData	whatIsThis(std::string var, std::string data, bool &exitBlock);
 };
 
 #endif
