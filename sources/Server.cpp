@@ -231,7 +231,7 @@ void	Server::run(void)
 			
 			
 			std::cout << "<SERVER> managing: [" << i << "]" << std::endl;
-			std::string request = receive( clientfd );
+			std::string request = receive( i );
 			if ( request.empty() )
 			{
 				std::cout << "Closing client: " << clientfd << std::endl;
@@ -240,7 +240,7 @@ void	Server::run(void)
 				continue ;
 			}
 			std::string response = manage(request);
-			respond(response, clientfd);
+			respond(response, i );
 
 		}
 
