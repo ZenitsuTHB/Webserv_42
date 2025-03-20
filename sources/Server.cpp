@@ -82,7 +82,6 @@ int	Server::accept(void)
 
 	std::cout << "<SERVER> Accepting client..." << std::endl;
 	client = _socket.accept();
-	std::cout << "\n<SERVER> client socket infos..." << client << std::endl;
 	if (client.getSockFd() == -1)
 		return (-1);
 	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
@@ -105,12 +104,10 @@ bool	endRequest(std::string message)
 	len = message.length();
 	if (len <= 3)
 		return (false);
-	if (message.find("\r\n\r\n", len - 4) == std::string::npos)
-		return (false);
-	return (true);
+	return (message.find("\r\n\r\n", len - 4) == std::string::npos)
 }
 
-std::string	Server::receive(int idx) const
+std::string	Server::receive( int idx ) const
 {
 	std::string	request;
 	char		buffer[BUFF_SIZE + 1];
@@ -120,19 +117,23 @@ std::string	Server::receive(int idx) const
 		return ("<Server> Invalid Index");
 	while (true)
 	{
-		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE);
+		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE );
 		if (bytes == -1)
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 				break ;
-			return (perror("<Server> Error reading"), std::string());
+			return ( perror( "<Server> Error reading" ), std::string() );
 		}
-		if (bytes == 0)
-			break ;
+		if ( bytes == 0 )
+		{
+			std::cout << "<SERVER> Client closed connection: " << _clientfd << std::endl;
+			return "";
+		}
+			//break ;
 		buffer[bytes] = '\0';
 		request.append(buffer);
-		//if (endRequest(request))
-		//	break ;
+		if (endRequest(request))
+			break ;
 	}
 	return (request);
 }
@@ -160,7 +161,16 @@ void	Server::close(int idx)
 std::string	Server::manage(std::string request) const
 {
 	std::cout << "Request received:" << std::endl << request << std::endl;
-	return ("This is the Server Respond\r\n\r\n");
+	//return ("This is the Server Respond\r\n\r\n");
+	std::string http_response =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/plain\r\n"
+        "Content-Length: 25\r\n"
+        "Connection: close\r\n"
+        "\r\n"
+        "This is the Server Respond";
+
+    return http_response;
 }
 
 int	Server::storeFdsset( int idx )//idx debugging purpose
@@ -182,7 +192,7 @@ int	Server::storeFdsset( int idx )//idx debugging purpose
 		return ( 0 );
 	}
 
-	newClient.events = EPOLLIN;
+	newClient.events = EPOLLIN | EPOLLET;//epollet keep fds from being process in loop but only when new data arrived
 	newClient.data.fd = _clientfd;
 	std::cout << "<SERVER> Storing client... fd is : [" << this->_clientfd << "] Filling the epollfd to read..." << std::endl;
 
@@ -199,7 +209,6 @@ void	Server::run(void)
 	while (true)
 	{
 		idx = accept( );
-		sleep( 3 );
 		std::cout << "<SERVER> this is from accept : [ " << idx << " ]\n";
 		if ( idx != -1 )
 			fdReady = storeFdsset( idx );
@@ -209,7 +218,7 @@ void	Server::run(void)
 			close( _clientfd );
 			continue ;
 		}
-		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 5000 );
+		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 100 );
 		if ( counter == -1 )
 		{
 			perror( "<SERVER> Error epoll_wait\n" );
@@ -245,6 +254,8 @@ void	Server::run(void)
 		}
 
 
+		// modificar SERVER::close para que reciba un client fd para cerrar
+		// y lo quita de la structura epoll
 	}
 }
 
