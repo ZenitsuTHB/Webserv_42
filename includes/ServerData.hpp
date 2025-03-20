@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 19:11:48 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/03/18 14:52:39 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/03/20 14:42:03 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,134 +73,79 @@ error_log
 	error_log <archivo_log> <nivel>; --> error_log /var/log/nginx/error.log warn;
 	error_log <archivo_log>; --> error_log /dev/null;
 
-  
-- Lista de nombres de variables del archivo de configuracion
+*/
 
-Servidor
-
-	listen
-	server_name
-	default_server
-	host
-	root
-	index
-	error_page
-	client_max_body_size
-
-Rutas
-
-	location
-	root
-	index
-	allowed_methods
-	return
-	autoindex
-	upload_enable
-	upload_store
-
-CGI
-
-	cgi_extension
-	cgi_pass
-	fatcgi_pass
-	fatcgi_param
-
-Global
-
-	worker_processes
-	log_format
-	access_log
-	error_log
-	error_log_level
-	timeout
+/*
  
-
-struct RouteConfig
+struct	RouteConfig
 {
-	bool								directoryListening = autoindex
-	bool								allowFileUploads = allow_file_uploads
-	size_t								maxBodySize = client_max_body_size
-	std::string							redirection = return, redirect
-	std::string							root = root
-	std::string							defaultFile = index
-	std::string							uploadDirectory = upload_directory
-	std::vector<std::string>			allowedMethods = allowed_methods, limit_except
-	std::map<std::string, std::string>	cgiHandlers = fastcgi_pass, cgi_handlers
-};
+	std::string					path;				location path {
+	std::bitset<3> 				allowedMethods;			allowed_methods		GET POST DELETE
+	std::string					rootDirectory;			root 				/var/www
+	bool						directoryListening;		directory_listing	off/on
+	std::string					defaultFile;			default_file		index.html
+	std::string					redirect;				redirect			/new-path
+	bool						cgiEnabled;				cgi_enabled			on/off
+	std::string					cgiPath;				cgi_path			/usr/bin/php-cgi
+	std::string					cgiExtension;			cgi_extension		.php
+	bool						uploadEnabled;			upload_enable		on/off
+	std::string					uploadStore;			upload_store		/var/www/uploads
+};													}
 
 struct	ServerConfig
-{
-	bool								isDefault = default_server
-	size_t								clientBodySizeLimit = client_max_body_size
-	std::string							host = host
-	std::vector<int>					ports = listen
-	std::vector<std::string>			serverNames = server_name
-	std::map<std::string, RouteConfig>	routes = location
-	std::map<int, std::string>			errorPages = error_page
-};
-
-struct	LogConfig
-{
-	int									timeout = timeout
-	std::string							logFormat = log_format
-	std::string							accessLog = access_log
-	std::string							errorLog = error_log
-	std::string							errorLogLevel = error_log_level
-};
-
-
-*/
+{													server {
+	std::set<int>				ports;					listen				8080
+	std::string					host;					host				127.0.0.1
+	std::string					serverName;				server_name			example.com
+	std::string					root;					root				/var/www
+	std::string					index;					index				index.html
+	size_t						clientMaxBodySize;		client_max_body_size 100M
+	std::map<int, std::string>	errorPages;				error_page			404 /404.html
+	std::vector<RouteConfig>	routes;					location / {
+};													}
+ 
+ 
+ */
 
 #include <iostream>
 #include <vector>
 #include <map>
 #include <set>
+#include <bitset>
 
-struct RouteConfig
+enum	Methods
 {
-	bool								directoryListening;
-	bool								allowFileUploads;
-	size_t								maxBodySize;
-	std::string							redirection;
-	std::string							root;
-	std::string							defaultFile;
-	std::string							uploadDirectory;
-	std::vector<std::string>			allowedMethods;
-	std::map<std::string, std::string>	cgiHandlers;
+	GET = 0,
+	POST,
+	DELETE
+};
+
+struct	RouteConfig
+{
+	std::string					path;
+	std::bitset<3> 				allowedMethods;
+	std::string					rootDirectory;
+	bool						autoindex;
+	bool						directoryListening;
+	std::string					defaultFile;
+	std::string					redirect;
+	bool						cgiEnabled;
+	std::string					cgiPath;
+	std::string					cgiExtension;
+	bool						uploadEnabled;
+	std::string					uploadStore;
 };
 
 struct	ServerConfig
 {
-	bool								isDefault;
-	size_t								clientBodySizeLimit;
-	std::string							host;
-	std::set<int>						ports;
-	std::vector<std::string>			serverNames;
-	std::map<int, std::string>			errorPages;
-	std::map<std::string, RouteConfig>	locations;
-};
-
-struct	LogConfig
-{
-	int									timeout;
-	std::string							logFormat;
-	std::string							accessLog;
-	std::string							errorLog;
-	std::string							errorLogLevel;
-};
-
-struct	ConfigFile
-{
-	std::vector<ServerConfig>	servers;
-	LogConfig					logging;
-};
-
-enum	TypeData
-{
-	ROUTE = 0,
-	VAR,
-	TOKEN,
-	ERROR
+	std::set<int>				ports;
+	std::string					host;
+	std::string					serverName;
+	std::string					root;
+	std::string					index;
+	size_t						clientMaxBodySize;
+	std::map<int, std::string>	errorPages;
+	std::vector<RouteConfig>	routes;
 };
 
 class ServerData
@@ -210,20 +155,22 @@ class ServerData
 		ServerData(char const *path);
 		~ServerData();
 
-		ConfigFile	getConfi() const;
-
 	private:
 
-		ConfigFile	_confi;
-		bool		_end;
+		std::vector<std::string>	_serverData;
+		std::vector<ServerConfig>	_servers;
+		bool						_error;
 
-		void		parserConfig(std::ifstream &file);
-		void		parserServer(std::ifstream &file, bool token);
-		//void		parserRoute(std::ifstream &file, std::string data);
-		void		parserVar(std::string const &var, std::string value, ServerConfig &server);
-		
-		bool		isToken(std::ifstream &file);
-		TypeData	whatIsThis(std::string var, std::string &data, bool &exitBlock);
+		void	setDataFile(std::ifstream &file);
+
+		void	parserData();
+		void	parserServer(int &idx);
+		void	parserRoute(int &idx, ServerConfig &server);
+		bool	parserRouteVar(int &idx, RouteConfig &route);
+		bool	parserVar(int &idx, ServerConfig &server);
+
+		bool	methods(int &idx, RouteConfig &route);
+
 };
 
 #endif
