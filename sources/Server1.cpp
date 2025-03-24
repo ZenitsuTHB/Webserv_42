@@ -165,10 +165,10 @@ std::string	Server::manage(std::string request) const
 	std::string http_response =
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: text/plain\r\n"
-        "Content-Length: 25\r\n"
+        "Content-Length: 30\r\n"
         "Connection: close\r\n"
         "\r\n"
-        "This is the Server Respond";
+        "This is the Server Respond\r\n";
 
     return http_response;
 }
@@ -201,6 +201,10 @@ int	Server::storeFdsset( int idx )//idx debugging purpose
 	return ( ready );
 }
 
+// 1 hacer que me sirve una pagina 
+// 2 hago que la pagina sea dinamica depende del enpoint o de la url
+// 3 servir diferentes typos de archivos y tamanos de resquest
+
 void	Server::run(void)
 {
 	int idx = 0;
@@ -218,7 +222,7 @@ void	Server::run(void)
 			close( _clientfd );
 			continue ;
 		}
-		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 100 );
+		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 4000 );
 		if ( counter == -1 )
 		{
 			perror( "<SERVER> Error epoll_wait\n" );
@@ -230,6 +234,7 @@ void	Server::run(void)
 			continue ;
 		}
 
+		sleep( 2 );
 		std::cout << "<SERVER> Looking for reads\n" << std::endl;
 		for ( int i = 0; i < counter; i++ )
 		{
@@ -245,7 +250,6 @@ void	Server::run(void)
 			{
 				std::cout << "Closing client: " << clientfd << std::endl;
 				epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, clientfd, NULL );
-				close( clientfd );
 				continue ;
 			}
 			std::string response = manage(request);

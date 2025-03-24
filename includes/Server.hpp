@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  Server.hpp                                           :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/03/07 21:48:42 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/09 23:08:29 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
+/*   Updated: 2025/03/24 16:30:16 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class	Server
 		std::string	manage( std::string request ) const;
 		void		respond( std::string response, int idx ) const;
 		void		close( int idx );
-		int		storeFdsset( int );
+		int			storeFdsset( int );
 		void		run( void );
 
 		Server	& operator = ( Server const &obj );
