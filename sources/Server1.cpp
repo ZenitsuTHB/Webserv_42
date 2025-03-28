@@ -73,30 +73,59 @@ void	Server::start(int ip, int port, int backlog)
 {
 	_socket.bind(ip, port);
 	_socket.listen(backlog);
+	_socket.setNonBlocking( true );
+
+	struct	epoll_event event;
+	event.events = EPOLLIN | EPOLLET;
+	event.data.fd = _socket.getSockFd();
+	if( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, _socket.getSockFd(), &event) == -1 )
+		throw std::runtime_error("<SERVER> Failed to add socket to epoll: " +
+			       	std::string(strerror(errno)));
+	_running = true;
+
+	std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n"
 }
 
-int	Server::accept(void)
+void		acceptNewConnection( void )
 {
-	BaseSocket	client;
-	int			statusFlag;
+    while (true)
+    {
+        BaseSocket clientSocket = _socket.accept();
+        if (clientSocket.getSockFd() == -1)
+	{
+		if ( errno == EAGAIN || errno == EWOULDBLOCK )
+                	break;
+		else
+			return( perror( "<Server> Error accepting client" );
+        }
+	
 
-	std::cout << "<SERVER> Accepting client..." << std::endl;
-	client = _socket.accept();
-	if (client.getSockFd() == -1)
-		return (-1);
-	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
-	if (fcntl(client.getSockFd(), F_SETFL, statusFlag) == -1)
-		return (client.close(), -1);
-	_clientList.push_back(client);
-	std::cout << "<SERVER> I just took the size of the list..." << _clientList.size() << std::endl;
-	return (_clientList.size());
+
+        int flags = fcntl(clientSocket.getSockFd(), F_GETFL, 0);
+        if (flags == -1 || fcntl(client.getSockFd(), F_SETFL, flags | O_NONBLOCK) == -1)
+	{
+            	perror("<Server> Failed to set non-blocking mode");
+            	clientSocket.close();
+            	continue;
+        }
+
+        _clientList[client.getSockFd()] = client;
+
+        struct epoll_event event;
+
+        event.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
+        event.data.fd = client.getSockFd();
+
+        if ( epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, client.getSockFd(), &event) == -1 ) 
+	{
+            perror("<Server> Failed to add client to epoll");
+            client.close();
+            _clientList.erase(client.getSockFd());
+        }
+    }
+    return 0;
 }
 
-/*	*
- *	Esta función es teniendo en cuenta que tiene que sí o sí terminar
- *	en doble CRLF, si solo mirasemos si está o no en el string, se
- *	podría reemplazar por un simple ::find(CRLF)
- */
 bool	endRequest(std::string message)
 {
 	size_t	len;
@@ -104,7 +133,7 @@ bool	endRequest(std::string message)
 	len = message.length();
 	if (len <= 3)
 		return (false);
-	return (message.find("\r\n\r\n", len - 4) == std::string::npos);
+	return (message.find("\r\n\r\n", len - 4) != std::string::npos);
 }
 
 std::string	Server::receive( int idx ) const
@@ -138,125 +167,78 @@ std::string	Server::receive( int idx ) const
 	return (request);
 }
 
+std::string	manage(const std::string& request) const 
+{
+    
+	if (request.find("GET") != 0 && request.find("POST") != 0 )
+		return "HTTP/1.1 400 Bad Request\r\n\r\n";
+	
+	std::string body = "This is the Server Respond";
+	std::string response = 
+		"HTTP/1.1 200 OK\r\n"
+        	"Content-Type: text/plain\r\n"
+        	"Content-Length: " + std::to_string(body.length()) + "\r\n"
+        	"Connection: close\r\n"
+        	"\r\n" + body;
+    
+    return ( response );
+}
+
 void	Server::respond(std::string response, int idx) const
 {
 	int	bytes;
-
-	if (idx < 0 || (size_t)idx >= _clientList.size())
-		return ;
+	
+	if ( _clientList.find( fd ) == _clientList.end() ) return;
 	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
 			response.length());
 	if (bytes == -1)
 		return (perror("<Server> Error responding"));
 }
 
-void	Server::close(int idx)
+void	Server::close(int fd)
 {
-	if (idx < 0 || (size_t)idx >= _clientList.size() || _clientList.empty())
-		return ;
-	_clientList[idx].close();
-	_clientList.erase(_clientList.begin() + idx);
+    if ( _clientList.find( fd ) == _clientList.end() ) return;
+    _clientList[fd].close();
+    epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, fd, NULL );
+    _clientList.erase( fd );
 }
-
-std::string	Server::manage(std::string request) const
-{
-	std::cout << "Request received:" << std::endl << request << std::endl;
-	//return ("This is the Server Respond\r\n\r\n");
-	std::string http_response =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/plain\r\n"
-        "Content-Length: 30\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "This is the Server Respond\r\n";
-
-    return http_response;
-}
-
-int	Server::storeFdsset( int idx )//idx debugging purpose
-{
-	std::cout << "<SERVER> New client: " << idx << " of : ( " << _clientList.size() 
-		  << " )" << std::endl;
-	if ( _clientList.empty())
-	{
-		std::cerr << "<SERVER> The client list seems to be empty" << std::endl;
-		return ( 0 );
-	}
-
-	struct epoll_event newClient;
-
-	_clientfd  = _clientList.back().getSockFd();
-	if( _clientfd == -1 )
-	{
-		std::cerr << "Invalid clientfd !" << std::endl;
-		return ( 0 );
-	}
-
-	newClient.events = EPOLLIN | EPOLLET;//epollet keep fds from being process in loop but only when new data arrived
-	newClient.data.fd = _clientfd;
-	std::cout << "<SERVER> Storing client... fd is : [" << this->_clientfd << "] Filling the epollfd to read..." << std::endl;
-
-	int ready = epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _clientfd, &newClient );
-	std::cout << "\n<SERVER> This is the epoll result : " << ready << std::endl;
-	return ( ready );
-}
-
-// 1 hacer que me sirve una pagina 
-// 2 hago que la pagina sea dinamica depende del enpoint o de la url
-// 3 servir diferentes typos de archivos y tamanos de resquest
 
 void	Server::run(void)
 {
-	int idx = 0;
-	int fdReady = 0;
 
 	while (true)
 	{
-		idx = accept( );
-		std::cout << "<SERVER> this is from accept : [ " << idx << " ]\n";
-		if ( idx != -1 )
-			fdReady = storeFdsset( idx );
-		if ( fdReady == -1 )
+		int eventCounter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, -1 );
+		if ( eventCounter == -1 )
 		{
-			perror( "<SERVER> epoll_ctl failed !\n" );
-			close( _clientfd );
-			continue ;
-		}
-		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 4000 );
-		if ( counter == -1 )
-		{
+			if ( errno == EINTR ) continue ;
 			perror( "<SERVER> Error epoll_wait\n" );
-			continue ;
+			break;
 		}
-		if ( counter == 0 )
-		{
-			std::cout << "<SERVER> Time OUT ! No Client is ready yet !\n";
-			continue ;
-		}
-
-		sleep( 2 );
 		std::cout << "<SERVER> Looking for reads\n" << std::endl;
-		for ( int i = 0; i < counter; i++ )
+		for ( int i = 0; i < eventCounter; i++ )
 		{
-			int clientfd = _events[i].data.fd;
+			int clientFd = _events[i].data.fd;
 
-			if ( !(_events[i].events & EPOLLIN))
-				continue;
-			
-			
-			std::cout << "<SERVER> managing: [" << i << "]" << std::endl;
-			std::string request = receive( i );
-			if ( request.empty() )
+			if ( _events[i].events & ( EPOLLERR | EPOLLHUP | EPOLLRDHUP ))
 			{
-				std::cout << "Closing client: " << clientfd << std::endl;
-				epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, clientfd, NULL );
-				continue ;
+				std::cout << "<SERVER> Client disconnected: " << clientFd << std::endl;
+				close( clientFd );
+				continue;
 			}
-			std::string response = manage(request);
-			respond(response, i );
 
-		}
-
+			if ( _events[i].events & EPOLLIN )
+			{
+				std::string request = receive( clientFd );
+				if ( request.empty() )
+				{
+					close( clientfd );
+					continue;
+        	        	}
+        	        	std::string response = manage( request );
+        	        	respond( response, clientfd );
+				
+			}
 
 		// modificar SERVER::close para que reciba un client fd para cerrar
 		// y lo quita de la structura epoll
@@ -279,4 +261,67 @@ int	main(void)
 
 	server.start(INADDR_ANY, 8080, SOMAXCONN);
 	server.run();
+
 }
+
+// this version allows to accept multiple clients at the same time
+// stock the clients in an unordered_map instead of a vector
+// adding the clients immediately to epoll instead of having two seperate steps
+
+// a line of client waiting to enter the theatre
+// give a client a badge to enter 
+// if current client is able to enter
+	// if there's no any other client we close the door( the loop )
+//check if the client is in blocking mode before giving it access to enter
+// Make a client non-blocking after checking its status, so it can't block others from entering
+	// if we can't make it non-blocking, we refuse to give it a pass we call the next one
+//we add it to the register so we can have control over it( better is the unordered_map )
+// prepare a special ticket to have a glance on it, telling epoll the supervisor to watch if :
+// the client want to say something EPOLLIN
+// it got out of the theatre EPOLLRDHUP
+// it edge triggered, avoid having the same client with the same message twice, avoid repetitions
+// we bind the special ticket to the client so the supervisor know who to supervise
+// we send the ticket to epoll, the supervisor, so it can start supervising the client
+		// if we can't tell it to epoll, we take out the client from our register and we kick his ass out and block its access
+
+/* ***
+ * 7) As parc gatekeeper 
+ * 1) let all visitors that are waiting enter the parc
+ * 2) check if there's any trouble authenticating the entrance
+ * 3) give them a special badge to supervise them
+ * 4) add them to the register of visitors 
+ * 5) ask the supervisor to have a glance on them 
+ * 6) if one don't want to be supervised we kick them ass out
+ * *** */
+
+/*	*
+ *	Esta función es teniendo en cuenta que tiene que sí o sí terminar
+ *	en doble CRLF, si solo mirasemos si está o no en el string, se
+ *	podría reemplazar por un simple ::find(CRLF)
+ */
+
+// 1 hacer que me sirve una pagina 
+// 2 hago que la pagina sea dinamica depende del enpoint o de la url
+// 3 servir diferentes typos de archivos y tamanos de resquest
+
+/* ***
+ *  777) This is the screen where the camera used by the supervisor
+ *  is projected, it's always running to see what the clients are doing
+ *  (0 int eventCount = epoll_wait(_epoll_fd, _events, MAX_EVENTS, -1); 0)
+ *  1) _epoll_fd is the camera ( epoll using )
+ *  2) _events is the list of events detected by the supervisor
+ *  3) MAX_EVENTS, the number of events we can cover at a time
+ *  4) -1, indefinitely waiting for a client to do something
+ *  	no matter what a client does epoll tells us ( TALK, LEAVE ) etc.
+ *  5) if (errno == EINTR) continue; if the we were stopped by a signal from 
+ *  	the system we restart without stopping the server
+ *  6) for (int i = 0; i < eventCount; i++), we covered all the events detected 
+ *  7) we retrieved the badge of the concerned client, int clientfd = _events[i].data.fd;
+ *  8) if (_events[i].events & (EPOLLERR | EPOLLHUP | EPOLLRDHUP)), we check if 
+ *  	there's a prob with the client :
+ *  	EPOLLERR, an error is detected
+ *  	EPOLLHUP, client left
+ *  	EPOLLRDHUP, client close its connection
+ *  9) close(clientfd); we close the door to this client and removed it 
+ *  	from the list, _clientList.erase(clientfd);
+ * *** */
