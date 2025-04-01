@@ -6,7 +6,7 @@
 /*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/03/31 18:46:22 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/01 19:15:04 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,31 @@ Server::~Server(void)
 {
 }
 
+void           Server::setNonBlocking( int socketFd, bool enable)
+{
+        int flags = fcntl( socketFd, F_GETFL, 0 );
+	if ( flags  == -1 )
+	{
+		_socket.close();
+		return (perror( "<SERVER> fcntl failed !"));
+	}	
+	if ( enable )
+        {
+                if ( fcntl( socketFd, F_SETFL, flags | O_NONBLOCK ) == -1 )
+		{	_socket.close();
+			return ( perror("<SERVER> Error Activating O_NONBLOCK"));
+        	}
+	}
+	else
+	{
+		if ( fcntl(_sockFd, F_SETFL, flags & ~O_NONBLOCK) == -1 )
+		{
+			_socket.close();
+			return ( perror("<SERVER> Error deActivating O_NONBLOCK"));
+		}
+	}
+}
+
 Server::Server(int domain, int type, int protocol):
         _socket(domain, type, protocol)
 {
@@ -39,22 +64,12 @@ Server::Server(int domain, int type, int protocol):
                 perror("<Server> Error in opt");
                 return ;
         }
-        flags = fcntl(fd, F_GETFL, 0);
-        if (flags == -1)
-        {
-                _socket.close();
-                perror("<Server> fcntl failed");
-                return ;
-        }
-        flags |= O_NONBLOCK;
-        if (fcntl(fd, F_SETFL, flags) == -1)
-        {
-                _socket.close();
-                perror("<Server> Error to add O_NONBLOCK");
-        }
+
+	_socket.setNonBlocking( fd, true );
+
         _clientfd = -1;
         _epoll_fd = epoll_create1( 0 );
-        if (_epoll_fd == -1)
+        if ( _epoll_fd == -1 )
         {
                 perror("<SERVER> Failed to create epoll instance");
                 return ;
@@ -68,6 +83,8 @@ Server::Server(Server const &obj):
 {
         *this = obj;
 }
+
+
 
 void    Server::start(int ip, int port, int backlog)
 {
@@ -86,7 +103,7 @@ void    Server::start(int ip, int port, int backlog)
         std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n"
 }
 
-void            acceptNewConnection( void )
+void	Server::acceptNewConnection( void )
 {
     while (true)
     {
@@ -96,23 +113,22 @@ void            acceptNewConnection( void )
                 if ( errno == EAGAIN || errno == EWOULDBLOCK )
                         break;
                 else
-                        return( perror( "<Server> Error accepting client" );
+                        return( perror( "<Server> Error accepting client" ));
         }
 
-
-
-        _clientList[client.getSockFd()] = client;
+        _clientList[clientSocket.getSockFd()] = clientSocket;
+	clientSocket.setNonBlocking( true );
 
         struct epoll_event event;
 
-        event.events = EPOLLIN | EPOLLRDHUP | EPOLLET;
-        event.data.fd = client.getSockFd();
+        event.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
+        event.data.fd = clientSocket.getSockFd();
 
-        if ( epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, client.getSockFd(), &event) == -1 )
+        if ( epoll_ctl(_epoll_fd, EPOLL_CTL_ADD, clientSocket.getSockFd(), &event) == -1 )
         {
             perror("<Server> Failed to add client to epoll");
-            client.close();
-            _clientList.erase(client.getSockFd());
+            clientSocket.close();
+            _clientList.erase(clientSocket.getSockFd());
         }
     }
     return 0;

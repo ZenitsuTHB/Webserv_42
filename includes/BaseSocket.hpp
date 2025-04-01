@@ -8,7 +8,7 @@
 /*  Created: 2025/03/05 18:26:19 by mvelazqu            #+#    #+#            */
 /*  Updated: 2025/03/05 19:53:22 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
-/* ************************************************************************** */
+/* ********************t***************************************************** */
 
 #ifndef BASESOCKET_HPP
 # define BASESOCKET_HPP
@@ -38,6 +38,8 @@ class	BaseSocket
 		int	getPort( void ) const { return (htons(_address.sin_port)); }
 		int	getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
 
+		void	setNonBlocking( bool ) = 0;
+
 		BaseSocket	& operator = ( BaseSocket const &obj );
 	       
 		friend std::ostream & operator << (std::ostream & os, const BaseSocket & sock )
@@ -49,12 +51,12 @@ class	BaseSocket
 		}
 
 	private:
-		int					_sockFd;
-		int					_domain;
-		int					_type;
-		int					_protocol;
+		int			_type;
+		int			_sockFd;
+		int			_domain;
+		int			_protocol;
 		struct sockaddr_in	_address;
-		socklen_t			_addrLen;
+		socklen_t		_addrLen;
 };
 
 #endif
