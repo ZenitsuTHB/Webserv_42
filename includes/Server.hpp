@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/01 18:02:51 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/03 20:34:12 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 # include <sys/epoll.h>
 #include <map>
 
-# define BUFF_SIZE 100
+# define BUFF_SIZE 42
 # define MAX_EVENTS 5
 
 class	Server
@@ -36,7 +36,7 @@ class	Server
 		void		start( int ip, int port, int backlog );
 		void		respond( std::string response, int idx ) const;
 
-		Server	& operator = ( Server const &obj );
+		Server& 	operator = ( Server const &obj );
 
 	private:
 		ListenSocket			_socket;
@@ -44,8 +44,10 @@ class	Server
 		bool				_running;
 		int				_clientfd;
 		std::map< int, BaseSocket >	_clientsMap;
+		std::string			_buffer[BUFF_SIZE];
 		struct	epoll_event		_events[MAX_EVENTS];
 
+		void				shutDownServer();
 		void				closeClient( int clientFd );
 		void				acceptNewConnection( void ); 
 		void				handleClientEvent( int clientFd, uint32_t events ); 

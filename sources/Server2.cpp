@@ -6,7 +6,7 @@
 /*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/02 18:43:55 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/03 21:03:40 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ Server::~Server(void)
 {
 }
 
-void           Server::setNonBlocking( int socketFd, bool enable)
+void           Server::setNonBlocking( int socketFd, bool enable )
 {
         int flags = fcntl( socketFd, F_GETFL, 0 );
 	if ( flags  == -1 )
@@ -35,13 +35,14 @@ void           Server::setNonBlocking( int socketFd, bool enable)
 	if ( enable )
         {
                 if ( fcntl( socketFd, F_SETFL, flags | O_NONBLOCK ) == -1 )
-		{	_socket.close();
+		{
+			_socket.close();
 			return ( perror("<SERVER> Error Activating O_NONBLOCK"));
         	}
 	}
 	else
 	{
-		if ( fcntl(_sockFd, F_SETFL, flags & ~O_NONBLOCK) == -1 )
+		if ( fcntl( socketFd, F_SETFL, flags & ~O_NONBLOCK) == -1 )
 		{
 			_socket.close();
 			return ( perror("<SERVER> Error deActivating O_NONBLOCK"));
@@ -61,8 +62,7 @@ Server::Server(int domain, int type, int protocol):
         if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
         {
                 _socket.close();
-               return ( perror("<Server> Error in opt"));
-                
+		throw std::runtime_error("<Server> setsockopt(SO_REUSEADDR) failed");
         }
 
 	_socket.setNonBlocking( fd, true );
@@ -80,12 +80,25 @@ Server::Server(Server const &obj):
         *this = obj;
 }
 
+void	Server::shutDownServer()
+{
+	std::map< int, BaseSocket >::iterator it;
+	for ( it = _clientsMap.begin(); it != _clientsMap.end(); ++it )
+		it->second.close();
+	close( _epoll_fd );
+	_socket.close();
+	std::cout << "<SERVER> Shutdown complete." << std::endl;
+}
+
 void    Server::close( int fd )
 {
-    if ( clientsMap.find( fd ) == clientsMap.end() ) return;
-    clientsMap[fd].close();
-    epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, fd, NULL );
-    clientsMap.erase( fd );
+	std::map< int, BaseSocket >::iterator it = _clientsMap.find( fd ); 
+	if ( it == _clientsMap.end() ) return;
+	
+	it->second.close();
+	if ( epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, fd, NULL ) == -1)
+	        perror("<SERVER ERR removing client from epoll>");
+	_clientsMap.erase( it );
 }
 
 void    Server::start( int ip, int port, int backlog )
@@ -118,7 +131,7 @@ void	Server::acceptNewConnection( void )
         }
 
         clientsMap[clientSocket.getSockFd()] = clientSocket;
-	clientSocket.setNonBlocking( true );
+	clientSocket.setNonBlocking( _socket.getSockFd(), true );
 
         struct epoll_event event;
 
@@ -134,7 +147,45 @@ void	Server::acceptNewConnection( void )
     return ;
 }
 
-void	Seerver::run( void )
+// EPOLLHUP the connection get entirely cut off
+// EPOLLRDHUP the client shut its part using close or 
+// shutdown(fd , SHUT_WR) and it can still receive data
+void	Server::handleClientEvent( int fdClient, uint32_t events )
+{
+	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
+	{
+		if ( events & EPOLLRDHUP & )
+		{
+			std::cerr << "<SERVER> handle Client ERRRR...! " + std::string(strerror( errno ));
+			// read the remain data
+			char tmpBuf[1024];
+			while (read(fdClient, tmpBuf, sizeof(tmpBuf)) > 0) {}//empty the buffer
+			close( fdClient );
+			return ;
+		}
+		perror( "<SERVER> handle Client ERRRR...! ");
+		close( fdClient );
+	}
+	if ( events & EPOLLIN)
+	{
+		ssize_t bytesRead = -1;
+		while( bytesRead = read( fdClient, _buffer ,BUFF_SIZE - 1) > 0 )
+		{
+			_buffer[bytesRead] = '\0';
+
+			std::cout << "<SERVER> Data's have been processed from client : [ " << fd << "";
+			//str::response = function for reponse/TODO
+			str::response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
+			write( fdClient, response.c_str(), response.size() );
+		}
+		if (bytesRead == -1 && errno != EAGAIN)
+		{
+			std::cerr << "Read error from client " << clientFd << ": " << strerror(errno) << std::endl;
+			closeClient(clientFd);
+		}
+}
+
+void	Server::run( void )
 {
 	while ( _running )
 	{
@@ -148,7 +199,7 @@ void	Seerver::run( void )
 		for ( int i = 0; i < eventCounter; i++)
 		{
 			int clientFd = _events[i].data.fd;//new client
-			if ( eventFd == _socket.getSockFd() )
+			if ( clientFd == _socket.getSockFd() )
                                 acceptNewConnection();
                         else
                                 handleClientEvent( clientFd, _events );//manage connected client
