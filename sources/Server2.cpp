@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server2.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/03 21:03:40 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/04 17:30:37 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <sys/errno.h>
 # include "../includes/Server.hpp"
 
+# define LOG( msg ) std::cout << "[SERVER]" << msg << std::endl
 
 Server::~Server(void)
 {
@@ -83,6 +84,7 @@ Server::Server(Server const &obj):
 void	Server::shutDownServer()
 {
 	std::map< int, BaseSocket >::iterator it;
+        _running = false;
 	for ( it = _clientsMap.begin(); it != _clientsMap.end(); ++it )
 		it->second.close();
 	close( _epoll_fd );
@@ -90,7 +92,7 @@ void	Server::shutDownServer()
 	std::cout << "<SERVER> Shutdown complete." << std::endl;
 }
 
-void    Server::close( int fd )
+void    Server::closeClient( int fd )
 {
 	std::map< int, BaseSocket >::iterator it = _clientsMap.find( fd ); 
 	if ( it == _clientsMap.end() ) return;
@@ -130,8 +132,9 @@ void	Server::acceptNewConnection( void )
                         return( perror( "<Server> Error accepting client" ));
         }
 
-        clientsMap[clientSocket.getSockFd()] = clientSocket;
-	clientSocket.setNonBlocking( _socket.getSockFd(), true );
+        _clientsMap[clientSocket.getSockFd()] = clientSocket;
+	clientSocket.setNonBlocking( clientSocket.getsockFd(), true );
+        //_socket.getSockFd() fd du Server
 
         struct epoll_event event;
 
@@ -154,35 +157,59 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 {
 	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
 	{
-		if ( events & EPOLLRDHUP & )
+		if ( events & EPOLLRDHUP )
 		{
-			std::cerr << "<SERVER> handle Client ERRRR...! " + std::string(strerror( errno ));
+			std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] gracefully" << std::endl;
 			// read the remain data
 			char tmpBuf[1024];
 			while (read(fdClient, tmpBuf, sizeof(tmpBuf)) > 0) {}//empty the buffer
-			close( fdClient );
+			closeClient( fdClient );
 			return ;
 		}
-		perror( "<SERVER> handle Client ERRRR...! ");
-		close( fdClient );
+                if ( events & EPOLLHUP )
+                {
+                        std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] abrutptly" << std::endl;
+                        closeClient( fdClient );
+                        return ;
+                }
+		closeClient( fdClient );
+                return ;
 	}
 	if ( events & EPOLLIN)
 	{
 		ssize_t bytesRead = -1;
-		while( bytesRead = read( fdClient, _buffer ,BUFF_SIZE - 1) > 0 )
+		while( (bytesRead = read( fdClient, _buffer.data() , _buffer.size() - 1)) > 0 )
 		{
 			_buffer[bytesRead] = '\0';
-
-			std::cout << "<SERVER> Data's have been processed from client : [ " << fd << "";
+                        
+                        LOG("Read from client " << fdClient << ": " << _buffer.data());
 			//str::response = function for reponse/TODO
-			str::response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
-			write( fdClient, response.c_str(), response.size() );
+			std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
+			ssize_t totalSent = 0;
+                        const char *ptr = response.c_str();
+                        while ( totalSent < response.size() )
+                        {
+                                ssize_t sent = write(fdClient, ptr + totalSent, response.size() - totalSent);
+                                if (sent == -1)
+                                {
+                                        if (errno == EAGAIN || errno == EWOULDBLOCK)//cpntinue; ?
+                                                break;
+                                        else
+                                        {
+                                                std::cerr << "Write error to client " << fdClient << ": " << strerror(errno) << std::endl;
+                                                closeClient(fdClient);
+                                                return;
+                                        }
+                                }
+                                totalSent += sent;
+                        }
 		}
 		if (bytesRead == -1 && errno != EAGAIN)
 		{
-			std::cerr << "Read error from client " << clientFd << ": " << strerror(errno) << std::endl;
-			closeClient(clientFd);
+                        LOG("Read error for fd: " << fdClient << strerror(errno));
+                        closeClient(fdClient);
 		}
+        }
 }
 
 void	Server::run( void )

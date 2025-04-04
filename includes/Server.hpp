@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/03 20:34:12 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/04 16:51:32 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,8 @@ class	Server
 		bool				_running;
 		int				_clientfd;
 		std::map< int, BaseSocket >	_clientsMap;
-		std::string			_buffer[BUFF_SIZE];
+		//std::map< int, time_t > 		_timeoutMap;
+		std::vector< char >			_buffer(BUFF_SIZE);
 		struct	epoll_event		_events[MAX_EVENTS];
 
 		void				shutDownServer();
