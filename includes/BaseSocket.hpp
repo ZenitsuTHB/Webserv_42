@@ -1,14 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  BaseSocket.hpp                                       :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/03/05 18:26:19 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/05 19:53:22 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   BaseSocket.hpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/03/05 18:26:19 by velazqu           #+#    #+#             */
+/*   Updated: 2025/04/04 17:43:47 by avolcy           ###   ########.fr       */
 /*                                                                            */
-/* ********************t***************************************************** */
+/* ************************************************************************** */
 
 #ifndef BASESOCKET_HPP
 # define BASESOCKET_HPP
@@ -16,6 +16,7 @@
 # include <iostream>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# define nullptr NULL
 
 class	BaseSocket
 {
@@ -38,7 +39,7 @@ class	BaseSocket
 		int	getPort( void ) const { return (htons(_address.sin_port)); }
 		int	getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
 
-		void	setNonBlocking( bool ) = 0;
+		//void	setNonBlocking( bool ) = 0;
 
 		BaseSocket	& operator = ( BaseSocket const &obj );
 	       

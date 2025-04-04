@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/03 20:42:04 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/04 18:00:35 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,9 +26,10 @@ void signalHandler(int signum)
 int	main()
 {
 	Server tela( AF_INET, SOCK_STREAM, 0 );
-
-    
-    	signal(SIGINT, signalHandler);
+	
+	serverPtr = &tela;
+	
+	signal(SIGINT, signalHandler);
 	
 	tela.start( INADDR_ANY, PORT, BACKLOG );
 

@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/05 18:26:18 by velazqu           #+#    #+#             */
-/*   Updated: 2025/03/24 16:24:03 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/04 18:21:13 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ BaseSocket::~BaseSocket(void)
 	return ;
 }
 
-BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
+BaseSocket::BaseSocket(void): _type(0),  _sockFd(-1), _domain(0), _protocol(0),
 	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;
@@ -29,7 +29,7 @@ BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
 	return ;
 }
 
-BaseSocket::BaseSocket(int fd): _sockFd(fd), _domain(0), _type(0), _protocol(0),
+BaseSocket::BaseSocket(int fd): _type(0), _sockFd(fd), _domain(0), _protocol(0),
 	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;

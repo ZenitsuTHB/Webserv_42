@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/04 17:30:37 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/04 18:28:45 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,9 +52,8 @@ void           Server::setNonBlocking( int socketFd, bool enable )
 }
 
 Server::Server(int domain, int type, int protocol):
-        _socket(domain, type, protocol)
+        _socket(domain, type, protocol), _buffer(BUFF_SIZE)
 {
-        int     flags;
         int     fd;
         int     opt;
 
@@ -71,10 +70,10 @@ Server::Server(int domain, int type, int protocol):
         _clientfd = -1;
         _epoll_fd = epoll_create1( 0 );
         if ( _epoll_fd == -1 )
-		return (perror("<SERVER> Failed to create epoll instance"));
+		perror("<SERVER> Failed to create epoll instance");
         return ;
 }
-../includes/Server.hpp
+
 Server::Server(Server const &obj):
         _socket(obj._socket)
 {
@@ -116,7 +115,7 @@ void    Server::start( int ip, int port, int backlog )
                 throw std::runtime_error( "<SERVER> Failed to add socket to epoll: " +
                                 std::string(strerror(errno)));
         _running = true;
-        std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n"
+        std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n";
 }
 
 void	Server::acceptNewConnection( void )
@@ -133,7 +132,7 @@ void	Server::acceptNewConnection( void )
         }
 
         _clientsMap[clientSocket.getSockFd()] = clientSocket;
-	clientSocket.setNonBlocking( clientSocket.getsockFd(), true );
+	clientSocket.setNonBlocking( clientSocket.getSockFd(), true );
         //_socket.getSockFd() fd du Server
 
         struct epoll_event event;
@@ -144,7 +143,7 @@ void	Server::acceptNewConnection( void )
         if ( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, clientSocket.getSockFd(), &event ) == -1 )
         {
             perror( "<Server> Failed to add client to epoll" );
-            clientSocket.close( clientSocket.getSockFd() );
+            clientSocket.closeClient( clientSocket.getSockFd() );
         }
     }
     return ;
