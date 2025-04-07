@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/04 18:29:52 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/07 19:06:22 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,9 @@ static const size_t BUFF_SIZE = 42;
 # define PORT 8080
 # define BACKLOG 10
 
-class	Server : public ListenSocket
+class  ListenSocket;
+
+class	Server : public BaseSocket 
 {
 	public:
 		~Server( void );
@@ -46,6 +48,7 @@ class	Server : public ListenSocket
 		void		start( int ip, int port, int backlog );
 		void		respond( std::string response, int idx ) const;
 
+		void		setNonBlocking( int, bool );
 		Server& 	operator = ( Server const &obj );
 
 	private:

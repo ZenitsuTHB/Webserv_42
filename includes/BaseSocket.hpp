@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/05 18:26:19 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/04 17:43:47 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/07 19:17:08 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class	BaseSocket
 		int	getPort( void ) const { return (htons(_address.sin_port)); }
 		int	getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
 
-		//void	setNonBlocking( bool ) = 0;
+		virtual	void	setNonBlocking( int, bool );
 
 		BaseSocket	& operator = ( BaseSocket const &obj );
 	       

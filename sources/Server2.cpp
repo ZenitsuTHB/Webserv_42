@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/04 18:28:45 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/07 13:41:55 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ void    Server::start( int ip, int port, int backlog )
 {
         _socket.bind( ip, port );
         _socket.listen( backlog );
-        _socket.setNonBlocking( true );
+        _socket.setNonBlocking( _socket.getSockFd() , true );
 
         struct  epoll_event event;
         event.events = EPOLLIN | EPOLLET;
@@ -232,8 +232,4 @@ void	Server::run( void )
 		}
 
 	}
-}
-
-int	main() 
-{
 }
