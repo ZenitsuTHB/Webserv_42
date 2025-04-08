@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  Server.cpp                                           :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/10 12:56:59 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   Server1.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/03/07 21:48:44 by velazqu           #+#    #+#             */
+/*   Updated: 2025/04/08 11:38:08 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ void	Server::start(int ip, int port, int backlog)
 {
 	_socket.bind(ip, port);
 	_socket.listen(backlog);
-	_socket.setNonBlocking( true );
+
 
 	struct	epoll_event event;
 	event.events = EPOLLIN | EPOLLET;

@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/05 18:26:19 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/07 19:17:08 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/08 11:43:51 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,11 +35,11 @@ class	BaseSocket
 		void	setSockFd( int fd );
 		void	setAddress( struct sockaddr_in address, socklen_t len);
 
-		int	getSockFd( void ) const { return (_sockFd); };
-		int	getPort( void ) const { return (htons(_address.sin_port)); }
-		int	getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
+		int		getSockFd( void ) const { return (_sockFd); };
+		int		getPort( void ) const { return (htons(_address.sin_port)); }
+		int		getIp( void ) const { return (htonl(_address.sin_addr.s_addr)); }
 
-		virtual	void	setNonBlocking( int, bool );
+	
 
 		BaseSocket	& operator = ( BaseSocket const &obj );
 	       
@@ -52,12 +52,12 @@ class	BaseSocket
 		}
 
 	private:
-		int			_type;
-		int			_sockFd;
-		int			_domain;
-		int			_protocol;
+		int					_type;
+		int					_sockFd;
+		int					_domain;
+		int					_protocol;
 		struct sockaddr_in	_address;
-		socklen_t		_addrLen;
+		socklen_t			_addrLen;
 };
 
 #endif

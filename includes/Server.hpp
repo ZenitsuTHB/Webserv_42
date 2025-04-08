@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/07 19:06:22 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/08 11:36:06 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,25 +41,26 @@ class	Server : public BaseSocket
 		Server( int domain, int type, int protocol );
 		Server( Server const &obj );
 
-		void				shutDownServer();
+		void		shutDownServer();
 		void		run( void );
 		std::string	receive( int idx ) const;
 		std::string	manage( std::string request ) const;
 		void		start( int ip, int port, int backlog );
 		void		respond( std::string response, int idx ) const;
 
-		void		setNonBlocking( int, bool );
 		Server& 	operator = ( Server const &obj );
 
+		void	setNonBlocking( int, bool );
+
 	private:
-		ListenSocket			_socket;
-		int				_epoll_fd;
-		bool				_running;
-		int				_clientfd;
+		ListenSocket				_socket;
+		int							_epoll_fd;
+		bool						_running;
+		int							_clientfd;
 		std::map< int, BaseSocket >	_clientsMap;
-		//std::map< int, time_t > 		_timeoutMap;
+		//std::map< int, time_t > 	_timeoutMap;
 		std::vector< char >			_buffer;
-		struct	epoll_event		_events[MAX_EVENTS];
+		struct	epoll_event			_events[MAX_EVENTS];
 
 		void				closeClient( int clientFd );
 		void				acceptNewConnection( void ); 

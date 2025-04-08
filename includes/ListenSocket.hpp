@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:01:53 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/07 19:17:16 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/08 12:01:07 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class	ListenSocket: public BaseSocket
 		void		bind( int ip, int port );
 		void		listen( int backlog );
 		BaseSocket	accept( void ) const;
+		//void		setNonBlocking( int, bool );
 		
 		ListenSocket	& operator = ( ListenSocket const &obj );
 
