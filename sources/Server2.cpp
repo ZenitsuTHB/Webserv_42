@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/08 12:00:44 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/09 13:24:35 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,7 @@ Server::Server(int domain, int type, int protocol):
                 _socket.close();
 		throw std::runtime_error("<Server> setsockopt(SO_REUSEADDR) failed");
         }
-
-	_socket.setNonBlocking( fd, true );
+	setNonBlocking( fd, true );
 
         _clientfd = -1;
         _epoll_fd = epoll_create1( 0 );
@@ -44,9 +43,7 @@ Server::Server(int domain, int type, int protocol):
         return ;
 }
 
-Server::~Server(void)
-{
-}
+Server::~Server(void) {}
 
 void           Server::setNonBlocking( int socketFd, bool enable )
 {
@@ -76,10 +73,7 @@ void           Server::setNonBlocking( int socketFd, bool enable )
 
 Server::Server( Server const &obj ) : BaseSocket(obj), _socket(obj._socket),
  _epoll_fd(obj._epoll_fd), _running(obj._running), _clientfd(obj._clientfd),
- _clientsMap(obj._clientsMap), _buffer(obj._buffer)
-{
-        //std::cout << "<SERVER> Copy constructor called" << std::endl;
-}
+ _clientsMap(obj._clientsMap), _buffer(obj._buffer) {}
 
 Server& Server::operator = ( Server const &obj )
 {
@@ -93,7 +87,7 @@ Server& Server::operator = ( Server const &obj )
                 _clientsMap = obj._clientsMap;
                 _buffer = obj._buffer;
         }
-        return *this;
+        return ( *this );
 }
 
 void	Server::shutDownServer()
@@ -112,26 +106,14 @@ void    Server::closeClient( int fd )
 	std::map< int, BaseSocket >::iterator it = _clientsMap.find( fd ); 
 	if ( it == _clientsMap.end() ) return;
 	
-	it->second.close();
 	if ( epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, fd, NULL ) == -1)
-	        perror("<SERVER ERR removing client from epoll>");
+	{
+		if ( errno != EBADF && errno != ENOENT)
+			perror("<SERVER> ERR removing client from epoll\nPerror ");
+	}
 	_clientsMap.erase( it );
-}
-
-void    Server::start( int ip, int port, int backlog )
-{
-        _socket.bind( ip, port );
-        _socket.listen( backlog );
-        _socket.setNonBlocking( _socket.getSockFd() , true );
-
-        struct  epoll_event event;
-        event.events = EPOLLIN | EPOLLET;
-        event.data.fd = _socket.getSockFd();
-        if( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, _socket.getSockFd(), &event) == -1 )
-                throw std::runtime_error( "<SERVER> Failed to add socket to epoll: " +
-                                std::string(strerror(errno)));
-        _running = true;
-        std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n";
+	::close( fd );
+	//or it->second.close();
 }
 
 void	Server::acceptNewConnection( void )
@@ -144,11 +126,11 @@ void	Server::acceptNewConnection( void )
                 if ( errno == EAGAIN || errno == EWOULDBLOCK )
                         break;
                 else
-                        return( perror( "<Server> Error accepting client" ));
+                        return( perror( "<SERVER> Error accepting client" ));
         }
 
         _clientsMap[clientSocket.getSockFd()] = clientSocket;
-	//clientSocket.setNonBlocking( clientSocket.getSockFd(), true );
+	setNonBlocking( clientSocket.getSockFd(), true );
         //_socket.getSockFd() fd du Server
 
         struct epoll_event event;
@@ -158,7 +140,7 @@ void	Server::acceptNewConnection( void )
 
         if ( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, clientSocket.getSockFd(), &event ) == -1 )
         {
-            perror( "<Server> Failed to add client to epoll" );
+            perror( "<SERVER> Failed to add client to epoll" );
             closeClient( clientSocket.getSockFd() );
         }
     }
@@ -197,7 +179,7 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 		{
 			_buffer[bytesRead] = '\0';
                         
-                        LOG("Read from client " << fdClient << ": " << _buffer.data());
+                       	//LOG("Read from client " << fdClient << ": " << _buffer.data());
 			//str::response = function for reponse/TODO
 			std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
 			size_t totalSent = 0;
@@ -248,4 +230,20 @@ void	Server::run( void )
 		}
 
 	}
+}
+
+void    Server::start( int ip, int port, int backlog )
+{
+        _socket.bind( ip, port );
+        _socket.listen( backlog );
+        setNonBlocking( _socket.getSockFd() , true );
+
+        struct  epoll_event event;
+        event.events = EPOLLIN | EPOLLET;
+        event.data.fd = _socket.getSockFd();
+        if( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, _socket.getSockFd(), &event) == -1 )
+                throw std::runtime_error( "<SERVER> Failed to add socket to epoll: " +
+                                std::string(strerror(errno)));
+        _running = true;
+        std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n";
 }
