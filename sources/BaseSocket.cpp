@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/05 18:26:18 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/08 11:13:05 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/10 16:03:50 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ void	BaseSocket::close(void)
 {
 	if (_sockFd == -1)
 		return ;
-	printf("Closing: %d\n", _sockFd);
+	std::cout << "\nClosing socket: [" << _sockFd << "]\n";
 	::close(_sockFd);
 	_sockFd = -1;
 }

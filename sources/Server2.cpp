@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/09 13:24:35 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/10 18:43:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,6 +150,13 @@ void	Server::acceptNewConnection( void )
 // EPOLLHUP the connection get entirely cut off
 // EPOLLRDHUP the client shut its part using close or 
 // shutdown(fd , SHUT_WR) and it can still receive data
+
+void	Server::requestResponse( int fd )
+{
+	ssize_t bytesRead = -1;
+
+}
+
 void	Server::handleClientEvent( int fdClient, uint32_t events )
 {
 	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
@@ -180,7 +187,6 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 			_buffer[bytesRead] = '\0';
                         
                        	//LOG("Read from client " << fdClient << ": " << _buffer.data());
-			//str::response = function for reponse/TODO
 			std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
 			size_t totalSent = 0;
                         const char *ptr = response.c_str();
