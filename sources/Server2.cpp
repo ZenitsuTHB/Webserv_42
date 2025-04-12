@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/10 18:43:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/12 21:20:05 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 # include <stdio.h>
 # include <fcntl.h>
 # include <iostream>
+# include <fstream>
+# include <sstream>
 # include <algorithm>
 # include <sys/errno.h>
 # include "../includes/Server.hpp"
@@ -153,8 +155,23 @@ void	Server::acceptNewConnection( void )
 
 void	Server::requestResponse( int fd )
 {
-	ssize_t bytesRead = -1;
+	std::ifstream file( "./html/index.html" );
+	if( !file )
+	{
+		std::string notFound = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
+		write( fd, notFound.c_str(), notFound.size() );
+		closeClient( fd );
+		return;
+	}
 
+	std::string body( (std::istreambuf_iterator< char >( file )),  std::istreambuf_iterator< char >());
+	std::ostringstream response;
+	response << "HTTP/1.1 200 OK\r\n"
+		 << "Content-Type: text/html\r\n"
+		 << "Content-Length: " << body.size() << "\r\n\r\n"
+		 << body;
+	std::string full = response.str();
+	write( fd, full.c_str(), full.size());
 }
 
 void	Server::handleClientEvent( int fdClient, uint32_t events )
@@ -179,40 +196,42 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 		closeClient( fdClient );
                 return ;
 	}
-	if ( events & EPOLLIN)
-	{
-		ssize_t bytesRead = -1;
-		while( (bytesRead = read( fdClient, _buffer.data() , _buffer.size() - 1)) > 0 )
-		{
-			_buffer[bytesRead] = '\0';
-                        
-                       	//LOG("Read from client " << fdClient << ": " << _buffer.data());
-			std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
-			size_t totalSent = 0;
-                        const char *ptr = response.c_str();
-                        while ( totalSent < response.size() )
-                        {
-                                ssize_t sent = write(fdClient, ptr + totalSent, response.size() - totalSent);
-                                if (sent == -1)
-                                {
-                                        if (errno == EAGAIN || errno == EWOULDBLOCK)//cpntinue; ?
-                                                break;
-                                        else
-                                        {
-                                                std::cerr << "Write error to client " << fdClient << ": " << strerror(errno) << std::endl;
-                                                closeClient(fdClient);
-                                                return;
-                                        }
-                                }
-                                totalSent += sent;
-                        }
-		}
-		if (bytesRead == -1 && errno != EAGAIN)
-		{
-                        LOG("Read error for fd: " << fdClient << strerror(errno));
-                        closeClient(fdClient);
-		}
-        }
+	if ( events & EPOLLIN )
+		requestResponse( fdClient );
+	//{
+	//	ssize_t bytesRead = -1;
+	//	while( (bytesRead = read( fdClient, _buffer.data() , _buffer.size() - 1)) > 0 )
+	//	{
+	//		_buffer[bytesRead] = '\0';
+	//		
+        //                
+        //               	LOG("Read from client " << fdClient << ": " << _buffer.data());
+	//		std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
+	//		size_t totalSent = 0;
+        //                const char *ptr = response.c_str();
+        //                while ( totalSent < response.size() )
+        //                {
+        //                        ssize_t sent = write(fdClient, ptr + totalSent, response.size() - totalSent);
+        //                        if (sent == -1)
+        //                        {
+        //                                if (errno == EAGAIN || errno == EWOULDBLOCK)//cpntinue; ?
+        //                                        break;
+        //                                else
+        //                                {
+        //                                        std::cerr << "Write error to client " << fdClient << ": " << strerror(errno) << std::endl;
+        //                                        closeClient(fdClient);
+        //                                        return;
+        //                                }
+        //                        }
+        //                        totalSent += sent;
+        //                }
+	//	}
+	//	if (bytesRead == -1 && errno != EAGAIN)
+	//	{
+        //                LOG("Read error for fd: " << fdClient << strerror(errno));
+        //                closeClient(fdClient);
+	//	}
+        //}
 }
 
 void	Server::run( void )

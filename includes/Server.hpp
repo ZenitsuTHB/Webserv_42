@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/08 11:36:06 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/12 20:29:29 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ class	Server : public BaseSocket
 		~Server( void );
 		Server( int domain, int type, int protocol );
 		Server( Server const &obj );
+		
+		void		requestResponse( int fd );
 
 		void		shutDownServer();
 		void		run( void );
