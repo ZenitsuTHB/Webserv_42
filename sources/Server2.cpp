@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/12 21:20:05 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/14 19:46:20 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,10 +174,8 @@ void	Server::requestResponse( int fd )
 	write( fd, full.c_str(), full.size());
 }
 
-void	Server::handleClientEvent( int fdClient, uint32_t events )
+void	Server::disconnectingClient( uint32_t events )
 {
-	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
-	{
 		if ( events & EPOLLRDHUP )
 		{
 			std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] gracefully" << std::endl;
@@ -195,8 +193,18 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
                 }
 		closeClient( fdClient );
                 return ;
+}
+
+void	Server::handleClientEvent( int fdClient, uint32_t events )
+{
+	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
+		disconnectingClient( events );
+	else if ( events & EPOLLIN )
+	{
+		
+		requestResponse( fdClient );
 	}
-	if ( events & EPOLLIN )
+	else
 		requestResponse( fdClient );
 	//{
 	//	ssize_t bytesRead = -1;
