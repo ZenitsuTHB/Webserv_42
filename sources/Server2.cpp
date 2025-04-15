@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/14 19:46:20 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/15 19:43:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,8 @@
 # include <sys/errno.h>
 # include "../includes/Server.hpp"
 
-# define LOG( msg ) std::cout << "[SERVER]" << msg << std::endl
+//request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"
+# define LOG( msg ) std::cout << "[SERVER]\n" << msg << std::endl
 
 Server::Server(int domain, int type, int protocol):
         _socket(domain, type, protocol), _buffer(BUFF_SIZE)
@@ -118,6 +119,27 @@ void    Server::closeClient( int fd )
 	//or it->second.close();
 }
 
+void	Server::disconnectingClient( int fdClient, uint32_t events )
+{
+		if ( events & EPOLLRDHUP )
+		{
+			std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] gracefully" << std::endl;
+			// read the remain data
+			char tmpBuf[1024];
+			while (read(fdClient, tmpBuf, sizeof(tmpBuf)) > 0) {}//empty the buffer
+			closeClient( fdClient );
+			return ;
+		}
+                if ( events & EPOLLHUP )
+                {
+                        std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] abrutptly" << std::endl;
+                        closeClient( fdClient );
+                        return ;
+                }
+		closeClient( fdClient );
+                return ;
+}
+
 void	Server::acceptNewConnection( void )
 {
     while (true)
@@ -153,93 +175,120 @@ void	Server::acceptNewConnection( void )
 // EPOLLRDHUP the client shut its part using close or 
 // shutdown(fd , SHUT_WR) and it can still receive data
 
-void	Server::requestResponse( int fd )
-{
-	std::ifstream file( "./html/index.html" );
-	if( !file )
-	{
-		std::string notFound = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
-		write( fd, notFound.c_str(), notFound.size() );
-		closeClient( fd );
+void Server::prepareStaticResponse() {
+	std::ifstream file("./html/index.html");
+	if (!file) {
+		std::cerr << "<SERVER> Failed to load index.html at startup.\n";
+		_responseReady = false;
 		return;
 	}
 
 	std::string body( (std::istreambuf_iterator< char >( file )),  std::istreambuf_iterator< char >());
 	std::ostringstream response;
 	response << "HTTP/1.1 200 OK\r\n"
-		 << "Content-Type: text/html\r\n"
-		 << "Content-Length: " << body.size() << "\r\n\r\n"
-		 << body;
-	std::string full = response.str();
-	write( fd, full.c_str(), full.size());
+			 << "Content-Type: text/html\r\n"
+			 << "Content-Length: " << body.size() << "\r\n\r\n"
+			 << body;
+
+	_cachedResponse = response.str();
+	_responseReady = true;
+	LOG("index.html preloaded successfully (" << body.size() << " bytes)");
 }
 
-void	Server::disconnectingClient( uint32_t events )
+void Server::requestResponse(int fd)
 {
-		if ( events & EPOLLRDHUP )
-		{
-			std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] gracefully" << std::endl;
-			// read the remain data
-			char tmpBuf[1024];
-			while (read(fdClient, tmpBuf, sizeof(tmpBuf)) > 0) {}//empty the buffer
-			closeClient( fdClient );
-			return ;
+	if (!_responseReady)
+	{
+		std::string notFound = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
+		write(fd, notFound.c_str(), notFound.size());
+		//closeClient(fd);
+		return;
+	}
+
+	size_t totalSent = 0;
+	while (totalSent < _cachedResponse.size()) {
+		ssize_t sent = write(fd, _cachedResponse.c_str() + totalSent, _cachedResponse.size() - totalSent);
+		if (sent == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break;
+			LOG("Write error to client " << fd << ": " << strerror(errno));
+			//closeClient(fd);
+			return;
 		}
-                if ( events & EPOLLHUP )
-                {
-                        std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] abrutptly" << std::endl;
-                        closeClient( fdClient );
-                        return ;
-                }
-		closeClient( fdClient );
-                return ;
+		totalSent += sent;
+	}
 }
+
+std::string	Server::readRequest( int ftFlClient )
+{
+	std::vector<char> dynamBuff(1024);
+	std::string &buffer = _recvBuffers[ ftFlClient ];
+	ssize_t bytesRead = 0;
+
+	while( true )
+	{
+		bytesRead = read( ftFlClient  , dynamBuff.data(), dynamBuff.size() );
+		if ( bytesRead > 0 )
+			buffer.append( dynamBuff.data(), bytesRead );
+		else if ( bytesRead == 0 )
+		{
+			LOG("Client [" << ftFlClient  << "] closed connection.");
+			closeClient( ftFlClient );
+			break ;
+		}
+		else
+		{
+			if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			{
+				LOG("No more data to read");
+				break ; 
+			}
+			else
+			{
+				LOG("Read error on Client fd [" << ftFlClient << "] : " << strerror(errno));
+				closeClient( ftFlClient );
+				break;
+			}
+
+		}
+	}
+	return buffer;
+}
+#define END "\r\n\r\n"
 
 void	Server::handleClientEvent( int fdClient, uint32_t events )
 {
 	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
-		disconnectingClient( events );
+		disconnectingClient( fdClient, events );
 	else if ( events & EPOLLIN )
 	{
+		std::string	reqStr = readRequest( fdClient );
+		if (!reqStr.empty())
+		{
 		
-		requestResponse( fdClient );
+			std::string	&buffer = _recvBuffers[ fdClient ];
+			size_t	headerEnd = buffer.find(END);
+
+			while( headerEnd != std::string::npos )
+			{
+				std::string fullRequest = buffer.substr( 0, headerEnd + 4 );//4 for \r\n\r\n
+				buffer.erase( 0, headerEnd + 4);
+				LOG("=========[ HTTP REQUEST ]=========");
+				std::cout << fullRequest << std::endl;
+				LOG("=========[    END       ]=========");
+				
+				requestResponse( fdClient );
+				headerEnd = buffer.find(END);
+			}
+		
+		
+			//HttpRequest	req = Adri.brainParser( reqStr );
+			//HttpResponse	res = Maxim.responseArtBuilder( req, config );
+			
+			//std::string confidentialStuff = res.serialize();
+			//write( fdClient, confidentialStuff.c_str(), confidentialStuff.size());
+		}
 	}
-	else
-		requestResponse( fdClient );
-	//{
-	//	ssize_t bytesRead = -1;
-	//	while( (bytesRead = read( fdClient, _buffer.data() , _buffer.size() - 1)) > 0 )
-	//	{
-	//		_buffer[bytesRead] = '\0';
-	//		
-        //                
-        //               	LOG("Read from client " << fdClient << ": " << _buffer.data());
-	//		std::string response = "HTTP/1.1 200 OK\r\nContent-Length:20\r\n\r\nHello Tela SERVIDA !";
-	//		size_t totalSent = 0;
-        //                const char *ptr = response.c_str();
-        //                while ( totalSent < response.size() )
-        //                {
-        //                        ssize_t sent = write(fdClient, ptr + totalSent, response.size() - totalSent);
-        //                        if (sent == -1)
-        //                        {
-        //                                if (errno == EAGAIN || errno == EWOULDBLOCK)//cpntinue; ?
-        //                                        break;
-        //                                else
-        //                                {
-        //                                        std::cerr << "Write error to client " << fdClient << ": " << strerror(errno) << std::endl;
-        //                                        closeClient(fdClient);
-        //                                        return;
-        //                                }
-        //                        }
-        //                        totalSent += sent;
-        //                }
-	//	}
-	//	if (bytesRead == -1 && errno != EAGAIN)
-	//	{
-        //                LOG("Read error for fd: " << fdClient << strerror(errno));
-        //                closeClient(fdClient);
-	//	}
-        //}
 }
 
 void	Server::run( void )
@@ -278,5 +327,6 @@ void    Server::start( int ip, int port, int backlog )
                 throw std::runtime_error( "<SERVER> Failed to add socket to epoll: " +
                                 std::string(strerror(errno)));
         _running = true;
+	prepareStaticResponse();
         std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n";
 }

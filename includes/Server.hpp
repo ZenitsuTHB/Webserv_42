@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/12 20:29:29 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/15 19:33:41 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,10 @@ class	Server : public BaseSocket
 		Server( int domain, int type, int protocol );
 		Server( Server const &obj );
 		
-		void		requestResponse( int fd );
+		void		prepareStaticResponse();
+		std::string     readRequest( int );
+		void		requestResponse( int );
+		void		disconnectingClient( int , uint32_t );
 
 		void		shutDownServer();
 		void		run( void );
@@ -55,6 +58,10 @@ class	Server : public BaseSocket
 		void	setNonBlocking( int, bool );
 
 	private:
+		std::string _cachedResponse;
+		std::map<int, std::string> 		_recvBuffers;//persitent buff to accumulate
+		bool _responseReady;
+
 		ListenSocket				_socket;
 		int							_epoll_fd;
 		bool						_running;
