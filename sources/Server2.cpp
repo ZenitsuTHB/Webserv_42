@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/15 19:43:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/16 19:20:59 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 
 //request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"
 # define LOG( msg ) std::cout << "[SERVER]\n" << msg << std::endl
+
+static int requestCount = 0;
 
 Server::Server(int domain, int type, int protocol):
         _socket(domain, type, protocol), _buffer(BUFF_SIZE)
@@ -197,7 +199,7 @@ void Server::prepareStaticResponse() {
 
 void Server::requestResponse(int fd)
 {
-	if (!_responseReady)
+	if ( !_responseReady )
 	{
 		std::string notFound = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
 		write(fd, notFound.c_str(), notFound.size());
@@ -252,9 +254,8 @@ std::string	Server::readRequest( int ftFlClient )
 
 		}
 	}
-	return buffer;
+	return ( buffer );
 }
-#define END "\r\n\r\n"
 
 void	Server::handleClientEvent( int fdClient, uint32_t events )
 {
@@ -266,22 +267,31 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 		if (!reqStr.empty())
 		{
 		
-			std::string	&buffer = _recvBuffers[ fdClient ];
+			std::string&	buffer = _recvBuffers[ fdClient ];
 			size_t	headerEnd = buffer.find(END);
 
 			while( headerEnd != std::string::npos )
 			{
-				std::string fullRequest = buffer.substr( 0, headerEnd + 4 );//4 for \r\n\r\n
+				std::string fullRequest = buffer.substr( 0, headerEnd + 4 );//4 for END 
 				buffer.erase( 0, headerEnd + 4);
+				bool shouldClose = false;
+				if (fullRequest.find("Connection: close") != std::string::npos)
+					shouldClose = true;
 				LOG("=========[ HTTP REQUEST ]=========");
-				std::cout << fullRequest << std::endl;
+				LOG(fullRequest);
 				LOG("=========[    END       ]=========");
-				
 				requestResponse( fdClient );
+				if ( shouldClose )
+				{
+					LOG("Client requested connection close.");
+					closeClient(fdClient);
+					return;
+				}
 				headerEnd = buffer.find(END);
 			}
 		
-		
+			requestCount++;
+			LOG("Request total count: " << requestCount);
 			//HttpRequest	req = Adri.brainParser( reqStr );
 			//HttpResponse	res = Maxim.responseArtBuilder( req, config );
 			

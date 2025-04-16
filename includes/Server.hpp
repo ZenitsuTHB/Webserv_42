@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/15 19:33:41 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/16 16:56:36 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ static const size_t BUFF_SIZE = 42;
 # define MAX_EVENTS 5
 # define PORT 8080
 # define BACKLOG 10
+# define END "\r\n\r\n"
 
 class  ListenSocket;
 
