@@ -3,7 +3,7 @@ import time
 
 HOST = "127.0.0.1"
 PORT = 8080
-NUM_REQUESTS = 100
+NUM_REQUESTS = 1000000
 
 request_template = (
     "GET / HTTP/1.1\r\n"

@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/16 19:20:59 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/17 17:45:04 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 # include <sys/errno.h>
 # include "../includes/Server.hpp"
 
+//siege -g 127.0.0.1:8080 
 //request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"
 # define LOG( msg ) std::cout << "[SERVER]\n" << msg << std::endl
 
