@@ -3,22 +3,22 @@
 /*                                                        :::      ::::::::   */
 /*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: avolcy <marvin@42.fr>                      +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/17 17:45:33 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/17 17:48:28 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/18 12:46:28 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
 
-struct SeverConfig 
+struct ServerConfig 
 {
 	
 	int ip;
 	int port;
 	int backlog;
-}
+};
 
 #endif
