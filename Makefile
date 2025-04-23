@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address
 
 #<---------------------------------|FILES|------------------------------------>#
 
-SRC_F = main.cpp BaseSocket.cpp ListenSocket.cpp Server2.cpp
+SRC_F = main.cpp BaseSocket.cpp ListenSocket.cpp Server.cpp
 SRC_D = ./sources/
 
 OBJ_F = $(SRC_F:.cpp=.o)
@@ -43,7 +43,6 @@ client.exe: client_socket.c
 	cc client_socket.c -o client.exe
 
 $(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
-	clear
 	@echo "\n$(RED)Compiling program:$(DF)"
 	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS) $(MLXFLAGS) \
 	$(BIGREEN)$(OBJ_F) $(BCYAN)-o $(RED)$(NAME)$(DF)"

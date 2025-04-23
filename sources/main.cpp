@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*  main.cpp                                             :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/18 12:56:10 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/04/23 21:15:32 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,48 +22,54 @@ Server *serverPtr = nullptr;
 
 void signalHandler(int signum)
 {
-    if (serverPtr)
-        serverPtr->shutDownServer();
-    exit(signum);
+	if (serverPtr)
+		serverPtr->shutDownServer();
+	exit(signum);
 }
 
 
-struct ThreadArg {
+struct ThreadArg
+{
 	ServerConfig config;
 };
 
-extern "C" void* serverLauncher(void* arg) {
-	ThreadArg* tArg = static_cast<ThreadArg*>(arg);
-	Server server(AF_INET, SOCK_STREAM, 0);
+extern "C" void	*serverLauncher(void* arg)
+{
+	ThreadArg	*tArg = static_cast<ThreadArg*>(arg);
+	Server		server(AF_INET, SOCK_STREAM, 0);
+
 	serverPtr = &server;
 	signal(SIGINT, signalHandler);
-	std::cout << "[THREAD] Starting server on port " << tArg->config.port << std::endl;
+	std::cout << "[THREAD] Starting server on port "
+		<< tArg->config.port << std::endl;
 	server.start(tArg->config.ip, tArg->config.port, tArg->config.backlog);
 	server.run();
-	return NULL;
+	return (NULL);
 }
 
-int main() {
-	ServerConfig configs[] = {
-		{INADDR_ANY, 8080, 100},
-		{INADDR_ANY, 8081, 100},
-		{INADDR_ANY, 8082, 100}
-	};
+ServerConfig configs[] = {
+	{INADDR_ANY, 8080, 100},
+	{INADDR_ANY, 8081, 100},
+	{INADDR_ANY, 8082, 100}
+};
 
-	const size_t NUM_SERVERS = sizeof(configs) / sizeof(ServerConfig);
-	pthread_t threads[NUM_SERVERS];
-	ThreadArg args[NUM_SERVERS];
-
-	for (size_t i = 0; i < NUM_SERVERS; ++i) {
-		args[i].config = configs[i];
-		if (pthread_create(&threads[i], NULL, serverLauncher, &args[i]) != 0) {
-			std::cerr << "Failed to launch thread for port " << configs[i].port << std::endl;
-		}
-	}
+int	main(void)
+{
+	const size_t	NUM_SERVERS = sizeof(configs) / sizeof(ServerConfig);
+	pthread_t		threads[NUM_SERVERS];
+	ThreadArg		args[NUM_SERVERS];
 
 	for (size_t i = 0; i < NUM_SERVERS; ++i)
+	{
+		args[i].config = configs[i];
+		if (pthread_create(&threads[i], NULL, serverLauncher, &args[i]) != 0)
+		{
+			std::cerr << "Failed to launch thread for port "
+				<< configs[i].port << std::endl;
+		}
+	}
+	for (size_t i = 0; i < NUM_SERVERS; ++i)
 		pthread_join(threads[i], NULL);
-
 	std::cout << "[MAIN] All servers terminated.\n";
-	return 0;
+	return (0);
 }
