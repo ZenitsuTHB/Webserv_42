@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/18 12:56:10 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/24 13:51:52 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 #include <pthread.h>
 #include "../includes/Server.hpp"
 #include "../includes/Config.hpp"
+#include "../includes/ParserConfig.hpp"
+
 
 Server *serverPtr = nullptr;
 
@@ -43,7 +45,23 @@ extern "C" void* serverLauncher(void* arg) {
 	return NULL;
 }
 
-int main() {
+int main(int ac, char **av)
+{
+	if (ac != 2)
+		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
+
+	try
+	{
+		ParserConfig	data(av[1]);
+	}
+	catch (std::exception const &e)
+	{
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
+
+
+	/*
 	ServerConfig configs[] = {
 		{INADDR_ANY, 8080, 100},
 		{INADDR_ANY, 8081, 100},
@@ -65,5 +83,6 @@ int main() {
 		pthread_join(threads[i], NULL);
 
 	std::cout << "[MAIN] All servers terminated.\n";
+	*/
 	return 0;
 }
