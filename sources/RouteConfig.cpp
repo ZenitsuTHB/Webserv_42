@@ -6,79 +6,77 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 14:25:01 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 20:19:10 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig(): autoindex(false), returnCode(-1), uploadEnabled(false) {}
+RouteConfig::RouteConfig(): autoindex(false), uploadEnabled(false) {}
 RouteConfig::~RouteConfig() {}
+
+void	RouteConfig::sentError(std::string msg) const
+{
+	throw std::invalid_argument("<RouteConfig> : " + msg);
+}
 
 void	RouteConfig::setPath(std::string path)
 {
 	this->path = path;
 }
 
-void	RouteConfig::setRoot(std::string root)
+void	RouteConfig::setAutoIndex(std::string x)
 {
-	this->root = root;
+	if (x == "on")
+		autoindex = true;
+	else if (x == "off")
+		autoindex = false;
+	else
+		sentError("autoindex has to be on or off: " + x);
 }
 
-void	RouteConfig::addIndex(std::string str)
+void	RouteConfig::addMethod(std::string limit)
 {
-	(void)str;
+	if (limit == "GET")
+		methods.set(GET);
+	else if (limit == "POST")
+		methods.set(POST);
+	else if (limit == "DELETE")
+		methods.set(DELETE);
+	else
+		sentError("The methods are GET, POST, DELETE: " + limit);
 }
 
-void	RouteConfig::setAutoIndex(bool x)
+void	RouteConfig::enableUplaod(std::string enable)
 {
-	(void)x;
+	if (enable == "true")
+		uploadEnabled = true;
+	else if (enable == "false")
+		uploadEnabled = false;
+	else
+		sentError("Sintax error only true or false: " + enable);
 }
 
-void	RouteConfig::addMethod(HttpMetthod method)
+void	RouteConfig::setUploadPath(std::string path)
 {
-	(void)method;
+	uploadPath = path;
 }
 
-void	RouteConfig::setReturn(int code, std::string url)
+void	RouteConfig::setCgiPass(std::string cgi)
 {
-	(void)code;
-	(void)url;
+	cgiPass = cgi;
 }
 
-void	RouteConfig::addCgi(std::string extension, std::string program)
+void	RouteConfig::addCgiExtension(std::string ext)
 {
-
-	(void)extension;
-	(void)program;
-}
-
-void	RouteConfig::setUpload(bool enabled, std::string path)
-{
-
-	(void)enabled;
-	(void)path;
-}
-
-void	RouteConfig::setMaxSize(size_t max)
-{
-
-	(void)max;
+	if (ext[0] != '.')
+		sentError("The extensions have to start with '.' -> " + ext);
+	cgiExtensions.push_back(ext);
 }
 
 std::string const	&RouteConfig::getPath() const
 {
 	return path;
-}
-
-std::string	const	&RouteConfig::getRoot() const
-{
-	return root;
-}
-
-std::vector<std::string> const	&RouteConfig::getIndexVector() const
-{
-	return	index;
 }
 
 bool	RouteConfig::isAutoindex() const
@@ -98,21 +96,6 @@ bool	RouteConfig::isAllowed(HttpMetthod method) const
 	return false;
 }
 
-int	RouteConfig::getReturnCode() const
-{
-	return returnCode;
-}
-
-std::string	const	&RouteConfig::getReturnUrl() const
-{
-	return redirectUrl;
-}
-
-CgiMap const	&RouteConfig::getCgiHandlers() const
-{
-	return cgiHandlers;
-}
-
 bool	RouteConfig::isUploadEnabled() const
 {
 	return uploadEnabled;
@@ -123,7 +106,37 @@ std::string	const	&RouteConfig::getUploadPath() const
 	return uploadPath;
 }
 
-size_t	RouteConfig::getMaxSize() const
+std::string const	&RouteConfig::getCgiPass() const
 {
-	return maxBodySize;
+	return cgiPass;
+}
+
+std::vector<std::string> const	&RouteConfig::getCgiExtensions() const
+{
+	return cgiExtensions;
+}
+
+void	RouteConfig::display()
+{
+	std::cout << std::endl << "Route: " << path << std::endl << std::endl;
+
+	std::cout << "Root: " << root << std::endl;
+
+	for (size_t i = 0; i < indexFiles.size(); i++)
+		std::cout << "IndexFile: " << indexFiles[i] << std::endl;
+
+	for (ErrorMap::iterator it = errorPages.begin(); it != errorPages.end(); it++)
+		std::cout << "Error page " << it->first << ": " << it->second << std::endl;
+	
+	std::cout << "Return code: " << returnCode << std::endl;
+	std::cout << "Redirect url: " << redirectUrl << std::endl;
+	std::cout << "ClientMaxBody: " << clientMaxBodySize << std::endl;
+	std::cout << "Autoindex: " << autoindex << std::endl;
+	std::cout << "Methods: " << methods << std::endl;
+	std::cout << "UploadEnabled: " << uploadEnabled << std::endl;
+	std::cout << "UploadPath: " << uploadPath << std::endl;
+	std::cout << "CgiPass: " << cgiPass << std::endl;
+	
+	for (size_t i = 0; i < cgiExtensions.size(); i++)
+		std::cout << "CgiExtension: " << cgiExtensions[i] << std::endl;
 }

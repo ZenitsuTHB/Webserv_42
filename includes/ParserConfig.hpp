@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 11:57:58 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 14:27:53 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 20:21:37 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ error_page: Puedes redifinir errores especificos en rutas concertas
 client_max_body_size: Size especifico de una ruta
 return: Redirecciones HTTP
 cgi_pass: Ejecutar cgi
+cgi_extension: extension
 
 */
 
@@ -60,10 +61,10 @@ class ParserConfig
 		void	setDataFile(std::ifstream &file);
 		
 		void	parserData();
-		void	addServer(int &i);
-		void	addServerVar(int &i, ServerConfig server);
-		void	addRoute(int &i, ServerConfig server);
-		void	addRouteVar(int &i, RouteConfig route);
+		void	addServer(unsigned int &i);
+		void	addServerVar(unsigned int &i, ServerConfig &server);
+		void	addRoute(unsigned int &i, ServerConfig &server);
+		void	addRouteVar(unsigned int &i, RouteConfig &route);
 
 };
 

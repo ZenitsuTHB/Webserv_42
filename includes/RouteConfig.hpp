@@ -6,19 +6,17 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/24 14:37:26 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 20:18:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef ROUTECONFIG_HPP
 #define ROUTECONFIG_HPP
 
-#include <iostream>
 #include <bitset>
-#include <map>
-#include <vector>
+#include "BaseConfig.hpp"
 
-typedef std::map<std::string, std::string>	CgiMap;
+typedef std::map<int, std::string>	ErrorMap;
 
 enum	HttpMetthod
 {
@@ -28,49 +26,42 @@ enum	HttpMetthod
 	SIZE
 };
 
-class RouteConfig
+class RouteConfig: public BaseConfig
 {
 	public:
 
 		RouteConfig();
-		~RouteConfig();
+		virtual ~RouteConfig();
 
 		void	setPath(std::string path);
-		void	setRoot(std::string root);
-		void	addIndex(std::string str);
-		void	setAutoIndex(bool x);
-		void	addMethod(HttpMetthod method);
-		void	setReturn(int code, std::string url);
-		void	addCgi(std::string extension, std::string program);
-		void	setUpload(bool enabled, std::string path);
-		void	setMaxSize(size_t max);
-
+		void	setAutoIndex(std::string x);
+		void	addMethod(std::string limit);
+		void	enableUplaod(std::string enable);
+		void	setUploadPath(std::string path);
+		void	setCgiPass(std::string cgi);
+		void	addCgiExtension(std::string ext);
+		
 		std::string const				&getPath() const;
-		std::string	const				&getRoot() const;
-		std::vector<std::string> const	&getIndexVector() const;
 		bool							isAutoindex() const;
 		std::bitset<SIZE> const			&getMethods() const;
 		bool							isAllowed(HttpMetthod method) const;
-		int								getReturnCode() const;
-		std::string	const				&getReturnUrl() const;
-		CgiMap const					&getCgiHandlers() const;
 		bool							isUploadEnabled() const;
 		std::string	const				&getUploadPath() const;
-		size_t							getMaxSize() const;
+		std::string const				&getCgiPass() const;
+		std::vector<std::string> const	&getCgiExtensions() const;
+
+		void	sentError(std::string msg) const;
+		void	display();
 
 	private:
 
 		std::string					path;
-		std::string					root;
-		std::vector<std::string>	index;
 		bool						autoindex;
 		std::bitset<SIZE>			methods;
-		int							returnCode;
-		std::string					redirectUrl;
-		CgiMap						cgiHandlers;
 		bool						uploadEnabled;
 		std::string					uploadPath;
-		size_t						maxBodySize;
+		std::string					cgiPass;
+		std::vector<std::string>	cgiExtensions;
 };
 
 #endif

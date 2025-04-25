@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 14:45:19 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 20:21:26 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ ParserConfig::ParserConfig(std::string input)
 
 	parserData();
 
+	for (size_t i = 0; i < _servers.size(); i++)
+		_servers[i].display();
 }
 
 void	ParserConfig::setDataFile(std::ifstream &file)
@@ -71,7 +73,7 @@ void	ParserConfig::setDataFile(std::ifstream &file)
 
 void	ParserConfig::parserData()
 {
-	for (int i = 0; i < static_cast<int>(_configFile.size()); i++)
+	for (unsigned int i = 0; i < _configFile.size(); i++)
 	{
 		if (_configFile[i] == "server" && _configFile[i + 1] == "{")
 			addServer(i += 2);
@@ -80,14 +82,11 @@ void	ParserConfig::parserData()
 	}
 }
 
-void	ParserConfig::addServer(int &i)
+void	ParserConfig::addServer(unsigned int &i)
 {
 	ServerConfig	server;
 	
-
-	std::cout << _configFile[i] << std::endl;
-
-	for (; i < static_cast<int>(_configFile.size()); i++)
+	for (; i < _configFile.size(); i++)
 	{
 		if (_configFile[i] == "location")
 			addRoute(i += 1, server);
@@ -99,7 +98,65 @@ void	ParserConfig::addServer(int &i)
 	_servers.push_back(server);
 }
 
-void	ParserConfig::addRoute(int &i, ServerConfig server)
+void	ParserConfig::addServerVar(unsigned int &i, ServerConfig &server)
+{
+	std::string	var = _configFile[i++];
+
+	if (var == "listen")
+	{
+		std::string	ip, port, str;
+
+		str = _configFile[i];
+		for (int j = 0; str[j]; j++)
+		{
+			if (str[j] == ':')
+			{
+				ip = str.substr(0, j);
+				port = str.substr(j + 1);
+				break ;
+			}
+		}
+		if (ip == "")
+		{
+			ip = "0.0.0.0";
+			port = _configFile[i];
+		}
+		server.addListen(ip, port);
+		i++;
+	}
+	else if (var == "server_name")
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			server.addServerName(_configFile[i]);
+	else if (var == "error_page")
+	{
+		std::vector<std::string>	errors;
+
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			errors.push_back(_configFile[i]);
+
+		for (unsigned int j = 0; j < errors.size() - 1; j++)
+			server.addErrorPage(errors[j], errors.back());
+	}
+	else if (var == "client_max_body_size")
+		server.setMaxSize(_configFile[i++]);
+	else if (var == "root")
+		server.setRoot(_configFile[i++]);
+	else if (var == "index")
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			server.addIndexFile(_configFile[i]);
+	else if (var == "return" || var == "redirect")
+	{
+		server.setReturn(_configFile[i], _configFile[i + 1]);
+		i += 2;
+	}
+	else
+		sentError("The directive " + var + " does not exists in this proyect");
+
+	if (_configFile[i] != ";")
+		sentError("Sintax error (var values;): " + _configFile[i]);
+}
+
+void	ParserConfig::addRoute(unsigned int &i, ServerConfig &server)
 {
 	RouteConfig	route;
 
@@ -108,51 +165,56 @@ void	ParserConfig::addRoute(int &i, ServerConfig server)
 	if (_configFile[i++] != "{")
 		sentError("Sintax error ('{'): " + _configFile[i - 1]);
 
-	for (; i < static_cast<int>(_configFile.size()); i++)
+	for (; i < _configFile.size(); i++)
 	{
 		if (_configFile[i] == "}")	
 			break ;
 		addRouteVar(i, route);
 	}
-
 	server.addRoute(route);
 }
 
-void	ParserConfig::addServerVar(int &i, ServerConfig server)
+void	ParserConfig::addRouteVar(unsigned int &i, RouteConfig &route)
 {
 	std::string	var = _configFile[i++];
 
-	// Buscar variable
-	
-	/*if (var == "listen")
-		server.addListen(_configFile[i++]);
-	else if (var == "server_name")
-		server.addServerName();
-	else if (var == "error_page")
-		server.addErrorPage();
-	else if (var == "client_max_body_size")
-		server.setMaxSize(_configFile[i++]);
-	else if (var == "root")
-		server.setRoot(_configFile[i++]);
+	if (var == "root")
+		route.setRoot(_configFile[i++]);
 	else if (var == "index")
-		server.addIndexFile();
-	else if (var == "return" || var == "redirect")
-		server.setReturn();
-	else
-		sentError("The directive " + var + " does not exists in this proyect");
-*/
-	
-	//if (_configFile[i] != ";")
-	//	sentError("Sintax error (var value;): " + var + value + _configFile[i]);
-	
-	(void)server;
-}
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			route.addIndexFile(_configFile[i]);
+	else if (var == "autoindex")
+		route.setAutoIndex(_configFile[i++]);
+	else if (var == "limit_except" || var == "methods" || var == "allowed_methods")
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			route.addMethod(_configFile[i]);
+	else if (var == "error_page")
+	{
+		std::vector<std::string>	errors;
 
-void	ParserConfig::addRouteVar(int &i, RouteConfig route)
-{
-	std::cout << "Route var: " << _configFile[i] << std::endl;
-	i++;
-	(void)route;
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			errors.push_back(_configFile[i]);
+
+		for (unsigned int j = 0; j < errors.size() - 1; j++)
+			route.addErrorPage(errors[j], errors.back());
+	}
+	else if (var == "client_max_body_size")
+		route.setMaxSize(_configFile[i++]);
+	else if (var == "return" || var == "redirect")
+	{
+		route.setReturn(_configFile[i], _configFile[i + 1]);
+		i += 2;
+	}
+	else if (var == "cgi_pass" || var == "cgi_path" || var == "fastcgi_pass")
+		route.setCgiPass(_configFile[i++]);
+	else if (var == "cgi_extension")
+		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
+			route.addCgiExtension(_configFile[i]);
+	else
+		sentError("The directive " + var + " in the route does not exists in this proyect");
+	
+	if (_configFile[i] != ";")
+		sentError("Sintax error (var values;): " + _configFile[i]);
 }
 
 std::vector<ServerConfig> const		&ParserConfig::getServers() const
