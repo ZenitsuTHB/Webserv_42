@@ -6,14 +6,14 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/24 14:31:06 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:20:48 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/RouteConfig.hpp"
 #include "../includes/ServerConfig.hpp"
 	
-ServerConfig::ServerConfig() {}
+ServerConfig::ServerConfig(): returnCode(-1) {}
 ServerConfig::~ServerConfig() {}
 
 void	ServerConfig::addListen(std::string ip, int port)
@@ -59,6 +59,11 @@ void	ServerConfig::setReturn(int code, std::string url)
 	(void)code;
 	(void)url;
 
+}
+
+void	ServerConfig::addRoute(RouteConfig route)
+{
+	routes.push_back(route);
 }
 
 ListenMap const	&ServerConfig::getListen() const
@@ -121,3 +126,7 @@ std::string	const &ServerConfig::getReturnUrl() const
 	return redirectUrl;
 }
 
+std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
+{
+	return routes;
+}

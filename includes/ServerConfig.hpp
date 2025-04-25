@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/24 14:30:42 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:19:58 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,10 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "RouteConfig.hpp"
 
 typedef std::map<std::string, std::vector<int> >	ListenMap;
 typedef std::map<int, std::string>	ErrorMap;
-
-class RouteConfig;
 
 class ServerConfig
 {
@@ -36,6 +35,7 @@ class ServerConfig
 		void	addErrorPage(int code, std::string url);
 		void	setMaxSize(size_t max);
 		void	setReturn(int code, std::string url);
+		void	addRoute(RouteConfig route);
 
 		ListenMap const					&getListen() const;
 		bool 							getListenPorts(std::string ip, std::vector<int> ports);
@@ -47,6 +47,7 @@ class ServerConfig
 		size_t							getMaxSize() const;
 		int								getReturnCode() const;
 		std::string const				&getReturnUrl() const;
+		std::vector<RouteConfig> const	&getRoutes() const;
 
 	private:
 

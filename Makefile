@@ -44,7 +44,6 @@ client.exe: client_socket.c
 	cc client_socket.c -o client.exe
 
 $(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
-	clear
 	@echo "\n$(RED)Compiling program:$(DF)"
 	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS) $(MLXFLAGS) \
 	$(BIGREEN)$(OBJ_F) $(BCYAN)-o $(RED)$(NAME)$(DF)"

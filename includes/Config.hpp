@@ -6,14 +6,14 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/17 17:45:33 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/18 12:46:28 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/04/25 13:50:34 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 # define CONFIG_HPP
 
-struct ServerConfig 
+struct ServerConfi
 {
 	
 	int ip;

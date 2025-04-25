@@ -6,47 +6,42 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/24 14:38:22 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:25:01 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig() {}
+RouteConfig::RouteConfig(): autoindex(false), returnCode(-1), uploadEnabled(false) {}
 RouteConfig::~RouteConfig() {}
 
 void	RouteConfig::setPath(std::string path)
 {
-	(void)path;
+	this->path = path;
 }
 
 void	RouteConfig::setRoot(std::string root)
 {
-
-	(void)root;
+	this->root = root;
 }
 
 void	RouteConfig::addIndex(std::string str)
 {
-
 	(void)str;
 }
 
 void	RouteConfig::setAutoIndex(bool x)
 {
-
 	(void)x;
 }
 
 void	RouteConfig::addMethod(HttpMetthod method)
 {
-
 	(void)method;
 }
 
 void	RouteConfig::setReturn(int code, std::string url)
 {
-
 	(void)code;
 	(void)url;
 }

@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 11:57:58 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/24 14:11:23 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 14:27:53 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ cgi_pass: Ejecutar cgi
 
 #include <iostream>
 #include <vector>
+#include "ServerConfig.hpp"
 
 class ParserConfig
 {
@@ -48,9 +49,22 @@ class ParserConfig
 		ParserConfig(std::string input);
 		~ParserConfig();
 
+		std::vector<ServerConfig> const		&getServers() const;
+
 	private:
 
 		std::vector<std::string>	_configFile;
+		std::vector<ServerConfig>	_servers;
+
+		void	sentError(std::string msg);
+		void	setDataFile(std::ifstream &file);
+		
+		void	parserData();
+		void	addServer(int &i);
+		void	addServerVar(int &i, ServerConfig server);
+		void	addRoute(int &i, ServerConfig server);
+		void	addRouteVar(int &i, RouteConfig route);
+
 };
 
 #endif

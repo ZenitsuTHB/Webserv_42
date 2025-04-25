@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/24 13:51:52 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/25 13:51:41 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void signalHandler(int signum)
 
 
 struct ThreadArg {
-	ServerConfig config;
+	ServerConfi config;
 };
 
 extern "C" void* serverLauncher(void* arg) {
