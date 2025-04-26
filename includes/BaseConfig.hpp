@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:18:39 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:08:25 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class BaseConfig
 		
 		virtual void	sentError(std::string msg) const = 0;
 		virtual void	display() = 0;
+		virtual void	addDefault() = 0;
 
 	protected:
 

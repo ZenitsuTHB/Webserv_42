@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:02:09 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:05:52 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <cstdlib>
 
 #define MAX_SIZE_CLIENT 104857600
+#define MIN_SIZE_CLIENT 10240
 
 BaseConfig::~BaseConfig() {}
 
@@ -102,8 +103,8 @@ void	BaseConfig::setMaxSize(std::string max)
 		
 	}
 
-	if (maxi > MAX_SIZE_CLIENT)
-		sentError("The client max body size is too big (10Kb - 100MB)");
+	if (maxi > MAX_SIZE_CLIENT || maxi < MIN_SIZE_CLIENT)
+		sentError("The client max body size is too big (10KB - 100MB)");
 	
 	clientMaxBodySize = maxi;
 }

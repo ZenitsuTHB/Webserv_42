@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:19:10 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:09:20 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,4 +139,9 @@ void	RouteConfig::display()
 	
 	for (size_t i = 0; i < cgiExtensions.size(); i++)
 		std::cout << "CgiExtension: " << cgiExtensions[i] << std::endl;
+}
+	
+void	RouteConfig::addDefault()
+{
+	
 }

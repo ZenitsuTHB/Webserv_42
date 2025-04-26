@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:18:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:09:01 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ class RouteConfig: public BaseConfig
 
 		void	sentError(std::string msg) const;
 		void	display();
+		void	addDefault();
 
 	private:
 

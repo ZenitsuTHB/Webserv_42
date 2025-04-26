@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:21:26 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/04/26 14:09:57 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,7 @@ void	ParserConfig::addServer(unsigned int &i)
 		else
 			addServerVar(i, server);
 	}
+	server.addDefault();
 	_servers.push_back(server);
 }
 
@@ -103,30 +104,12 @@ void	ParserConfig::addServerVar(unsigned int &i, ServerConfig &server)
 	std::string	var = _configFile[i++];
 
 	if (var == "listen")
-	{
-		std::string	ip, port, str;
-
-		str = _configFile[i];
-		for (int j = 0; str[j]; j++)
-		{
-			if (str[j] == ':')
-			{
-				ip = str.substr(0, j);
-				port = str.substr(j + 1);
-				break ;
-			}
-		}
-		if (ip == "")
-		{
-			ip = "0.0.0.0";
-			port = _configFile[i];
-		}
-		server.addListen(ip, port);
-		i++;
-	}
+		server.addListen(_configFile[i++]);
 	else if (var == "server_name")
+	{
 		for (; i < _configFile.size() && _configFile[i] != ";"; i++)
 			server.addServerName(_configFile[i]);
+	}
 	else if (var == "error_page")
 	{
 		std::vector<std::string>	errors;
@@ -171,6 +154,7 @@ void	ParserConfig::addRoute(unsigned int &i, ServerConfig &server)
 			break ;
 		addRouteVar(i, route);
 	}
+	route.addDefault();
 	server.addRoute(route);
 }
 
