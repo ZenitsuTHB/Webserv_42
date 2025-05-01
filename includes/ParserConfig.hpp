@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 11:57:58 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/25 20:21:37 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:24:45 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,11 +60,17 @@ class ParserConfig
 		void	sentError(std::string msg);
 		void	setDataFile(std::ifstream &file);
 		
+		bool		isEmpty(std::string const &line) const;
+		void		setLine(std::string &line);
+		
+		std::string					getVar(std::string const &line);
+		std::vector<std::string>	getValues(std::string const &line);
+		
 		void	parserData();
 		void	addServer(unsigned int &i);
-		void	addServerVar(unsigned int &i, ServerConfig &server);
+		void	addServerVar(std::string line, std::string const &var, ServerConfig &server);
 		void	addRoute(unsigned int &i, ServerConfig &server);
-		void	addRouteVar(unsigned int &i, RouteConfig &route);
+		void	addRouteVar(std::string line, std::string const &var, RouteConfig &route);
 
 };
 

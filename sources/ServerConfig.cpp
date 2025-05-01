@@ -6,11 +6,10 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/26 14:09:31 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:27:52 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/RouteConfig.hpp"
 #include "../includes/ServerConfig.hpp"
 #include <climits>
 #include <cstdlib>
@@ -105,30 +104,33 @@ in_port_t	ServerConfig::getPort(std::string const &port)
 	return static_cast<in_port_t>(numPort);
 }
 
-void	ServerConfig::addListen(std::string listen)
+void	ServerConfig::addListen(VectorS const &value)
 {
+	if (value.size() != 1)
+		sentError("Sintaxis error (listen)");
+
 	std::string ip, port;
 
-	setIpAndPort(listen, ip, port);
-	
+	setIpAndPort(value[0], ip, port);
+
 	in_addr_t	numIp = getInet(ip);
 	in_port_t	numPort = getPort(port);
 	
-	ListenMap::iterator	it = this->listen.find(numIp);
-	if (it == this->listen.end())
+	ListenMap::iterator	it = listen.find(numIp);
+	if (it == listen.end())
 	{
 		std::vector<in_port_t>	tmp;
 		tmp.push_back(numPort);
-		this->listen.insert(std::make_pair(numIp, tmp));
+		listen.insert(std::make_pair(numIp, tmp));
 	}
 	else
 		it->second.push_back(numPort);
-
 }
 
-void	ServerConfig::addServerName(std::string name)
+void	ServerConfig::addServerName(VectorS const &values)
 {
-	serverNames.push_back(name);
+	for (unsigned int i = 0; i < values.size(); i++)
+		serverNames.push_back(values[i]);
 }
 
 void	ServerConfig::addRoute(RouteConfig route)
@@ -152,7 +154,7 @@ bool	ServerConfig::getListenPorts(std::string ip, std::vector<in_port_t> ports)
 	return true;
 }
 
-std::vector<std::string> const	&ServerConfig::getServerNames() const
+VectorS const	&ServerConfig::getServerNames() const
 {
 	return serverNames;
 }

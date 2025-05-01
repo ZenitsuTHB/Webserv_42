@@ -6,12 +6,13 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/26 14:05:52 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:29:24 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/BaseConfig.hpp"
 #include <cstdlib>
+#include <sstream>
 
 #define MAX_SIZE_CLIENT 104857600
 #define MIN_SIZE_CLIENT 10240
@@ -25,48 +26,60 @@ void	BaseConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<BaseConfig> : " + msg);
 }
 
-void	BaseConfig::setRoot(std::string root)
+void	BaseConfig::setRoot(VectorS const &value)
 {
+	if (value.size() != 1)
+		sentError("Sintax error (root)");
 	if (this->root != "")
 		sentError("You only can have one root");
-	this->root = root;
+	this->root = value[0];
 }
 		
-void	BaseConfig::addIndexFile(std::string file)
+void	BaseConfig::addIndexFile(VectorS const &values)
 {
-	indexFiles.push_back(file);
+	for (unsigned int i = 0; i < values.size(); i++)
+		indexFiles.push_back(values[i]);
 }
 	
-void	BaseConfig::addErrorPage(std::string code, std::string url)
+void	BaseConfig::addErrorPage(VectorS const &values)
 {
-	for (unsigned int i = 0; i < code.size(); i++)
-		if (!std::isdigit(code[i]))
-			sentError("The code has to be a number: " + code);
-	
-	int	num = std::atoi(code.c_str());
+	if (values.size() < 2)
+		sentError("Sintax error (error_page)");
 
-	if (code.size() != 3 || num < 100 || num >= 600)
-		sentError("The code is between 100 and 599");
+	for (unsigned int i = 0; i < values.size() - 1; i++)
+	{
+		for (unsigned int j = 0; j < values[i].length(); j++)
+			if (!std::isdigit(values[i][j]))
+				sentError("The code has to be a number: " + values[i]);
+		
+		int	num = std::atoi(values[i].c_str());
 
-	errorPages.insert(std::make_pair(num, url));
+		if (values[i].size() != 3 || num < 100 || num >= 600)
+			sentError("The code is between 100 and 599");
+		
+		errorPages.insert(std::make_pair(num, values.back()));
+	}
 }
 
-void	BaseConfig::setReturn(std::string code, std::string url)
+void	BaseConfig::setReturn(VectorS values)
 {
-	for (unsigned int i = 0; i < code.size(); i++)
-		if (!std::isdigit(code[i]))
-			sentError("The return code has to be a number: " + code);
-	
-	int	num = std::atoi(code.c_str());
+	if (values.size() != 2)
+		sentError("Sintax error (return)");
 
-	if (code.size() != 3 || num < 100 || num >= 600)
+	for (unsigned int i = 0; i < values[0].size(); i++)
+		if (!std::isdigit(values[0][i]))
+			sentError("The return code has to be a number: " + values[0]);
+	
+	int	num = std::atoi(values[0].c_str());
+
+	if (values[0].size() != 3 || num < 100 || num >= 600)
 		sentError("The code is between 100 and 599");
 
 	returnCode = num;
-	redirectUrl = url;
+	redirectUrl = values[1];
 }
 
-void	BaseConfig::setMaxSize(std::string max)
+void	BaseConfig::setMaxSize(VectorS const &value)
 {
 	std::string	num;
 	char 		c = 'B';
@@ -75,11 +88,11 @@ void	BaseConfig::setMaxSize(std::string max)
 	if (clientMaxBodySize != 0)
 		sentError("You only need one client max body");
 
-	for (unsigned int i = 0; i < max.size(); i++)
+	for (unsigned int i = 0; i < value[0].size(); i++)
 	{
-		if (!std::isdigit(max[i]))
+		if (!std::isdigit(value[0][i]))
 		{
-			std::string	byte = max.substr(i);
+			std::string	byte = value[0].substr(i);
 			if (byte == "K" || byte == "KB")
 				c = 'K';
 			else if (byte == "M" || byte == "MB")
@@ -90,7 +103,7 @@ void	BaseConfig::setMaxSize(std::string max)
 		}
 	}
 
-	maxi = static_cast<size_t>(std::atoi(max.c_str()));
+	maxi = static_cast<size_t>(std::atoi(value[0].c_str()));
 
 	switch (c)
 	{
@@ -114,7 +127,7 @@ std::string const	&BaseConfig::getRoot() const
 	return root;
 }
 
-std::vector<std::string> const	&BaseConfig::getIndexFiles() const
+VectorS const	&BaseConfig::getIndexFiles() const
 {
 	return indexFiles;
 }

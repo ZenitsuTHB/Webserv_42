@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/26 14:08:50 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:07:41 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,13 +25,13 @@ class ServerConfig: public BaseConfig
 		ServerConfig();
 		virtual ~ServerConfig();
 
-		void	addListen(std::string listen);
-		void	addServerName(std::string name);
+		void	addListen(VectorS const &value);
+		void	addServerName(VectorS const &values);
 		void	addRoute(RouteConfig route);
 
 		ListenMap const					&getListen() const;
 		bool 							getListenPorts(std::string ip, std::vector<in_port_t> ports);
-		std::vector<std::string> const	&getServerNames() const;
+		VectorS const					&getServerNames() const;
 		std::vector<RouteConfig> const	&getRoutes() const;
 		
 		void	sentError(std::string msg) const;
@@ -41,7 +41,7 @@ class ServerConfig: public BaseConfig
 	private:
 
 		ListenMap					listen;
-		std::vector<std::string>	serverNames;
+		VectorS						serverNames;
 		std::vector<RouteConfig>	routes;
 
 		void	setIpAndPort(std::string listen, std::string &ip, std::string &port);

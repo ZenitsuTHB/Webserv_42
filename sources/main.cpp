@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/04/25 13:51:41 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 12:29:51 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,12 +47,13 @@ extern "C" void* serverLauncher(void* arg) {
 
 int main(int ac, char **av)
 {
-	if (ac != 2)
+	if (ac < 2)
 		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
 
 	try
 	{
-		ParserConfig	data(av[1]);
+		for (int i = 1; av[i]; i++)
+			ParserConfig	data(av[i]);
 	}
 	catch (std::exception const &e)
 	{

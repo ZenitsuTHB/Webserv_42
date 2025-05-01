@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/04/26 14:09:20 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:35:27 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,58 +20,61 @@ void	RouteConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<RouteConfig> : " + msg);
 }
 
-void	RouteConfig::setPath(std::string path)
+void	RouteConfig::setPath(VectorS const &value)
 {
-	this->path = path;
+	path = value[0];
 }
 
-void	RouteConfig::setAutoIndex(std::string x)
+void	RouteConfig::setAutoIndex(VectorS const &value)
 {
-	if (x == "on")
+	if (value[0] == "on")
 		autoindex = true;
-	else if (x == "off")
+	else if (value[0] == "off")
 		autoindex = false;
 	else
-		sentError("autoindex has to be on or off: " + x);
+		sentError("autoindex has to be on or off: " + value[0]);
 }
 
-void	RouteConfig::addMethod(std::string limit)
+void	RouteConfig::addMethods(VectorS const &values)
 {
-	if (limit == "GET")
-		methods.set(GET);
-	else if (limit == "POST")
-		methods.set(POST);
-	else if (limit == "DELETE")
-		methods.set(DELETE);
-	else
-		sentError("The methods are GET, POST, DELETE: " + limit);
+	for (unsigned int i = 0; i < values.size(); i++)
+	{
+		if (values[i] == "GET")
+			methods.set(GET);
+		else if (values[i] == "POST")
+			methods.set(POST);
+		else if (values[i] == "DELETE")
+			methods.set(DELETE);
+		else
+			sentError("The methods are GET, POST, DELETE: " + values[i]);
+	}
 }
 
-void	RouteConfig::enableUplaod(std::string enable)
+void	RouteConfig::enableUplaod(VectorS const &value)
 {
-	if (enable == "true")
+	if (value[0] == "true")
 		uploadEnabled = true;
-	else if (enable == "false")
+	else if (value[0] == "false")
 		uploadEnabled = false;
 	else
-		sentError("Sintax error only true or false: " + enable);
+		sentError("Sintax error only true or false: " + value[0]);
 }
 
-void	RouteConfig::setUploadPath(std::string path)
+void	RouteConfig::setUploadPath(VectorS const &value)
 {
-	uploadPath = path;
+	uploadPath = value[0];
 }
 
-void	RouteConfig::setCgiPass(std::string cgi)
+void	RouteConfig::setCgiPass(VectorS const &value)
 {
-	cgiPass = cgi;
+	cgiPass = value[0];
 }
 
-void	RouteConfig::addCgiExtension(std::string ext)
+void	RouteConfig::addCgiExtension(VectorS value)
 {
-	if (ext[0] != '.')
-		sentError("The extensions have to start with '.' -> " + ext);
-	cgiExtensions.push_back(ext);
+	if (value[0][0] != '.')
+		sentError("The extensions have to start with '.' -> " + value[0]);
+	cgiExtensions.push_back(value[0]);
 }
 
 std::string const	&RouteConfig::getPath() const
@@ -111,7 +114,7 @@ std::string const	&RouteConfig::getCgiPass() const
 	return cgiPass;
 }
 
-std::vector<std::string> const	&RouteConfig::getCgiExtensions() const
+VectorS const	&RouteConfig::getCgiExtensions() const
 {
 	return cgiExtensions;
 }
