@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/25 12:36:07 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/01 15:45:38 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/01 16:14:08 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,10 +48,14 @@ std::pair< std::string, std::string > Libft::splitInTwo(std::string const &str,
 		std::string const delimiter)
 {
 	std::pair< std::string, std::string >	ret;
+	size_t									pos;
 
-	size_t	pos = str.find(delimiter);
+	pos = str.find(delimiter);
 	if (pos == std::string::npos)
+	{
+		ret.first = str;
 		return (ret);
+	}
 	ret.first = str.substr(0, pos);
 	ret.second = str.substr(pos + 1);
 	return (ret);
