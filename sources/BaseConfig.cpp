@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:29:24 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 14:04:08 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,11 @@ void	BaseConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<BaseConfig> : " + msg);
 }
 
-void	BaseConfig::setRoot(VectorS const &value)
+void	BaseConfig::setRoot(std::string const &root)
 {
-	if (value.size() != 1)
-		sentError("Sintax error (root)");
 	if (this->root != "")
 		sentError("You only can have one root");
-	this->root = value[0];
+	this->root = root;
 }
 		
 void	BaseConfig::addIndexFile(VectorS const &values)
@@ -79,7 +77,7 @@ void	BaseConfig::setReturn(VectorS values)
 	redirectUrl = values[1];
 }
 
-void	BaseConfig::setMaxSize(VectorS const &value)
+void	BaseConfig::setMaxSize(std::string const &size)
 {
 	std::string	num;
 	char 		c = 'B';
@@ -88,11 +86,11 @@ void	BaseConfig::setMaxSize(VectorS const &value)
 	if (clientMaxBodySize != 0)
 		sentError("You only need one client max body");
 
-	for (unsigned int i = 0; i < value[0].size(); i++)
+	for (unsigned int i = 0; i < size.size(); i++)
 	{
-		if (!std::isdigit(value[0][i]))
+		if (!std::isdigit(size[i]))
 		{
-			std::string	byte = value[0].substr(i);
+			std::string	byte = size.substr(i);
 			if (byte == "K" || byte == "KB")
 				c = 'K';
 			else if (byte == "M" || byte == "MB")
@@ -103,7 +101,7 @@ void	BaseConfig::setMaxSize(VectorS const &value)
 		}
 	}
 
-	maxi = static_cast<size_t>(std::atoi(value[0].c_str()));
+	maxi = static_cast<size_t>(std::atoi(size.c_str()));
 
 	switch (c)
 	{

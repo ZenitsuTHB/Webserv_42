@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 11:57:58 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:24:45 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 13:53:13 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ cgi_extension: extension
 #include <vector>
 #include "ServerConfig.hpp"
 
+typedef std::vector<std::string>	VectorStr;
+
 class ParserConfig
 {
 	public:
@@ -54,7 +56,7 @@ class ParserConfig
 
 	private:
 
-		std::vector<std::string>	_configFile;
+		std::vector<VectorStr>		_configFile;
 		std::vector<ServerConfig>	_servers;
 
 		void	sentError(std::string msg);
@@ -62,15 +64,13 @@ class ParserConfig
 		
 		bool		isEmpty(std::string const &line) const;
 		void		setLine(std::string &line);
-		
-		std::string					getVar(std::string const &line);
-		std::vector<std::string>	getValues(std::string const &line);
+		int			cleanLine(std::string &line);
 		
 		void	parserData();
 		void	addServer(unsigned int &i);
-		void	addServerVar(std::string line, std::string const &var, ServerConfig &server);
+		void	addServerVar(VectorStr data, ServerConfig &server);
 		void	addRoute(unsigned int &i, ServerConfig &server);
-		void	addRouteVar(std::string line, std::string const &var, RouteConfig &route);
+		void	addRouteVar(VectorStr data, RouteConfig &route);
 
 };
 

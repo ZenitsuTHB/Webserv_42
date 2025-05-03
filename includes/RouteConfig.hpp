@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:34:47 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 13:47:09 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,13 +33,13 @@ class RouteConfig: public BaseConfig
 		RouteConfig();
 		virtual ~RouteConfig();
 
-		void	setPath(VectorS const &value);
-		void	setAutoIndex(VectorS const &value);
+		void	setPath(std::string const &path);
+		void	setAutoIndex(std::string const &autoindex);
 		void	addMethods(VectorS const &values);
-		void	enableUplaod(VectorS const &value);
-		void	setUploadPath(VectorS const &value);
-		void	setCgiPass(VectorS const &value);
-		void	addCgiExtension(VectorS value);
+		void	enableUplaod(std::string const &enable);
+		void	setUploadPath(std::string const &path);
+		void	setCgiPass(std::string const &cgi);
+		void	addCgiExtension(std::string const &ext);
 		
 		std::string const			&getPath() const;
 		bool						isAutoindex() const;

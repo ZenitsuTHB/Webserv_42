@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:27:52 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 14:46:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,15 +173,16 @@ void	ServerConfig::display()
 	
 	for (ListenMap::iterator it = listen.begin(); it != listen.end(); it++)
 		for (size_t i = 0; i < it->second.size(); i++)
-			std::cout << "Listen ip: " << it->first << " port: " << it->second[i] << std::endl;
+			std::cout << "Listen ip: " << getIp(it->first) << ", port: " << it->second[i] << std::endl;
 	
 	std::cout << "Root: " << root << std::endl;
 	
 	for (size_t i = 0; i < indexFiles.size(); i++)
 		std::cout << "IndexFile: " << indexFiles[i] << std::endl;
 	
-	for (ErrorMap::iterator	it = errorPages.begin(); it != errorPages.end(); it++)
-		std::cout << "Error page " << it->first << ": " << it->second << std::endl;
+	if (!errorPages.empty())
+		for (ErrorMap::iterator	it = errorPages.begin(); it != errorPages.end(); it++)
+			std::cout << "Error page " << it->first << ": " << it->second << std::endl;
 	
 	std::cout << "Return code: " << returnCode << std::endl;
 	std::cout << "Return url: " << redirectUrl << std::endl;
@@ -193,5 +194,15 @@ void	ServerConfig::display()
 
 void	ServerConfig::addDefault()
 {
-	
+	if (listen.empty())
+	{
+		listen.insert(std::make_pair(0, 80));
+		listen.insert(std::make_pair(0, 8000));
+	}
+	if (serverNames.empty())
+		serverNames.push_back("");
+	if (indexFiles.empty())
+		indexFiles.push_back("index.html");
+	if (clientMaxBodySize == 0)
+		setMaxSize("1M");
 }

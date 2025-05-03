@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:35:27 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 14:44:34 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,19 +20,19 @@ void	RouteConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<RouteConfig> : " + msg);
 }
 
-void	RouteConfig::setPath(VectorS const &value)
+void	RouteConfig::setPath(std::string const &path)
 {
-	path = value[0];
+	this->path = path;
 }
 
-void	RouteConfig::setAutoIndex(VectorS const &value)
+void	RouteConfig::setAutoIndex(std::string const &autoindex)
 {
-	if (value[0] == "on")
-		autoindex = true;
-	else if (value[0] == "off")
-		autoindex = false;
+	if (autoindex == "on")
+		this->autoindex = true;
+	else if (autoindex == "off")
+		this->autoindex = false;
 	else
-		sentError("autoindex has to be on or off: " + value[0]);
+		sentError("autoindex has to be on or off: " + autoindex);
 }
 
 void	RouteConfig::addMethods(VectorS const &values)
@@ -50,31 +50,31 @@ void	RouteConfig::addMethods(VectorS const &values)
 	}
 }
 
-void	RouteConfig::enableUplaod(VectorS const &value)
+void	RouteConfig::enableUplaod(std::string const &enable)
 {
-	if (value[0] == "true")
+	if (enable == "true")
 		uploadEnabled = true;
-	else if (value[0] == "false")
+	else if (enable == "false")
 		uploadEnabled = false;
 	else
-		sentError("Sintax error only true or false: " + value[0]);
+		sentError("Sintax error only true or false: " + enable);
 }
 
-void	RouteConfig::setUploadPath(VectorS const &value)
+void	RouteConfig::setUploadPath(std::string const &path)
 {
-	uploadPath = value[0];
+	uploadPath = path;
 }
 
-void	RouteConfig::setCgiPass(VectorS const &value)
+void	RouteConfig::setCgiPass(std::string const &cgi)
 {
-	cgiPass = value[0];
+	cgiPass = cgi;
 }
 
-void	RouteConfig::addCgiExtension(VectorS value)
+void	RouteConfig::addCgiExtension(std::string const &ext)
 {
-	if (value[0][0] != '.')
-		sentError("The extensions have to start with '.' -> " + value[0]);
-	cgiExtensions.push_back(value[0]);
+	if (ext[0] != '.')
+		sentError("The extensions have to start with '.' -> " + ext);
+	cgiExtensions.push_back(ext);
 }
 
 std::string const	&RouteConfig::getPath() const
@@ -146,5 +146,8 @@ void	RouteConfig::display()
 	
 void	RouteConfig::addDefault()
 {
-	
+	if (indexFiles.empty())
+		indexFiles.push_back("index.html");
+	if (clientMaxBodySize == 0)
+		setMaxSize("1M");
 }

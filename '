@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/03 14:47:13 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/03 12:37:29 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,18 +35,18 @@ ParserConfig::ParserConfig(std::string input)
 	setDataFile(file);
 	file.close();
 
-	/*for (size_t i = 0; i < _configFile.size(); i++)
+	for (size_t i = 0; i < _configFile.size(); i++)
 	{
 		std::cout << i << "-> ";
 		for (size_t j = 0; j < _configFile[i].size(); j++)
 			std::cout << "'" << _configFile[i][j] << "'";
 		std::cout << std::endl;
-	}*/
+	}
 
 	parserData();
 
-	for (size_t i = 0; i < _servers.size(); i++)
-		_servers[i].display();
+	//for (size_t i = 0; i < _servers.size(); i++)
+	//	_servers[i].display();
 }
 
 bool	ParserConfig::isEmpty(std::string const &line) const
@@ -60,48 +60,56 @@ bool	ParserConfig::isEmpty(std::string const &line) const
 	return true;
 }
 
+void	ParserConfig::saveIt(std::string data, char token, )
+{
+	
+}
+
 void	ParserConfig::setLine(std::string &line)
 {
-	unsigned int commentPos = line.find("#");
-
-	if (commentPos == std::string::npos)
-		line = line.substr(0, commentPos);
-
 	std::istringstream	iss(line);
-	std::string			word;
+	std::string			str, tmp;
 	VectorStr			vec;
 
-	while (iss >> word)
+	while (iss >> str)
 	{
-		std::string	token;
-			
-		for (unsigned int i = 0; i < word.length(); i++)
+		for (unsigned int i = 0; i < str.length(); i++)
 		{
-			char	c = word[i];
-
-			if (c == ';' || c == '{' || c == '}')
+			if (str[i] == ';')
 			{
-				if (!token.empty())
+				if (!tmp.empty())
+					vec.push_back(tmp);
+				_configFile.push_back(vec);
+				
+				vec.clear();
+				tmp.clear();
+			}
+			else if (str[i] == '{' || str[i] == '}')
+			{
+				if (!tmp.empty())
 				{
-					vec.push_back(token);
-					token.clear();
-				}
-				if (!vec.empty())
-				{
+					vec.push_back(tmp);
 					_configFile.push_back(vec);
+				
 					vec.clear();
+					tmp.clear();
 				}
 
-				VectorStr	symbol;
-				
-				symbol.push_back(std::string(1, c));
-				_configFile.push_back(symbol);
+				std::string	x(1, str[i]);
+				vec.push_back(x);
+				_configFile.push_back(vec);
+
+				vec.clear();
+				x.clear();
 			}
 			else
-				token += c;
+				tmp += str[i];
 		}
-		if (!token.empty())
-			vec.push_back(token);
+		if (!tmp.empty())
+		{
+			vec.push_back(tmp);
+			tmp.clear();
+		}
 	}
 	if (!vec.empty())
 		sentError("The line has to end with one of these -> ;{} -> '" + line + "'");
@@ -127,13 +135,11 @@ void	ParserConfig::parserData()
 	
 	for (unsigned int i = 0; i < _configFile.size(); i++)
 	{
-		if (_configFile[i].size() != 1)
-			sentError("Wrong input -> " + _configFile[i][0] + _configFile[i][1]);
-
-		if (_configFile[i][0] == "server" && _configFile[i + 1][0] == "{")
-			addServer(i);
-		else
-			sentError("Sintax error -> " + _configFile[i][0] + _configFile[i + 1][0]);
+		//if ()
+		//if (_configFile[i] == "server" && _configFile[i + 1] == "{")
+		//	addServer(i);
+		//else
+		//	sentError("Sintax error1: " + _configFile[i][0] + _configFile[i][1]);
 	}
 }
 
@@ -141,98 +147,104 @@ void	ParserConfig::addServer(unsigned int &i)
 {
 	ServerConfig	server;
 	
-	for (i += 2; i < _configFile.size(); i++)
+	for (size_t j = 0; j < _configFile[i].size(); j++)
+		std::cout << i << " - " <<  _configFile[i][j] << std::endl;
+
+	/*
+	for (; i < _configFile.size(); i++)
 	{
-		if (_configFile[i][0] == "location")
+		std::string	var = getVar(_configFile[i]);
+
+		if (var == "location")
 			addRoute(i, server);
-		else if (_configFile[i][0] == "}")
+		else if (var == "}")
 			break ;
 		else
-		{
-			addServerVar(_configFile[i], server);
-			if (_configFile[++i][0] != ";")
-				sentError("Sintax error -> You need to end with a ';' -> " + _configFile[i - 1][0]);
-		}
-		
+			addServerVar(_configFile[i], var, server);
+		var.clear();
 	}
-
+*/
 	server.addDefault();
 	_servers.push_back(server);
 }
 
-void	ParserConfig::addServerVar(VectorStr data, ServerConfig &server)
+void	ParserConfig::addServerVar(std::string line, std::string const &var, ServerConfig &server)
 {
-	std::string	var	= data[0];
-	data.erase(data.begin());
-
-	if (data.size() == 0)
+	std::vector<std::string>	values = getValues(line);
+	
+	if (values.size() == 0)
 		sentError("Sintax error: " + var);
 
 	if (var == "listen")
-		server.addListen(data);
+		server.addListen(values);
 	else if (var == "server_name")
-		server.addServerName(data);
+		server.addServerName(values);
 	else if (var == "error_page")
-		server.addErrorPage(data);
+		server.addErrorPage(values);
 	else if (var == "client_max_body_size")
-		server.setMaxSize(data[0]);
+		server.setMaxSize(values);
 	else if (var == "root")
-		server.setRoot(data[0]);
+		server.setRoot(values);
 	else if (var == "index")
-		server.addIndexFile(data);
+		server.addIndexFile(values);
 	else if (var == "return" || var == "redirect")
-		server.setReturn(data);
+		server.setReturn(values);
 	else
 		sentError("The directive " + var + " does not exists in this proyect");
 }
 
 void	ParserConfig::addRoute(unsigned int &i, ServerConfig &server)
 {
-	if (_configFile[i].size() != 2 || _configFile[i + 1][0] != "{")
-		sentError("Sintax error -> location url {");
-	
 	RouteConfig	route;
+	
+	for (size_t j = 0; j < _configFile[i].size(); j++)
+		std::cout << j << " - " << _configFile[i][j] << std::endl;
 
-	route.setPath(_configFile[i][1]);
+	//std::vector<std::string> path = getValues(_configFile[i++]);
 
-	for (i += 2; i < _configFile.size(); i++)
+	//route.setPath(path);
+/*
+	if (_configFile[i++] != "{")
+		sentError("Sintax error ('{'): " + _configFile[i - 1]);
+
+	for (; i < _configFile.size(); i++)
 	{
-		if (_configFile[i][0] == "}")	
+		std::string	var = getVar(_configFile[i]);
+		if (var == "}")	
 			break ;
-		addRouteVar(_configFile[i], route);
-		if (_configFile[++i][0] != ";")
-			sentError("Sintax error -> You need to end with a ';' -> " + _configFile[i - 1][0]);
+		addRouteVar(_configFile[i], var, route);
+		var.clear();
 	}
+*/	
 	route.addDefault();
 	server.addRoute(route);
 }
 
-void	ParserConfig::addRouteVar(VectorStr data, RouteConfig &route)
+void	ParserConfig::addRouteVar(std::string line, std::string const &var, RouteConfig &route)
 {
-	std::string	var = data[0];
-	data.erase(data.begin());
-	
-	if (data.size() == 0)
+	std::vector<std::string>	values = getValues(line);
+
+	if (values.size() == 0)
 		sentError("Sintax error: " + var);
 
-	if (var == "root" && data.size() == 1)
-		route.setRoot(data[0]);
+	if (var == "root")
+		route.setRoot(values);
 	else if (var == "index")
-		route.addIndexFile(data);
-	else if (var == "autoindex" && data.size() == 1)
-		route.setAutoIndex(data[0]);
+		route.addIndexFile(values);
+	else if (var == "autoindex")
+		route.setAutoIndex(values);
 	else if (var == "limit_except" || var == "methods" || var == "allowed_methods")
-		route.addMethods(data);
+		route.addMethods(values);
 	else if (var == "error_page")
-		route.addErrorPage(data);
-	else if (var == "client_max_body_size" && data.size() == 1)
-		route.setMaxSize(data[0]);
+		route.addErrorPage(values);
+	else if (var == "client_max_body_size")
+		route.setMaxSize(values);
 	else if (var == "return" || var == "redirect")
-		route.setReturn(data);
-	else if ((var == "cgi_pass" || var == "cgi_path" || var == "fastcgi_pass") && data.size() == 1)
-		route.setCgiPass(data[0]);
-	else if (var == "cgi_extension" && data.size() == 1)
-		route.addCgiExtension(data[0]);
+		route.setReturn(values);
+	else if (var == "cgi_pass" || var == "cgi_path" || var == "fastcgi_pass")
+		route.setCgiPass(values);
+	else if (var == "cgi_extension")
+		route.addCgiExtension(values);
 	else
 		sentError("The directive " + var + " in the route does not exists in this proyect");
 }
@@ -240,4 +252,29 @@ void	ParserConfig::addRouteVar(VectorStr data, RouteConfig &route)
 std::vector<ServerConfig> const		&ParserConfig::getServers() const
 {
 	return _servers;
+}
+
+std::string	ParserConfig::getVar(std::string const &line)
+{
+	std::string first;
+
+	for (unsigned int i = 0; i < line.size(); i++)
+	{
+		if (std::isspace(line[i]))
+			break ;
+		first += line[i];
+	}
+	return first;
+}
+
+std::vector<std::string>	ParserConfig::getValues(std::string const &line)
+{
+	std::istringstream			iss(line);
+	std::string					element;
+	std::vector<std::string>	vec;
+
+	iss >> element;
+	while (iss >> element)
+		vec.push_back(element);
+	return vec;
 }
