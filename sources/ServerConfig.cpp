@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/03 14:46:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/06 14:23:17 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	ServerConfig::setIpAndPort(std::string listen, std::string &ip, std::string
 	}
 }
 
-std::string	ServerConfig::getIp(in_addr_t inet)
+std::string	ServerConfig::ConvertIp(in_addr_t inet)
 {
 	unsigned char	bytes[4];
 	
@@ -104,33 +104,26 @@ in_port_t	ServerConfig::getPort(std::string const &port)
 	return static_cast<in_port_t>(numPort);
 }
 
-void	ServerConfig::addListen(VectorS const &value)
-{
-	if (value.size() != 1)
-		sentError("Sintaxis error (listen)");
+// listen (optional)[address]:[port]
+// default: [0.0.0.0][80], [0.0.0.0][8000]
 
+void	ServerConfig::setListen(std::string const &listen)
+{
 	std::string ip, port;
 
-	setIpAndPort(value[0], ip, port);
+	setIpAndPort(listen, ip, port);
 
-	in_addr_t	numIp = getInet(ip);
-	in_port_t	numPort = getPort(port);
-	
-	ListenMap::iterator	it = listen.find(numIp);
-	if (it == listen.end())
-	{
-		std::vector<in_port_t>	tmp;
-		tmp.push_back(numPort);
-		listen.insert(std::make_pair(numIp, tmp));
-	}
-	else
-		it->second.push_back(numPort);
+	ipNum = getInet(ip);
+	this->ip = ip;
+	this->port = getPort(port);
 }
 
-void	ServerConfig::addServerName(VectorS const &values)
+// server_name [name]
+// default: "";
+
+void	ServerConfig::setServerName(std::string const &name)
 {
-	for (unsigned int i = 0; i < values.size(); i++)
-		serverNames.push_back(values[i]);
+	serverName = name;
 }
 
 void	ServerConfig::addRoute(RouteConfig route)
@@ -138,25 +131,29 @@ void	ServerConfig::addRoute(RouteConfig route)
 	routes.push_back(route);
 }
 
-ListenMap const	&ServerConfig::getListen() const
+std::string const	&ServerConfig::getIp() const
 {
-	return listen;
+	return ip;
 }
 
-bool	ServerConfig::getListenPorts(std::string ip, std::vector<in_port_t> ports)
+in_addr_t	ServerConfig::getIpNum() const
 {
-	in_addr_t	inet = getInet(ip);
-
-	ListenMap::iterator	it = listen.find(inet);
-	if (it == listen.end())
-		return false;
-	ports = it->second;
-	return true;
+	return ipNum;
 }
 
-VectorS const	&ServerConfig::getServerNames() const
+in_port_t	ServerConfig::getPortNum() const
 {
-	return serverNames;
+	return port;
+}
+
+std::string const	&ServerConfig::getServerName() const
+{
+	return serverName;
+}
+
+RouteConfig const	&ServerConfig::getRoute(int route) const
+{
+	return routes[route];
 }
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
@@ -164,16 +161,41 @@ std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
 	return routes;
 }
 
+unsigned int	ServerConfig::getNumRoutes() const
+{
+	return routes.size();
+}
+
+void	ServerConfig::addDefault()
+{
+	if (root.empty())
+		root = "html";
+	if (indexFiles.empty())
+		indexFiles.push_back("index.html");
+	if (clientMaxBodySize == 0)
+		setMaxSize("10M");
+	if (ip.empty())
+	{
+		ip = "0.0.0.0";
+		ipNum = 0;
+		port = 80;
+	}
+	if (serverName.empty())
+		serverName = "default";
+
+	for (unsigned int i = 0; i < routes.size(); i++)
+	{
+		// Mirar las varibles de Base config
+		// Mirar las variables de ruta
+	}
+}
+
 void	ServerConfig::display()
 {
-	std::cout << std::endl << "Server: " << serverNames[0] << std::endl << std::endl;
+	std::cout << std::endl << "Server: " << serverName << std::endl << std::endl;
 
-	for (size_t i = 0; i < serverNames.size(); i++)
-		std::cout << "Server names: " << serverNames[i] << std::endl;
-	
-	for (ListenMap::iterator it = listen.begin(); it != listen.end(); it++)
-		for (size_t i = 0; i < it->second.size(); i++)
-			std::cout << "Listen ip: " << getIp(it->first) << ", port: " << it->second[i] << std::endl;
+	std::cout << "Listen ip: " << ip << ", port: " << port << std::endl;
+	std::cout << "ip number: " << ipNum << std::endl;
 	
 	std::cout << "Root: " << root << std::endl;
 	
@@ -190,19 +212,4 @@ void	ServerConfig::display()
 
 	for (size_t i = 0; i < routes.size(); i++)
 		routes[i].display();
-}
-
-void	ServerConfig::addDefault()
-{
-	if (listen.empty())
-	{
-		listen.insert(std::make_pair(0, 80));
-		listen.insert(std::make_pair(0, 8000));
-	}
-	if (serverNames.empty())
-		serverNames.push_back("");
-	if (indexFiles.empty())
-		indexFiles.push_back("index.html");
-	if (clientMaxBodySize == 0)
-		setMaxSize("1M");
 }

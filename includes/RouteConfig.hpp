@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/03 13:47:09 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/06 14:17:36 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,34 +35,40 @@ class RouteConfig: public BaseConfig
 
 		void	setPath(std::string const &path);
 		void	setAutoIndex(std::string const &autoindex);
-		void	addMethods(VectorS const &values);
-		void	enableUplaod(std::string const &enable);
-		void	setUploadPath(std::string const &path);
+		void	addMethods(VectorStr const &values);
 		void	setCgiPass(std::string const &cgi);
 		void	addCgiExtension(std::string const &ext);
+		void	setCgiEnable(std::string const &enable);
+		void	enableUpload(std::string const &enable);
+		void	setUploadPath(std::string const &path);
+		void	setMaxUploadSize(std::string const &size);
 		
 		std::string const			&getPath() const;
 		bool						isAutoindex() const;
 		std::bitset<SIZE> const		&getMethods() const;
 		bool						isAllowed(HttpMetthod method) const;
-		bool						isUploadEnabled() const;
-		std::string	const			&getUploadPath() const;
+		bool						isAllowedUpload() const;
+		size_t						getMaxUploadSize() const;
+		std::string const			getUploadPath() const;
+		bool						isCgiEnabled() const;
 		std::string const			&getCgiPass() const;
-		VectorS const				&getCgiExtensions() const;
+		VectorStr const				&getCgiExtensions() const;
 
 		void	sentError(std::string msg) const;
-		void	display();
 		void	addDefault();
+		void	display();
 
 	private:
 
 		std::string			path;
 		bool				autoindex;
 		std::bitset<SIZE>	methods;
-		bool				uploadEnabled;
+		bool				uploadEnable;
+		size_t				maxUploadSize;
 		std::string			uploadPath;
+		bool				cgiEnable;
 		std::string			cgiPass;
-		VectorS				cgiExtensions;
+		VectorStr			cgiExtensions;
 };
 
 #endif

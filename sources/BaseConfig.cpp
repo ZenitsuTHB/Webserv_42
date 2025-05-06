@@ -6,16 +6,13 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/03 14:04:08 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/06 14:15:57 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/BaseConfig.hpp"
 #include <cstdlib>
 #include <sstream>
-
-#define MAX_SIZE_CLIENT 104857600
-#define MIN_SIZE_CLIENT 10240
 
 BaseConfig::~BaseConfig() {}
 
@@ -26,20 +23,28 @@ void	BaseConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<BaseConfig> : " + msg);
 }
 
+// root [URL]
+// default: html
+
 void	BaseConfig::setRoot(std::string const &root)
 {
 	if (this->root != "")
 		sentError("You only can have one root");
 	this->root = root;
 }
-		
-void	BaseConfig::addIndexFile(VectorS const &values)
+
+// index [URLS]
+// default: index.html
+
+void	BaseConfig::addIndexFile(VectorStr const &values)
 {
 	for (unsigned int i = 0; i < values.size(); i++)
 		indexFiles.push_back(values[i]);
 }
-	
-void	BaseConfig::addErrorPage(VectorS const &values)
+
+// error_page [codes] [URL]
+
+void	BaseConfig::addErrorPage(VectorStr const &values)
 {
 	if (values.size() < 2)
 		sentError("Sintax error (error_page)");
@@ -59,38 +64,54 @@ void	BaseConfig::addErrorPage(VectorS const &values)
 	}
 }
 
-void	BaseConfig::setReturn(VectorS values)
+bool	BaseConfig::isValidCode(int num) const
 {
-	if (values.size() != 2)
-		sentError("Sintax error (return)");
+	int	codes [] = {200, 301, 302, 303, 304, 307, 308, 400,
+					401, 403, 404, 405, 500, 502, 503, 504, 0};
 
-	for (unsigned int i = 0; i < values[0].size(); i++)
-		if (!std::isdigit(values[0][i]))
-			sentError("The return code has to be a number: " + values[0]);
-	
-	int	num = std::atoi(values[0].c_str());
-
-	if (values[0].size() != 3 || num < 100 || num >= 600)
-		sentError("The code is between 100 and 599");
-
-	returnCode = num;
-	redirectUrl = values[1];
+	for (unsigned int i = 0; codes[i]; i++)
+		if (codes[i] == num)
+			return true;
+	return false;
 }
 
-void	BaseConfig::setMaxSize(std::string const &size)
+// return (optional)[code] [URL]
+// default: [-1] [""]
+
+void	BaseConfig::setReturn(VectorStr values)
 {
-	std::string	num;
-	char 		c = 'B';
-	size_t		maxi = 10240;
-
-	if (clientMaxBodySize != 0)
-		sentError("You only need one client max body");
-
-	for (unsigned int i = 0; i < size.size(); i++)
+	if (values.size() == 1)
 	{
-		if (!std::isdigit(size[i]))
+		returnCode = 302;
+		redirectUrl = values[0];
+	}
+	else if (values.size() == 2)
+	{
+		for (unsigned int i = 0; i < values[0].size(); i++)
+			if (!std::isdigit(values[0][i]))
+				sentError("The return code has to be a number: " + values[0]);
+		
+		int	num = std::atoi(values[0].c_str());
+
+		if (values[0].size() != 3 || !isValidCode(num))
+			sentError("(return) : That code does not exists : " + values[0]);
+
+		returnCode = num;
+		redirectUrl = values[1];
+	}
+	else
+		sentError("Sintax error -> return (optional)[code] [URL]");
+}
+
+size_t	BaseConfig::getBytes(std::string const &val)
+{
+	char 		c = 'B';
+	
+	for (unsigned int i = 0; i < val.size(); i++)
+	{
+		if (!std::isdigit(val[i]))
 		{
-			std::string	byte = size.substr(i);
+			std::string	byte = val.substr(i);
 			if (byte == "K" || byte == "KB")
 				c = 'K';
 			else if (byte == "M" || byte == "MB")
@@ -101,23 +122,35 @@ void	BaseConfig::setMaxSize(std::string const &size)
 		}
 	}
 
-	maxi = static_cast<size_t>(std::atoi(size.c_str()));
+	size_t value = static_cast<size_t>(std::atoi(val.c_str()));
 
 	switch (c)
 	{
 		case 'K':
-			maxi *= 1024;
+			value *= 1024;
 			break ;
 		case 'M':
-			maxi *= 1024 * 1024;
+			value *= 1024 * 1024;
 			break ;
 		
 	}
+	return value;
+}
 
-	if (maxi > MAX_SIZE_CLIENT || maxi < MIN_SIZE_CLIENT)
+// client_max_body_size [value]
+// default: 1M
+
+void	BaseConfig::setMaxSize(std::string const &size)
+{
+	if (clientMaxBodySize != 0)
+		sentError("You only need one client max body");
+
+	size_t	val = getBytes(size);
+	
+	if (val > MAX_SIZE || val < MIN_SIZE)
 		sentError("The client max body size is too big (10KB - 100MB)");
 	
-	clientMaxBodySize = maxi;
+	clientMaxBodySize = val;
 }
 
 std::string const	&BaseConfig::getRoot() const
@@ -125,7 +158,7 @@ std::string const	&BaseConfig::getRoot() const
 	return root;
 }
 
-VectorS const	&BaseConfig::getIndexFiles() const
+VectorStr const	&BaseConfig::getIndexFiles() const
 {
 	return indexFiles;
 }

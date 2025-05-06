@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/01 18:07:41 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/06 13:48:57 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 #include "RouteConfig.hpp"
 #include <arpa/inet.h>
 
-typedef std::map<in_addr_t, std::vector<in_port_t> >	ListenMap;
-
 class ServerConfig: public BaseConfig
 {
 	public:
@@ -25,14 +23,17 @@ class ServerConfig: public BaseConfig
 		ServerConfig();
 		virtual ~ServerConfig();
 
-		void	addListen(VectorS const &value);
-		void	addServerName(VectorS const &values);
+		void	setListen(std::string const &listen);
+		void	setServerName(std::string const &name);
 		void	addRoute(RouteConfig route);
 
-		ListenMap const					&getListen() const;
-		bool 							getListenPorts(std::string ip, std::vector<in_port_t> ports);
-		VectorS const					&getServerNames() const;
+		std::string const				&getIp() const;
+		in_addr_t						getIpNum() const;
+		in_port_t						getPortNum() const;
+		std::string const				&getServerName() const;
+		RouteConfig const				&getRoute(int route) const;
 		std::vector<RouteConfig> const	&getRoutes() const;
+		unsigned int					getNumRoutes() const;
 		
 		void	sentError(std::string msg) const;
 		void	display();
@@ -40,15 +41,17 @@ class ServerConfig: public BaseConfig
 
 	private:
 
-		ListenMap					listen;
-		VectorS						serverNames;
+		std::string					ip;
+		in_addr_t					ipNum;
+		in_port_t					port;
+		std::string					serverName;
 		std::vector<RouteConfig>	routes;
 
 		void	setIpAndPort(std::string listen, std::string &ip, std::string &port);
 
 		in_addr_t	getInet(std::string const &ip);
 		in_port_t	getPort(std::string const &port);
-		std::string	getIp(in_addr_t inet);
+		std::string	ConvertIp(in_addr_t inet);
 
 };
 
