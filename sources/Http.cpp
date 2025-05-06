@@ -6,13 +6,13 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 21:18:52 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/04/23 22:39:20 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/06 21:48:40 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Http.hpp"
 
-Method const	Http::toMethod(std:;string const &method)
+Method	Http::toMethod(std::string const &method)
 {
 	Method	ret = NO_METHOD;
 
@@ -25,7 +25,7 @@ Method const	Http::toMethod(std:;string const &method)
 	return (ret);
 }
 
-std::string	Http::toStr(Method method)
+std::string	Http::toString(Method method)
 {
 	std::string	ret;
 

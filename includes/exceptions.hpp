@@ -1,38 +1,32 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                         :::      ::::::::  */
-/*  HttpRequest.hpp                                      :+:      :+:    :+:  */
+/*  exceptions.hpp                                       :+:      :+:    :+:  */
 /*                                                     +:+ +:+         +:+    */
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/04/23 22:39:01 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/06 21:42:56 by mvelazqu           ###   ########.fr      */
+/*  Created: 2025/05/06 18:43:16 by mvelazqu            #+#    #+#            */
+/*  Updated: 2025/05/06 19:57:24 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef HTTPREQUEST_HPP
-# define HTTPREQUEST_HPP
+#ifndef EXCEPTIONS_HPP
+# define EXCEPTIONS_HPP
 
-# include <string>
-# include "Http.hpp"
+#include <exception>
 
-class	HttpRequest
+class	HttpException: public std::exception
 {
 	public:
-		~HttpRequest( void );
-		HttpRequest( std::string const &req );
-		HttpRequest( HttpRequest const &obj );
+		HttpException( std::string const message, int code ):
+			_msg(message), _code(code) { return ; }
+		~HttpException ( void ) throw() { return ; }
 
-		void	print( void ) const;
-
-		HttpRequest	& operator = ( HttpRequest const &obj );
-
+		char const	*what( void ) const throw() { return (_msg.c_str()); }
+		int			whatCode( void ) const { return (_code); }
 	private:
-		Method		_method;
-		std::string	_path;
-		std::string	_version;
-		Headers		_header;
-		std::string _body;
+		std::string	_msg;
+		int			_code;
 };
 
 #endif
