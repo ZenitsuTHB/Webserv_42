@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 14:17:23 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/08 14:11:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,10 @@ class BaseConfig
 		std::string		redirectUrl;
 		size_t			clientMaxBodySize;
 		
-		size_t	getBytes(std::string const &val);
-
 	private:
 
 		bool	isValidCode(int num) const;
+		size_t	getBytes(std::string const &val);
 
 };
 

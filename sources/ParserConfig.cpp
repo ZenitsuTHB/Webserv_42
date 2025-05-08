@@ -6,12 +6,11 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 14:12:09 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/08 14:30:42 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ParserConfig.hpp"
-#include "../includes/ServerConfig.hpp"
 #include <sstream>
 
 void	ParserConfig::sentError(std::string msg)
@@ -35,6 +34,7 @@ ParserConfig::ParserConfig(std::string input)
 
 	while (std::getline(file, line))
 	{
+		deleteComment(line);
 		if (isEmpty(line))
 			continue ;
 
@@ -49,6 +49,14 @@ ParserConfig::ParserConfig(std::string input)
 			sentError("Syntax error: " + line);
 
 		line.clear(); a.clear(); b.clear();
+	}
+
+	for (unsigned int i = 0; i < _servers.size(); i++)
+	{
+		in_addr_t	ip = _servers[i].getIpNum(); in_port_t	port = _servers[i].getPortNum();
+		for (unsigned int j = 0; j < _servers.size(); j++)
+			if (i != j && _servers[j].getIpNum() == ip && _servers[j].getPortNum() == port)
+				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
 	for (size_t i = 0; i < _servers.size(); i++)
@@ -69,6 +77,7 @@ void	ParserConfig::addServer(std::ifstream &file)
 
 	while (std::getline(file, line))
 	{
+		deleteComment(line);
 		if (isEmpty(line))
 			continue ;
 
@@ -112,6 +121,7 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 
 	while (std::getline(file, line))
 	{
+		deleteComment(line);
 		if (isEmpty(line))
 			continue ;	
 
@@ -168,8 +178,6 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 		route.addErrorPage(values);
 	else if (var == "client_max_body_size")
 		route.setMaxSize(values[0]);
-	else if (var == "upload_max_body_size")
-		route.setMaxUploadSize(values[0]);
 	else if (var == "upload_enable")
 		route.enableUpload(values[0]);
 	else if (var == "upload_dir" || var == "upload_path")
@@ -237,6 +245,14 @@ bool	ParserConfig::isEmpty(std::string const &line) const
 		if (!std::isspace(line[i]))
 			return false;
 	return true;
+}
+
+void	ParserConfig::deleteComment(std::string &line)
+{
+	size_t	pos = line.find('#');
+
+	if (pos != std::string::npos)
+		line = line.substr(0, pos);
 }
 
 std::vector<ServerConfig> const		&ParserConfig::getServers() const

@@ -6,13 +6,13 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 14:25:01 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/08 14:12:12 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig(): autoindex(false), uploadEnable(false), maxUploadSize(0), cgiEnable(false) {}
+RouteConfig::RouteConfig(): autoindex(false), uploadEnable(false), cgiEnable(false) {}
 RouteConfig::~RouteConfig() {}
 
 void	RouteConfig::sentError(std::string msg) const
@@ -87,22 +87,6 @@ void	RouteConfig::setCgiEnable(std::string const &enable)
 		sentError("Syntax error: true | false: " + enable);
 }
 
-// max_upload_size [value]
-// default: 1M
-
-void	RouteConfig::setMaxUploadSize(std::string const &size)
-{
-	if (maxUploadSize != 0)
-		sentError("You only need one client max body");
-
-	size_t	val = getBytes(size);
-	
-	if (val > MAX_SIZE || val < MIN_SIZE)
-		sentError("The upload max size has to be between (10KB - 100MB)");
-	
-	maxUploadSize = val;
-}
-
 // enable_upload/allow_upload [true | false]
 // default: false
 
@@ -171,14 +155,14 @@ std::string const	RouteConfig::getUploadPath() const
 	return uploadPath;
 }
 
-size_t	RouteConfig::getMaxUploadSize() const
-{
-	return maxUploadSize;
-}
-
 void	RouteConfig::addDefault()
 {
-	
+	if (root.empty())
+		root = "html";
+	if (indexFiles.empty())
+		indexFiles.push_back("index.html");
+	if (!clientMaxBodySize)
+		setMaxSize("10M");
 }
 
 void	RouteConfig::display()
@@ -200,7 +184,6 @@ void	RouteConfig::display()
 	std::cout << "Autoindex: " << autoindex << std::endl;
 	std::cout << "Methods: " << methods << std::endl;
 	std::cout << "UploadEnabled: " << uploadEnable << std::endl;
-	std::cout << "UploadMaxBody: " << maxUploadSize << std::endl;
 	std::cout << "UploadPath: " << uploadPath << std::endl;
 	std::cout << "CgiEnable: " << cgiEnable << std::endl;
 	std::cout << "CgiPass: " << cgiPass << std::endl;

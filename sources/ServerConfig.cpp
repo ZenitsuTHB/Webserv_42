@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 14:23:17 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/08 14:39:18 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 #include <climits>
 #include <cstdlib>
 #include <sstream>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define MAX_SIZE_CLIENT 104857600
 
@@ -25,26 +27,34 @@ void	ServerConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<ServerConfig> : " + msg);
 }
 
-void	ServerConfig::setIpAndPort(std::string listen, std::string &ip, std::string &port)
+std::string	ServerConfig::lookForHost(std::string const &hostname)
 {
-	for (int i = 0; listen[i]; i++)
+	int	fd = open("/etc/hosts", O_RDONLY);
+	if (fd < 0)
+		sentError("Error to open /etc/hosts");
+
+	char		buffer[4096];
+	ssize_t		bytesRead;
+	std::string	line;
+
+	while ((bytesRead = read(fd, buffer, sizeof(buffer))) > 0)
 	{
-		if (listen[i] == ':')
+		for (ssize_t i = 0; i < bytesRead; i++)
 		{
-			if (ip != "")
-				sentError("Sintax error (listen) -> " + listen);
-			ip = listen.substr(0, i);
-			port = listen.substr(i + 1);
+			if (buffer[i] == '\n')
+			{	
+				if (line.find(hostname) != std::string::npos)
+					return close(fd), line;
+				line.clear();
+			}
+			else
+				line += buffer[i];
 		}
 	}
-	if (ip == "")
-	{
-		ip = "0.0.0.0";
-		port = listen;
-	}
+	return close(fd), line;
 }
 
-std::string	ServerConfig::ConvertIp(in_addr_t inet)
+std::string	ServerConfig::convertIp(in_addr_t inet)
 {
 	unsigned char	bytes[4];
 	
@@ -66,14 +76,24 @@ std::string	ServerConfig::ConvertIp(in_addr_t inet)
 in_addr_t	ServerConfig::getInet(std::string const &ip)
 {
 	unsigned char	bytes[4];
-	size_t	pos = 0, lastPos = 0;
+	size_t			pos = 0, lastPos = 0;
+	std::string		part;
+
+	for (unsigned int i = 0; i < ip.length(); i++)
+		if (!std::isdigit(ip[i]) && ip[i] != '.')
+			sentError("The ip has to be a number: " + ip);
 
 	for (int i = 0; i < 4; ++i)
 	{
 		pos = ip.find('.', lastPos);
-		std::string	part = (pos == std::string::npos) ? ip.substr(lastPos) : ip.substr(lastPos, pos - lastPos);
+
+		if (pos == std::string::npos)
+			part = ip.substr(lastPos, pos);
+		else
+			part = ip.substr(lastPos);
 
 		int	num = std::strtol(part.c_str(), NULL, 10);
+		
 		if (num < 0 || num > 255)
 			sentError("The numbers of the ip have to be 0-255: " + part);
 
@@ -109,12 +129,32 @@ in_port_t	ServerConfig::getPort(std::string const &port)
 
 void	ServerConfig::setListen(std::string const &listen)
 {
-	std::string ip, port;
+	size_t		pos = listen.find(':');
 
-	setIpAndPort(listen, ip, port);
+	if (pos == std::string::npos)
+	{
+		this->ip = "0.0.0.0";
+		this->ipNum = getInet(this->ip);
+		this->port = getPort(listen);
+		return ;
+	}
+	std::string	host = listen.substr(0, pos);
+	std::string	port = listen.substr(pos + 1);
 
-	ipNum = getInet(ip);
-	this->ip = ip;
+	std::string	ip = lookForHost(host);
+
+	if (!ip.empty())
+	{
+		host.clear();
+		for (unsigned int i = 0; i < ip.length(); i++)
+		{
+			if (std::isspace(ip[i]))
+				break ;
+			host += ip[i];
+		}
+	}
+	this->ipNum = getInet(host);
+	this->ip = host;
 	this->port = getPort(port);
 }
 
@@ -169,25 +209,37 @@ unsigned int	ServerConfig::getNumRoutes() const
 void	ServerConfig::addDefault()
 {
 	if (root.empty())
-		root = "html";
+		this->root = "html";
 	if (indexFiles.empty())
-		indexFiles.push_back("index.html");
+		this->indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
-		setMaxSize("10M");
+		this->setMaxSize("10M");
 	if (ip.empty())
 	{
-		ip = "0.0.0.0";
-		ipNum = 0;
-		port = 80;
+		this->ip = "0.0.0.0";
+		this->ipNum = 0;
+		this->port = 80;
 	}
 	if (serverName.empty())
-		serverName = "default";
+		this->serverName = "default";
 
+	bool	therIs = false;
 	for (unsigned int i = 0; i < routes.size(); i++)
 	{
-		// Mirar las varibles de Base config
-		// Mirar las variables de ruta
+		routes[i].addDefault();
+		if (routes[i].getPath() == "/" && !therIs)
+			therIs = true;
 	}
+
+	if (!therIs)
+	{
+		RouteConfig					newRoute;
+
+		newRoute.setPath("/");
+		newRoute.addDefault();
+		routes.push_back(newRoute);
+	}
+
 }
 
 void	ServerConfig::display()

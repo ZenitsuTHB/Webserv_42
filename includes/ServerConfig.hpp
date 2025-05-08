@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 13:48:57 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/08 12:42:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,10 @@ class ServerConfig: public BaseConfig
 		std::string					serverName;
 		std::vector<RouteConfig>	routes;
 
-		void	setIpAndPort(std::string listen, std::string &ip, std::string &port);
-
 		in_addr_t	getInet(std::string const &ip);
 		in_port_t	getPort(std::string const &port);
-		std::string	ConvertIp(in_addr_t inet);
+		std::string	convertIp(in_addr_t inet);
+		std::string	lookForHost(std::string const &hostname);
 
 };
 
