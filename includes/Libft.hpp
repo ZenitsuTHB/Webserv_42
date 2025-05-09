@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/25 15:13:23 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/06 19:52:15 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/08 14:36:19 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ typedef std::string								String;
 
 namespace	Libft
 {
+	std::string	itos( int integer );
 	std::string	&trim(std::string &str, std::string const set);
 	PairStr		splitInTwo(std::string const &str, std::string const set);
 	VecStr		split(std::string const &str,

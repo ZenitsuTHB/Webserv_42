@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 22:39:03 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/06 22:24:02 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/08 18:48:20 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,11 @@ HttpRequest	&HttpRequest:: operator = (HttpRequest const &obj)
 {
 	if (this != &obj)
 	{
+		_method = obj._method;
+		_path = obj._path;
+		_version = obj._version;
+		_header = obj._header;
+		_body = obj._body;
 	}
 	return (*this);
 }

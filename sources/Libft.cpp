@@ -6,12 +6,41 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/25 12:36:07 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/06 22:20:50 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/08 14:36:19 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Libft.hpp"
 #include <iostream>
+
+std::string	Libft::itos(int integer)
+{
+	std::string	num;
+	int			nega;
+
+	if (integer == 0)
+		num.append(1, '0');
+	else if (integer == -2147483648)
+		num.append("-2147483648");
+	else
+	{
+		if (integer < 0)
+		{
+			nega = 1;
+			integer *= -1;
+		}
+		else
+			nega = 0;
+		while (integer)
+		{
+			num.insert(0, 1, integer % 10 + '0');
+			integer /= 10;
+		}
+		if (nega)
+			num.insert(0, 1, '-');
+	}
+	return (num);
+}
 
 VecStr	Libft::split(std::string const &str, std::string const set, bool skip)
 {

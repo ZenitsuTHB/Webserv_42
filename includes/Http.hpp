@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 21:16:17 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/06 21:48:27 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/08 19:26:12 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,13 @@ typedef enum e_method
 
 typedef std::map< std::string, std::string >	Headers;
 
-
 class	Http
 {
 	public:
 		static Method		toMethod( std::string const &method );
 		static std::string	toString( Method method );
+		static std::string	getError( int idx );
+		static std::string	getFileType( std::string const key );
 
 		Http	& operator = ( Http const &obj ) { (void)obj; return (*this);};
 
@@ -42,6 +43,8 @@ class	Http
 		~Http( void ) { return ; };
 		Http( void ) { return ; };
 		Http( Http const &obj ) { (void)obj; return ; };
+		static const std::map< int, std::string >			_errorCode;
+		static const std::map< std::string, std::string >	_fileType;
 };
 
 #endif

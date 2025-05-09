@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*  Updated: 2025/04/23 21:07:13 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/09 18:14:55 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -257,6 +257,7 @@ std::string	Server::readRequest( int ftFlClient )
 	}
 	return ( buffer );
 }
+#include "../includes/HttpResponse.hpp"
 
 void	Server::handleClientEvent( int fdClient, uint32_t events )
 {
@@ -265,6 +266,41 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 	else if ( events & EPOLLIN )
 	{
 		std::string	reqStr = readRequest( fdClient );
+//	maxiiii
+/*
+		try
+		{
+			HttpRequest		request(reqStr);
+			HttpResponse	response(request);
+
+			_cachedResponse = response.generate();
+			_responseReady = true;
+			requestCount++;
+			LOG("Request total count: " << requestCount);
+		}
+		catch (std::exception const &ex)
+		{
+			_responseReady = true;
+			_cachedResponse = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
+			LOG("Requested failed");
+		}
+		prepareStaticResponse();
+		bool	shouldClose = false;
+		LOG("=========[ HTTP REQUEST ]=========");
+		LOG(reqStr);
+		LOG("=========[    END       ]=========");
+		std::cout << "Response:" << std::endl << _cachedResponse;
+		requestResponse( fdClient );
+		_recvBuffers[ fdClient ].clear();
+		if ( shouldClose )
+		{
+			LOG("Client requested connection close.");
+			closeClient(fdClient);
+			return;
+		}
+		std::cout << "Termina mi parte" << std::endl;
+*/
+//	archly
 		if (!reqStr.empty())
 		{
 		
@@ -299,6 +335,7 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 			//std::string confidentialStuff = res.serialize();
 			//write( fdClient, confidentialStuff.c_str(), confidentialStuff.size());
 		}
+//	adioss hasta aqui termina
 	}
 }
 
