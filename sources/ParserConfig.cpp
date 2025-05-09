@@ -259,3 +259,8 @@ std::vector<ServerConfig> const		&ParserConfig::getServers() const
 {
 	return _servers;
 }
+
+unsigned int	ParserConfig::size() const
+{
+	return _servers.size();
+}

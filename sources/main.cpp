@@ -52,8 +52,7 @@ int main(int ac, char **av)
 
 	try
 	{
-		for (int i = 1; av[i]; i++)
-			ParserConfig	data(av[i]);
+		ParserConfig	servers(av[1]);
 	}
 	catch (std::exception const &e)
 	{

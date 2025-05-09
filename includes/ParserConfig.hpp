@@ -52,6 +52,7 @@ class ParserConfig
 		~ParserConfig();
 
 		std::vector<ServerConfig> const		&getServers() const;
+		unsigned int						size() const;
 
 	private:
 
