@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:10:32 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:33:48 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,10 @@ void	RouteConfig::setCgiPass(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: cgi -> cgi_pass [on | off]");
 	
-	this->cgiPass = data[0];
+	if (cgiPass != "")
+		sentError("You cannot have more than one cgi_pass in a route");
+
+	cgiPass = data[0];
 }
 
 // cgi_extension [extension]
@@ -125,6 +128,9 @@ void	RouteConfig::setUploadPath(VectorStr const &data)
 {
 	if (data.size() != 1)
 		sentError("Syntax error: upload -> upload_path [path]");
+
+	if (uploadPath != "")
+		sentError("You cannot have more than one upload path");
 
 	uploadPath = data[0];
 }

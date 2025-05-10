@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:07:51 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:22:14 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,7 @@ void	ParserConfig::addServer(std::ifstream &file)
 
 		if (var == "}")
 			break ;
-		else if (var == "location" && values.size() == 1)
+		else if (var == "location")
 			addRoute(file, values, server);
 		else if (values.size() != 0)
 			addServerVar(var, values, server);
@@ -108,7 +108,7 @@ void	ParserConfig::addServer(std::ifstream &file)
 	}
 
 	if (var != "}")
-		sentError("Keys not closed correctly");
+		sentError("Keys of the server not closed correctly");
 	
 	server.addDefault();
 	_servers.push_back(server);
@@ -118,17 +118,17 @@ void	ParserConfig::addServer(std::ifstream &file)
 
 void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerConfig &server)
 {
-	std::string	line, a;
+	std::string	line, var, a;
 	std::getline(file, line);
 	std::istringstream	iss(line);
 	RouteConfig	route;
 
+	route.setPath(path);
+
 	iss >> a;
 	if (a != "{" || iss.fail())
 		sentError("Syntax error: unexpected token: " + line);
-	line.clear(); a.clear();
-	
-	route.setPath(path);
+	line.clear(); a.clear();	
 
 	while (std::getline(file, line))
 	{
@@ -137,7 +137,6 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 			continue ;	
 
 		VectorStr	values;
-		std::string	var;
 
 		getDataLine(line, var, values);
 
@@ -152,6 +151,8 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 		line.clear(); var.clear(); values.clear();
 	}
 	
+	if (var != "}")
+		sentError("Keys of the route not closed correctly");
 	server.addRoute(route);
 }
 
@@ -232,6 +233,8 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 	std::string::size_type	first = line.find(';');
 	if (first != std::string::npos)
 	{
+		if (var == "location")
+			sentError("The routes does not have a ';' -> " + line);
 		std::string::size_type	second = line.rfind(';');
 		if (first != second)
 			sentError("Syntax error: You have more than one ; -> " + line);

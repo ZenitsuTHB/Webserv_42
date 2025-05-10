@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:08:51 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:29:16 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,6 +140,9 @@ void	ServerConfig::setListen(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: listen -> listen [ip]:[port]");
 
+	if (ip != "")
+		sentError("You cannot have multiple listen");
+
 	std::string	listen = data[0];
 	size_t		pos = listen.find(':');
 
@@ -176,7 +179,9 @@ void	ServerConfig::setListen(VectorStr const &data)
 void	ServerConfig::setServerName(VectorStr const &data)
 {
 	if (data.size() != 1)
-		sentError("Syntax error: server name -> server_name [name]");
+		sentError("Syntax error: multiple server name -> server_name [name]");
+	if (serverName != "")
+		sentError("You cannot have multiple server_name");
 
 	serverName = data[0];
 }

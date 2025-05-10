@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:09:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:31:25 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,10 +31,10 @@ void	BaseConfig::setRoot(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: root -> root [path]");
 
-	if (this->root != "")
-		sentError("You only can have one root");
+	if (root != "")
+		sentError("You cannot have multiple root");
 
-	this->root = data[0];
+	root = data[0];
 }
 
 // index [URLS]
@@ -86,6 +86,9 @@ bool	BaseConfig::isValidCode(int num) const
 
 void	BaseConfig::setReturn(VectorStr const &data)
 {
+	if (returnCode != -1)
+		sentError("You cannot have multiple redirections");
+
 	if (data.size() == 1)
 	{
 		returnCode = 302;
@@ -168,6 +171,9 @@ void	BaseConfig::setMaxSize(VectorStr const &data)
 
 void	BaseConfig::setMaxSize(size_t size)
 {
+	if (clientMaxBodySize != 0)
+		sentError("You only need one client max body");
+	
 	if (size > MAX_SIZE || size < MIN_SIZE)
 		sentError("The client max body size is too big (10KB - 100MB)");
 	
