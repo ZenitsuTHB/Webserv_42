@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 19:09:00 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:08:51 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,8 +135,12 @@ in_port_t	ServerConfig::getPort(std::string const &port)
 // listen (optional)[address]:[port]
 // default: [0.0.0.0][80], [0.0.0.0][8000]
 
-void	ServerConfig::setListen(std::string const &listen)
+void	ServerConfig::setListen(VectorStr const &data)
 {
+	if (data.size() != 1)
+		sentError("Syntax error: listen -> listen [ip]:[port]");
+
+	std::string	listen = data[0];
 	size_t		pos = listen.find(':');
 
 	if (pos == std::string::npos)
@@ -169,13 +173,21 @@ void	ServerConfig::setListen(std::string const &listen)
 // server_name [name]
 // default: "";
 
-void	ServerConfig::setServerName(std::string const &name)
+void	ServerConfig::setServerName(VectorStr const &data)
 {
-	serverName = name;
+	if (data.size() != 1)
+		sentError("Syntax error: server name -> server_name [name]");
+
+	serverName = data[0];
 }
 
-void	ServerConfig::setBacklog(std::string backlog)
+void	ServerConfig::setBacklog(VectorStr const &data)
 {
+	if (data.size() != 1)
+		sentError("Syntax error: backlog -> backlog [value]");
+
+	std::string	backlog = data[0];
+
 	for (unsigned int i = 0; i < backlog.length(); i++)
 		if (!std::isdigit(backlog[i]))
 			sentError("The backlog has to be a positive number: " + backlog);
@@ -237,7 +249,7 @@ void	ServerConfig::addDefault()
 	if (indexFiles.empty())
 		indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
-		setMaxSize("10M");
+		setMaxSize(MAX_SIZE);
 	if (ip.empty())
 	{
 		ip = "0.0.0.0";
@@ -264,7 +276,6 @@ void	ServerConfig::addDefault()
 	{
 		RouteConfig	newRoute;
 
-		newRoute.setPath("/");
 		newRoute.addDefault();
 		routes.push_back(newRoute);
 	}

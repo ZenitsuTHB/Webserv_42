@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 18:09:12 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:10:32 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,90 +22,111 @@ void	RouteConfig::sentError(std::string msg) const
 
 // location [uri] {}
 
-void	RouteConfig::setPath(std::string const &path)
+void	RouteConfig::setPath(VectorStr const &data)
 {
-	this->path = path;
+	if (data.size() != 1)
+		sentError("Syntax error: multiple path -> location [path]");
+	
+	this->path = data[0];
 }
 
 // autoindex [on | off]
 // default: off
 
-void	RouteConfig::setAutoIndex(std::string const &autoindex)
+void	RouteConfig::setAutoIndex(VectorStr const &data)
 {
-	if (autoindex == "on")
-		this->autoindex = true;
-	else if (autoindex == "off")
-		this->autoindex = false;
+	if (data.size() != 1)
+		sentError("Syntax error: autoindex -> autoindex [on | off]");
+
+	if (data[0] == "on")
+		autoindex = true;
+	else if (data[0] == "off")
+		autoindex = false;
 	else
-		sentError("autoindex has to be on or off: " + autoindex);
+		sentError("Syntax error: autoindex -> autoindex [on | off]");
 }
 
 // limit_except/methods/allowed_methods [methods(GET, POST, DELETE)]
 // default: 000
 
-void	RouteConfig::addMethods(VectorStr const &values)
+void	RouteConfig::addMethods(VectorStr const &data)
 {
-	for (unsigned int i = 0; i < values.size(); i++)
+	for (unsigned int i = 0; i < data.size(); i++)
 	{
-		if (values[i] == "GET")
+		if (data[i] == "GET")
 			methods.set(GET);
-		else if (values[i] == "POST")
+		else if (data[i] == "POST")
 			methods.set(POST);
-		else if (values[i] == "DELETE")
+		else if (data[i] == "DELETE")
 			methods.set(DELETE);
 		else
-			sentError("The methods are GET, POST, DELETE: " + values[i]);
+			sentError("The methods are GET, POST, DELETE: " + data[i]);
 	}
 }
 
-// fastcgi_pass/cgi_pass/cgi_path [address]
+// cgi_pass/cgi_path [address]
 
-void	RouteConfig::setCgiPass(std::string const &cgi)
+void	RouteConfig::setCgiPass(VectorStr const &data)
 {
-	cgiPass = cgi;
+	if (data.size() != 1)
+		sentError("Syntax error: cgi -> cgi_pass [on | off]");
+	
+	this->cgiPass = data[0];
 }
 
 // cgi_extension [extension]
 
-void	RouteConfig::addCgiExtension(std::string const &ext)
+void	RouteConfig::addCgiExtension(VectorStr const &data)
 {
-	if (ext[0] != '.')
-		sentError("The extensions have to start with '.' -> " + ext);
-	cgiExtensions.push_back(ext);
+	for (unsigned int i = 0; i < data.size(); i++)
+	{
+		if (data[i][0] != '.')
+			sentError("The extensions have to start with '.' -> " + data[i]);
+		cgiExtensions.push_back(data[i]);
+	}
 }
 
 // cgi_enable [on | off]
 // default: false
 
-void	RouteConfig::setCgiEnable(std::string const &enable)
+void	RouteConfig::setCgiEnable(VectorStr const &data)
 {
-	if (enable == "on")
+	if (data.size() != 1)
+		sentError("Syntax error: cgi -> cgi_enable [on | off]");
+
+	if (data[0] == "on")
 		cgiEnable = true;
-	else if (enable == "off")
+	else if (data[0] == "off")
 		cgiEnable = false;
 	else
-		sentError("Syntax error: true | false: " + enable);
+		sentError("Syntax error: cgi -> cgi_enable [on | off]");
 }
 
-// enable_upload/allow_upload [true | false]
+// upload_enable/allow_upload [true | false]
 // default: false
 
-void	RouteConfig::enableUpload(std::string const &enable)
+void	RouteConfig::enableUpload(VectorStr const &data)
 {
-	if (enable == "on")
+	if (data.size() != 1)
+		sentError("Syntax error: upload -> upload_enable [on | off]");
+	
+	if (data[0] == "on")
 		uploadEnable = true;
-	else if (enable == "off")
+	else if (data[0] == "off")
 		uploadEnable = false;
 	else
-		sentError("Enable upload only can be true or false");
+		sentError("Syntax error: upload -> upload_enable [on | off]");
 }
 
 // upload_dir/upload_path
 // default: ./uploads
 
-void	RouteConfig::setUploadPath(std::string const &path)
+void	RouteConfig::setUploadPath(VectorStr const &data)
 {
-	uploadPath = path;
+	if (data.size() != 1)
+		sentError("Syntax error: upload -> upload_path [path]");
+
+	uploadPath = data[0];
 }
 
 std::string const	&RouteConfig::getPath() const
@@ -159,12 +180,14 @@ std::string const	RouteConfig::getUploadPath() const
 
 void	RouteConfig::addDefault()
 {
+	if (path.empty())
+		path = "/";
 	if (root.empty())
 		root = "html";
 	if (indexFiles.empty())
 		indexFiles.push_back("index.html");
 	if (!clientMaxBodySize)
-		setMaxSize("10M");
+		setMaxSize(MAX_SIZE);
 }
 
 // Display all the data of the route

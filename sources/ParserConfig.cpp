@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 18:57:48 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:07:51 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,10 +128,7 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 		sentError("Syntax error: unexpected token: " + line);
 	line.clear(); a.clear();
 	
-	if (path.size() != 1)
-		sentError("Syntax error: you need a path in a location");
-
-	route.setPath(path[0]);
+	route.setPath(path);
 
 	while (std::getline(file, line))
 	{
@@ -163,23 +160,23 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 void	ParserConfig::addServerVar(std::string const &var, VectorStr values, ServerConfig &server)
 {
 	if (var == "listen")
-		server.setListen(values[0]);
+		server.setListen(values);
 	else if (var == "server_name")
-		server.setServerName(values[0]);
+		server.setServerName(values);
 	else if (var == "error_page")
 		server.addErrorPage(values);
 	else if (var == "client_max_body_size")
-		server.setMaxSize(values[0]);
+		server.setMaxSize(values);
 	else if (var == "root")
-		server.setRoot(values[0]);
+		server.setRoot(values);
 	else if (var == "backlog")
-		server.setBacklog(values[0]);
+		server.setBacklog(values);
 	else if (var == "index")
 		server.addIndexFile(values);
 	else if (var == "return" || var == "redirect")
 		server.setReturn(values);
 	else
-		sentError("The directive " + var + " does not exists in this proyect");
+		sentError("The directive " + var + " does not exists in this proyect!");
 }
 
 // Add a route variable into the route
@@ -187,31 +184,31 @@ void	ParserConfig::addServerVar(std::string const &var, VectorStr values, Server
 void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteConfig &route)
 {
 	if (var == "root")
-		route.setRoot(values[0]);
+		route.setRoot(values);
 	else if (var == "index")
 		route.addIndexFile(values);
 	else if (var == "autoindex")
-		route.setAutoIndex(values[0]);
+		route.setAutoIndex(values);
 	else if (var == "limit_except" || var == "methods" || var == "allowed_methods")
 		route.addMethods(values);
 	else if (var == "error_page")
 		route.addErrorPage(values);
 	else if (var == "client_max_body_size")
-		route.setMaxSize(values[0]);
+		route.setMaxSize(values);
 	else if (var == "upload_enable")
-		route.enableUpload(values[0]);
+		route.enableUpload(values);
 	else if (var == "upload_dir" || var == "upload_path")
-		route.setUploadPath(values[0]);
+		route.setUploadPath(values);
 	else if (var == "return" || var == "redirect")
 		route.setReturn(values);
-	else if (var == "cgi_pass" || var == "cgi_path" || var == "fastcgi_pass")
-		route.setCgiPass(values[0]);
+	else if (var == "cgi_pass" || var == "cgi_path")
+		route.setCgiPass(values);
 	else if (var == "cgi_extension")
-		route.addCgiExtension(values[0]);
+		route.addCgiExtension(values);
 	else if (var == "cgi_enable")
-		route.setCgiEnable(values[0]);
+		route.setCgiEnable(values);
 	else
-		sentError("The directive " + var + " in the route does not exists in this proyect");
+		sentError("The directive " + var + " in the route does not exists in this proyect!");
 }
 
 // Check the line
@@ -232,7 +229,6 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 		sentError("Syntax error: unexpected token -> " + line);
 
 	// Check if the line has more than one ';'
-
 	std::string::size_type	first = line.find(';');
 	if (first != std::string::npos)
 	{
@@ -260,6 +256,9 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 
 	// Delete ';' at the end of the line while the var is not a route
 
+	if (values.empty() || values[0] == ";")
+		sentError("Syntax error: Moooreeeeee!!: " + line);
+
 	std::string last = values.back();
 	if (var != "location" && last[last.length() - 1] != ';')
 		sentError("Synatx error: the variables have to end with ; -> " + line);
@@ -267,7 +266,8 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 	{
 		last.erase(last.length() - 1);
 		values.pop_back();
-		values.push_back(last);
+		if (!last.empty())
+			values.push_back(last);
 	}
 }
 

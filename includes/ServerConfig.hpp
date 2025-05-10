@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 19:06:34 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 20:03:05 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@ class ServerConfig: public BaseConfig
 		ServerConfig();
 		virtual ~ServerConfig();
 
-		void	setListen(std::string const &listen);
-		void	setServerName(std::string const &name);
+		void	setListen(VectorStr const &data);
+		void	setServerName(VectorStr const &data);
+		void	setBacklog(VectorStr const &data);
 		void	addRoute(RouteConfig route);
-		void	setBacklog(std::string backlog);
 
 		std::string const				&getIp() const;
 		in_addr_t						getIpNum() const;

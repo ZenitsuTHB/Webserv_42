@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/08 14:11:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 19:49:04 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,12 @@ class BaseConfig
 		BaseConfig();
 		virtual ~BaseConfig();
 
-		void	setRoot(std::string const &root);
-		void	addIndexFile(VectorStr const &values);
-		void	addErrorPage(VectorStr const &values);
-		void	setReturn(VectorStr values);
-		void	setMaxSize(std::string const &size);
+		void	setRoot(VectorStr const &data);
+		void	addIndexFile(VectorStr const &data);
+		void	addErrorPage(VectorStr const &data);
+		void	setReturn(VectorStr const &data);
+		void	setMaxSize(VectorStr const &data);
+		void	setMaxSize(size_t size);
 
 		std::string const	&getRoot() const;
 		VectorStr const		&getIndexFiles() const;
