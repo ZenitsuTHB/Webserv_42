@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/10 17:55:25 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 19:09:34 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ extern "C" void* serverLauncher(void* arg)
 	
 	std::cout << "[THREAD] Starting server on port " << obj->getPortNum() << std::endl;
 	
-	server.start(obj->getIpNum(), obj->getPortNum(), 100);
+	server.start(obj->getIpNum(), obj->getPortNum(), obj->getBacklog());
 	server.run();
 	
 	return NULL;

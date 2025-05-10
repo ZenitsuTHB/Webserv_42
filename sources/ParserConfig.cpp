@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 18:03:31 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 18:57:48 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,7 +75,7 @@ ParserConfig::ParserConfig(std::string input)
 
 void	ParserConfig::addServer(std::ifstream &file)
 {
-	std::string	line, a;
+	std::string	line, var, a;
 	std::getline(file, line);
 	std::istringstream	iss(line);
 	ServerConfig	server;
@@ -92,7 +92,6 @@ void	ParserConfig::addServer(std::ifstream &file)
 			continue ;
 
 		VectorStr	values;
-		std::string	var;
 
 		getDataLine(line, var, values);
 
@@ -107,6 +106,9 @@ void	ParserConfig::addServer(std::ifstream &file)
 
 		line.clear(); var.clear(); values.clear();
 	}
+
+	if (var != "}")
+		sentError("Keys not closed correctly");
 	
 	server.addDefault();
 	_servers.push_back(server);
@@ -170,6 +172,8 @@ void	ParserConfig::addServerVar(std::string const &var, VectorStr values, Server
 		server.setMaxSize(values[0]);
 	else if (var == "root")
 		server.setRoot(values[0]);
+	else if (var == "backlog")
+		server.setBacklog(values[0]);
 	else if (var == "index")
 		server.addIndexFile(values);
 	else if (var == "return" || var == "redirect")
@@ -223,6 +227,9 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 
 	if (iss.fail())
 		sentError("Unexpected error in istringstream: " + var);
+
+	if (var == "{")
+		sentError("Syntax error: unexpected token -> " + line);
 
 	// Check if the line has more than one ';'
 

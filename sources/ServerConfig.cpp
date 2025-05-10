@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 18:07:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 19:09:00 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 #define MAX_SIZE_CLIENT 104857600
 
-ServerConfig::ServerConfig() {}
+ServerConfig::ServerConfig(): backlog(-1) {}
 ServerConfig::~ServerConfig() {}
 
 void	ServerConfig::sentError(std::string msg) const
@@ -174,6 +174,15 @@ void	ServerConfig::setServerName(std::string const &name)
 	serverName = name;
 }
 
+void	ServerConfig::setBacklog(std::string backlog)
+{
+	for (unsigned int i = 0; i < backlog.length(); i++)
+		if (!std::isdigit(backlog[i]))
+			sentError("The backlog has to be a positive number: " + backlog);
+
+	this->backlog = std::atoi(backlog.c_str());
+}
+
 void	ServerConfig::addRoute(RouteConfig route)
 {
 	routes.push_back(route);
@@ -214,24 +223,32 @@ unsigned int	ServerConfig::getNumRoutes() const
 	return routes.size();
 }
 
+int	ServerConfig::getBacklog() const
+{
+	return backlog;
+}
+
 // Add the rest of the data that is not in the configuration file
 
 void	ServerConfig::addDefault()
 {
 	if (root.empty())
-		this->root = "html";
+		root = "html";
 	if (indexFiles.empty())
-		this->indexFiles.push_back("index.html");
+		indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
-		this->setMaxSize("10M");
+		setMaxSize("10M");
 	if (ip.empty())
 	{
-		this->ip = "0.0.0.0";
-		this->ipNum = 0;
-		this->port = 80;
+		ip = "0.0.0.0";
+		ipNum = 0;
+		port = 80;
 	}
 	if (serverName.empty())
-		this->serverName = "default";
+		serverName = "default";
+
+	if (backlog == -1)
+		backlog = 100;
 
 	bool	therIs = false;
 	for (unsigned int i = 0; i < routes.size(); i++)
@@ -261,6 +278,7 @@ void	ServerConfig::display()
 
 	std::cout << "Listen ip: " << ip << ", port: " << port << std::endl;
 	std::cout << "ip number: " << ipNum << std::endl;
+	std::cout << "backlog: " << backlog << std::endl;
 	
 	std::cout << "Root: " << root << std::endl;
 	
