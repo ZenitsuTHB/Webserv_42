@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/08 14:30:42 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 17:48:01 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ void	ParserConfig::sentError(std::string msg)
 {
 	throw std::invalid_argument("<ParserConfig> : " + msg);
 }
+
+ParserConfig::ParserConfig() {}
 
 ParserConfig::~ParserConfig() {}
 
@@ -59,8 +61,8 @@ ParserConfig::ParserConfig(std::string input)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
-	for (size_t i = 0; i < _servers.size(); i++)
-		_servers[i].display();
+	//for (size_t i = 0; i < _servers.size(); i++)
+	//	_servers[i].display();
 }
 
 void	ParserConfig::addServer(std::ifstream &file)
@@ -255,7 +257,7 @@ void	ParserConfig::deleteComment(std::string &line)
 		line = line.substr(0, pos);
 }
 
-std::vector<ServerConfig> const		&ParserConfig::getServers() const
+std::vector<ServerConfig>	ParserConfig::getServers() const
 {
 	return _servers;
 }
@@ -263,4 +265,10 @@ std::vector<ServerConfig> const		&ParserConfig::getServers() const
 unsigned int	ParserConfig::size() const
 {
 	return _servers.size();
+}
+
+void	ParserConfig::display()
+{
+	for (unsigned int i = 0; i < _servers.size(); i++)
+		_servers[i].display();
 }

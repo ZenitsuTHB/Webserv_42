@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/01 12:29:51 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 17:47:34 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,18 +30,25 @@ void signalHandler(int signum)
 }
 
 
-struct ThreadArg {
+struct ThreadArg
+{
 	ServerConfi config;
 };
 
-extern "C" void* serverLauncher(void* arg) {
-	ThreadArg* tArg = static_cast<ThreadArg*>(arg);
-	Server server(AF_INET, SOCK_STREAM, 0);
+extern "C" void* serverLauncher(void* arg)
+{
+	ServerConfig	*obj = static_cast<ServerConfig*>(arg);
+	Server			server(AF_INET, SOCK_STREAM, 0);
+
 	serverPtr = &server;
+	
 	signal(SIGINT, signalHandler);
-	std::cout << "[THREAD] Starting server on port " << tArg->config.port << std::endl;
-	server.start(tArg->config.ip, tArg->config.port, tArg->config.backlog);
+	
+	std::cout << "[THREAD] Starting server on port " << obj->getPortNum() << std::endl;
+	
+	server.start(obj->getIpNum(), obj->getPortNum(), 100);
 	server.run();
+	
 	return NULL;
 }
 
@@ -50,9 +57,12 @@ int main(int ac, char **av)
 	if (ac < 2)
 		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
 
+	std::vector<ServerConfig>	servers;
+
 	try
 	{
-		ParserConfig	servers(av[1]);
+		ParserConfig	parser(av[1]);
+		servers = parser.getServers();
 	}
 	catch (std::exception const &e)
 	{
@@ -60,29 +70,19 @@ int main(int ac, char **av)
 		return 1;
 	}
 
+	pthread_t	threads[servers.size()];
 
-	/*
-	ServerConfig configs[] = {
-		{INADDR_ANY, 8080, 100},
-		{INADDR_ANY, 8081, 100},
-		{INADDR_ANY, 8082, 100}
-	};
-
-	const size_t NUM_SERVERS = sizeof(configs) / sizeof(ServerConfig);
-	pthread_t threads[NUM_SERVERS];
-	ThreadArg args[NUM_SERVERS];
-
-	for (size_t i = 0; i < NUM_SERVERS; ++i) {
-		args[i].config = configs[i];
-		if (pthread_create(&threads[i], NULL, serverLauncher, &args[i]) != 0) {
-			std::cerr << "Failed to launch thread for port " << configs[i].port << std::endl;
-		}
+	for (unsigned int i = 0; i < servers.size(); i++)
+	{
+		void	*dir = static_cast<void*>(&servers[i]);
+		if (pthread_create(&threads[i], NULL, serverLauncher, dir) != 0)
+			std::cerr << "Failed to launch thread for port " << servers[i].getPortNum() << std::endl;
 	}
-
-	for (size_t i = 0; i < NUM_SERVERS; ++i)
+	
+	for (unsigned int i = 0; i < servers.size(); i++)
 		pthread_join(threads[i], NULL);
-
+	
 	std::cout << "[MAIN] All servers terminated.\n";
-	*/
+
 	return 0;
 }

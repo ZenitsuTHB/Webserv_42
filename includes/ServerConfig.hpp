@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/08 12:42:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 17:49:35 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class ServerConfig: public BaseConfig
 		std::string					ip;
 		in_addr_t					ipNum;
 		in_port_t					port;
+		int							backlog;
 		std::string					serverName;
 		std::vector<RouteConfig>	routes;
 

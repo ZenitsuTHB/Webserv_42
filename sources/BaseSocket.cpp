@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/05 18:26:18 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/10 16:03:50 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/10 17:53:16 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,15 +69,16 @@ void	BaseSocket::bind(struct sockaddr_in address)
 {
 	_address = address;
 	if (::bind(_sockFd, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
-		return (perror("<BaseSocket> Error binding"), close());
+		return (perror("<BaseSocket> Error1 binding"), close());
 }
 
 void	BaseSocket::bind(int ip, int port)
 {
-	_address.sin_port = htons(port);
+	//_address.sin_port = htons(port);
+	_address.sin_port = port;
 	_address.sin_addr.s_addr = htonl(ip);
 	if (::bind(_sockFd, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
-		return (perror("<BaseSocket> Error binding"), close());
+		return (perror("<BaseSocket> Error2 binding"), close());
 }
 
 void	BaseSocket::close(void)
