@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/06 14:15:57 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 18:13:54 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,13 +56,15 @@ void	BaseConfig::addErrorPage(VectorStr const &values)
 				sentError("The code has to be a number: " + values[i]);
 		
 		int	num = std::atoi(values[i].c_str());
-
-		if (values[i].size() != 3 || num < 100 || num >= 600)
-			sentError("The code is between 100 and 599");
+		
+		if (values[i].size() != 3 || !isValidCode(num))
+			sentError("(error_page) : That code does not exists : " + values[i]);
 		
 		errorPages.insert(std::make_pair(num, values.back()));
 	}
 }
+
+// Check if the code of error/redirection exists
 
 bool	BaseConfig::isValidCode(int num) const
 {
@@ -103,6 +105,8 @@ void	BaseConfig::setReturn(VectorStr values)
 		sentError("Sintax error -> return (optional)[code] [URL]");
 }
 
+// Converts into a bytes (size_t)
+
 size_t	BaseConfig::getBytes(std::string const &val)
 {
 	char 		c = 'B';
@@ -124,6 +128,9 @@ size_t	BaseConfig::getBytes(std::string const &val)
 
 	size_t value = static_cast<size_t>(std::atoi(val.c_str()));
 
+	if (!value)
+		sentError("The size ahs to be between 10K and 100M");
+
 	switch (c)
 	{
 		case 'K':
@@ -132,7 +139,6 @@ size_t	BaseConfig::getBytes(std::string const &val)
 		case 'M':
 			value *= 1024 * 1024;
 			break ;
-		
 	}
 	return value;
 }

@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/08 14:39:18 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 18:07:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,8 @@ void	ServerConfig::sentError(std::string msg) const
 {	
 	throw std::invalid_argument("<ServerConfig> : " + msg);
 }
+
+// Look into /etc/hosts for an ip and returns it
 
 std::string	ServerConfig::lookForHost(std::string const &hostname)
 {
@@ -54,6 +56,8 @@ std::string	ServerConfig::lookForHost(std::string const &hostname)
 	return close(fd), line;
 }
 
+// Converts a unsigned int ip to std::string (0.0.0.0) ip
+
 std::string	ServerConfig::convertIp(in_addr_t inet)
 {
 	unsigned char	bytes[4];
@@ -72,6 +76,8 @@ std::string	ServerConfig::convertIp(in_addr_t inet)
 
 	return oss.str();
 }
+
+// Converts an ip (0.0.0.0) to a number
 
 in_addr_t	ServerConfig::getInet(std::string const &ip)
 {
@@ -106,6 +112,8 @@ in_addr_t	ServerConfig::getInet(std::string const &ip)
 			static_cast<in_addr_t>(bytes[2]) << 8 |
 			static_cast<in_addr_t>(bytes[3]);
 }
+
+// Converts a std::string port to a number port
 
 in_port_t	ServerConfig::getPort(std::string const &port)
 {
@@ -206,6 +214,8 @@ unsigned int	ServerConfig::getNumRoutes() const
 	return routes.size();
 }
 
+// Add the rest of the data that is not in the configuration file
+
 void	ServerConfig::addDefault()
 {
 	if (root.empty())
@@ -231,16 +241,19 @@ void	ServerConfig::addDefault()
 			therIs = true;
 	}
 
+	// If the route root does not exists, then is created
+
 	if (!therIs)
 	{
-		RouteConfig					newRoute;
+		RouteConfig	newRoute;
 
 		newRoute.setPath("/");
 		newRoute.addDefault();
 		routes.push_back(newRoute);
 	}
-
 }
+
+// Display all the data of the server
 
 void	ServerConfig::display()
 {

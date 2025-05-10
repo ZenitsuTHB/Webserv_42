@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 17:48:01 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 18:03:31 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ ParserConfig::~ParserConfig() {}
 
 ParserConfig::ParserConfig(std::string input)
 {
+	// Check if is .conf
+	
 	if (input.size() < 5 || input.substr(input.size() - 5) != ".conf")
 		sentError("Invalid configuration file (.conf) -> " + input);
 
@@ -32,6 +34,8 @@ ParserConfig::ParserConfig(std::string input)
 	if (!file.is_open())
 		sentError("Fail to open -> " + input);
 
+	// Main	program
+	
 	std::string		line;
 
 	while (std::getline(file, line))
@@ -53,6 +57,8 @@ ParserConfig::ParserConfig(std::string input)
 		line.clear(); a.clear(); b.clear();
 	}
 
+	// Check if some server has the same ip-port tha other
+
 	for (unsigned int i = 0; i < _servers.size(); i++)
 	{
 		in_addr_t	ip = _servers[i].getIpNum(); in_port_t	port = _servers[i].getPortNum();
@@ -61,9 +67,11 @@ ParserConfig::ParserConfig(std::string input)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
-	//for (size_t i = 0; i < _servers.size(); i++)
-	//	_servers[i].display();
+	for (size_t i = 0; i < _servers.size(); i++)
+		_servers[i].display();
 }
+
+// Create a new server data
 
 void	ParserConfig::addServer(std::ifstream &file)
 {
@@ -103,6 +111,8 @@ void	ParserConfig::addServer(std::ifstream &file)
 	server.addDefault();
 	_servers.push_back(server);
 }
+
+// Create a new route data
 
 void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerConfig &server)
 {
@@ -146,6 +156,8 @@ void	ParserConfig::addRoute(std::ifstream &file, VectorStr const &path, ServerCo
 	server.addRoute(route);
 }
 
+// Add a variable into the server
+
 void	ParserConfig::addServerVar(std::string const &var, VectorStr values, ServerConfig &server)
 {
 	if (var == "listen")
@@ -165,6 +177,8 @@ void	ParserConfig::addServerVar(std::string const &var, VectorStr values, Server
 	else
 		sentError("The directive " + var + " does not exists in this proyect");
 }
+
+// Add a route variable into the route
 
 void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteConfig &route)
 {
@@ -196,15 +210,21 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 		sentError("The directive " + var + " in the route does not exists in this proyect");
 }
 
+// Check the line
+
 void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &values)
 {
 	std::istringstream	iss(line);
 	std::string			val;
 
+	// Get the name of the var or a key
+
 	iss >> var;
 
 	if (iss.fail())
 		sentError("Unexpected error in istringstream: " + var);
+
+	// Check if the line has more than one ';'
 
 	std::string::size_type	first = line.find(';');
 	if (first != std::string::npos)
@@ -214,6 +234,8 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 			sentError("Syntax error: You have more than one ; -> " + line);
 	}
 
+	// Safe all the data except the first element into values
+
 	while (iss >> val)
 	{
 		if (iss.fail())
@@ -222,10 +244,14 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 		values.push_back(val);
 	}
 
+	// Check if there is a key and it is alone
+
 	if (var == "}" && values.empty())
 		return ;
 	else if (var == "}")
 		sentError("Syntax error: The keys alone please: " + line);
+
+	// Delete ';' at the end of the line while the var is not a route
 
 	std::string last = values.back();
 	if (var != "location" && last[last.length() - 1] != ';')
@@ -238,6 +264,8 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 	}
 }
 
+// Check if the line is void or if it is full os space/tabs
+
 bool	ParserConfig::isEmpty(std::string const &line) const
 {
 	if (line.empty())
@@ -248,6 +276,8 @@ bool	ParserConfig::isEmpty(std::string const &line) const
 			return false;
 	return true;
 }
+
+// Delete the comments of the line
 
 void	ParserConfig::deleteComment(std::string &line)
 {
@@ -266,6 +296,8 @@ unsigned int	ParserConfig::size() const
 {
 	return _servers.size();
 }
+
+// Displlay all the recollected servers info
 
 void	ParserConfig::display()
 {

@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/08 14:12:12 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/10 18:09:12 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,8 @@ std::string const	RouteConfig::getUploadPath() const
 	return uploadPath;
 }
 
+// Add all the data that is not in the configuration file
+
 void	RouteConfig::addDefault()
 {
 	if (root.empty())
@@ -164,6 +166,8 @@ void	RouteConfig::addDefault()
 	if (!clientMaxBodySize)
 		setMaxSize("10M");
 }
+
+// Display all the data of the route
 
 void	RouteConfig::display()
 {
