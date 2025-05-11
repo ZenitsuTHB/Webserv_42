@@ -81,8 +81,18 @@ void	HttpResponse::getResource(HttpRequest const &request)
 
 void	HttpResponse::postResorce(HttpRequest const &request)
 {
-	(void)request;
-	throw (HttpException("Not done yet", 400));
+	if (request.getPath().length() >= 255)
+		throw (HttpException("Too large el mensaje ese", 414));
+	/*	*
+	 *	Create file
+	 */
+	std::string		file(HttpResponse::parsePath(request.getPath()));
+	std::ofstream	fileStream(file.c_str());
+
+	if (fileStream.fail())
+		throw (HttpException("Failed to create the file", 500));
+	fileStream.write(request.getBody().c_str());
+	//throw (HttpException("Not done yet", 400));
 }
 
 void	HttpResponse::deleteResource(HttpRequest const &request)

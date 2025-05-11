@@ -27,6 +27,7 @@ class	HttpRequest
 
 		Method				getMethod( void ) const { return (_method); };
 		std::string const	&getPath( void ) const { return (_path); };
+		std::string const	&getBody( void ) const { return (_body); };
 
 		HttpRequest	& operator = ( HttpRequest const &obj );
 
