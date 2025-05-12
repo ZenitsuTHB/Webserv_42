@@ -189,13 +189,11 @@ void	ServerConfig::setBacklog(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: backlog -> backlog [value]");
 
-	std::string	backlog = data[0];
+	for (unsigned int i = 0; i < data[0].length(); i++)
+		if (!std::isdigit(data[0][i]))
+			sentError("The backlog has to be a positive number: " + data[0]);
 
-	for (unsigned int i = 0; i < backlog.length(); i++)
-		if (!std::isdigit(backlog[i]))
-			sentError("The backlog has to be a positive number: " + backlog);
-
-	this->backlog = std::atoi(backlog.c_str());
+	this->backlog = std::atoi(data[0].c_str());
 }
 
 void	ServerConfig::addRoute(RouteConfig route)
