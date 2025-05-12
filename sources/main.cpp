@@ -19,7 +19,6 @@
 #include "../includes/Config.hpp"
 #include "../includes/ParserConfig.hpp"
 
-
 Server *serverPtr = nullptr;
 
 void signalHandler(int signum)
@@ -30,15 +29,15 @@ void signalHandler(int signum)
 }
 
 
-struct ThreadArg
+/*struct ThreadArg
 {
 	ServerConfi config;
 };
-
+*/
 extern "C" void* serverLauncher(void* arg)
 {
 	ServerConfig	*obj = static_cast<ServerConfig*>(arg);
-	Server			server(AF_INET, SOCK_STREAM, 0);
+	Server		server(AF_INET, SOCK_STREAM, 0);
 
 	serverPtr = &server;
 	

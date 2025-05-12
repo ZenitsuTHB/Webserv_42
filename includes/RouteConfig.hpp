@@ -53,8 +53,8 @@ class RouteConfig: public BaseConfig
 		VectorStr const				&getCgiExtensions() const;
 
 		void	sentError(std::string msg) const;
-		void	addDefault();
 		void	display();
+		void	addDefault();
 
 	private:
 

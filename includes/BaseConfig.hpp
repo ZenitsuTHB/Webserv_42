@@ -46,8 +46,8 @@ class BaseConfig
 		size_t				getMaxSize() const;
 		
 		virtual void	sentError(std::string msg) const = 0;
-		virtual void	addDefault() = 0;
 		virtual void	display() = 0;
+		virtual void	addDefault() = 0;
 
 	protected:
 
