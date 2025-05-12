@@ -252,7 +252,7 @@ void	ServerConfig::addDefault()
 	if (indexFiles.empty())
 		indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
-		setMaxSize(MAX_SIZE);
+		setMaxSize(MAX_SIZE_CLIENT);
 	if (ip.empty())
 	{
 		ip = "0.0.0.0";

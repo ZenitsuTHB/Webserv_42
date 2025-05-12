@@ -17,8 +17,8 @@
 #include <map>
 #include <vector>
 
-#define MAX_SIZE 104857600
-#define MIN_SIZE 10240
+#define MAX_SIZE_CLIENT 104857600
+#define MIN_SIZE_CLIENT 10240
 
 typedef std::map<int, std::string>	ErrorMap;
 typedef std::vector<std::string>	VectorStr;

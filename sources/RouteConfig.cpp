@@ -193,7 +193,7 @@ void	RouteConfig::addDefault()
 	if (indexFiles.empty())
 		indexFiles.push_back("index.html");
 	if (!clientMaxBodySize)
-		setMaxSize(MAX_SIZE);
+		setMaxSize(MAX_SIZE_CLIENT);
 }
 
 // Display all the data of the route

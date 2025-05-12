@@ -163,7 +163,7 @@ void	BaseConfig::setMaxSize(VectorStr const &data)
 
 	size_t	val = getBytes(data[0]);
 	
-	if (val > MAX_SIZE || val < MIN_SIZE)
+	if (val > MAX_SIZE_CLIENT || val < MIN_SIZE_CLIENT)
 		sentError("The client max body size is too big (10KB - 100MB)");
 	
 	clientMaxBodySize = val;
@@ -174,7 +174,7 @@ void	BaseConfig::setMaxSize(size_t size)
 	if (clientMaxBodySize != 0)
 		sentError("You only need one client max body");
 	
-	if (size > MAX_SIZE || size < MIN_SIZE)
+	if (size > MAX_SIZE_CLIENT || size < MIN_SIZE_CLIENT)
 		sentError("The client max body size is too big (10KB - 100MB)");
 	
 	clientMaxBodySize = size;
