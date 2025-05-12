@@ -17,8 +17,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define MAX_SIZE_CLIENT 104857600
-
 ServerConfig::ServerConfig(): backlog(-1) {}
 ServerConfig::~ServerConfig() {}
 

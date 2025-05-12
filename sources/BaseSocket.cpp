@@ -74,8 +74,7 @@ void	BaseSocket::bind(struct sockaddr_in address)
 
 void	BaseSocket::bind(int ip, int port)
 {
-	//_address.sin_port = htons(port);
-	_address.sin_port = port;
+	_address.sin_port = htons(port);
 	_address.sin_addr.s_addr = htonl(ip);
 	if (::bind(_sockFd, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		return (perror("<BaseSocket> Error2 binding"), close());
