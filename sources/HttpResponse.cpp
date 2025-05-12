@@ -6,12 +6,14 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/09 17:46:09 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/12 22:06:43 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <cerrno>
 #include <fstream>
 #include <utility>
+#include <cstdlib>
 #include "../includes/HttpResponse.hpp"
 #include "../includes/exceptions.hpp"
 #include "../includes/Libft.hpp"
@@ -29,7 +31,7 @@ HttpResponse::HttpResponse(HttpRequest const &request): _version("HTTP/1.1")
 			getResource(request);
 			break ;
 		case POST:
-			postResorce(request);
+			postResource(request);
 			break ;
 		case DELETE:
 			deleteResource(request);
@@ -54,9 +56,12 @@ HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
 
 void	HttpResponse::getResource(HttpRequest const &request)
 {
-	std::string	file(HttpResponse::parsePath(request.getPath()));
-	std::string			line;
-	std::ifstream		fileStream(file.c_str());
+	/*	*
+	 *	Stringing resource
+	 */
+	std::string		file(_searchEndpoint(request.getPath()));
+	std::string		line;
+	std::ifstream	fileStream(file.c_str());
 
 	if (!fileStream)
 		throw (HttpException("File not found", 404));
@@ -69,36 +74,68 @@ void	HttpResponse::getResource(HttpRequest const &request)
 	/*	*
 	 *	Setting headers
 	 */
-	_header.insert(std::pair< std::string, std::string >("Content-length",
+	_header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(_body.length()))));
-	_header.insert(std::pair< std::string, std::string >("Content-type",
-				HttpResponse::fileType(file)));
+	_header.insert(PairStr("Content-type", _fileType(file)));
 	/*	*
 	 *	Setting status line
 	 */
 	_code = 200;
 }
 
-void	HttpResponse::postResorce(HttpRequest const &request)
+void	HttpResponse::postResource(HttpRequest const &request)
 {
 	if (request.getPath().length() >= 255)
 		throw (HttpException("Too large el mensaje ese", 414));
 	/*	*
-	 *	Create file
+	 *	Creating resource
 	 */
-	std::string		file(HttpResponse::parsePath(request.getPath()));
-	std::ofstream	fileStream(file.c_str());
+	std::string			file(_searchEndpoint(request.getPath()));
+	std::string const	&body = request.getBody();
+	std::ofstream		fileStream(file.c_str());
 
 	if (fileStream.fail())
 		throw (HttpException("Failed to create the file", 500));
-	fileStream.write(request.getBody().c_str());
-	//throw (HttpException("Not done yet", 400));
+	fileStream.write(body.c_str(), body.length());
+	/*	*
+	 *	Tha Body
+	 */
+	_body.clear();
+	/*	*
+	 *	Setting headers
+	 */
+	_header.insert(PairStr("Content-length", "0"));
+	/*	*
+	 *	Setting status line
+	 */
+	_code = 201;
+	//throw (HttpException("Not done yet", 400)); IS DONE NOW
 }
 
 void	HttpResponse::deleteResource(HttpRequest const &request)
 {
-	(void)request;
-	throw (HttpException("Not done yet", 400));
+	/*	*
+	 *	Removing resource
+	 */
+	std::string	file(_searchEndpoint(request.getPath()));
+	
+	if (!_validFile(file))
+		throw (HttpException("Real reasone inside validFile", 400));
+	if (std::remove(file.c_str())== -1)
+		throw (HttpException("Failed to remove the file", 500));
+	/*	*
+	 *	Tha Body
+	 */
+	_body.clear();
+	/*	*
+	 *	Setting headers
+	 */
+	_header.insert(PairStr("Content-length", "0"));
+	/*	*
+	 *	Setting status line
+	 */
+	_code = 200;
+	//throw (HttpException("Yes done nos", 400));
 }
 
 std::string	HttpResponse::generate(void) const
@@ -128,7 +165,7 @@ std::string	HttpResponse::generate(void) const
 	return (response);
 }
 
-std::string	HttpResponse::fileType(std::string const &file)
+std::string	HttpResponse::_fileType(std::string const &file)
 {
 	std::string	type;
 	if (file.find(".html") != std::string::npos)
@@ -140,7 +177,7 @@ std::string	HttpResponse::fileType(std::string const &file)
 	return (type);
 }
 
-std::string	HttpResponse::parsePath(std::string const &path)
+std::string	HttpResponse::_searchEndpoint(std::string const &path)
 {
 	std::string	file;
 	std::string::const_iterator	it(path.begin());
@@ -150,6 +187,22 @@ std::string	HttpResponse::parsePath(std::string const &path)
 		file.assign(path.substr(1));
 	return (file);
 }
+
+bool	HttpResponse::_validFile(std::string const &file)
+{
+	if (file == "/" || file.find("home/") != 0)
+		return (false);
+	struct stat	status;
+
+	if (stat(file.c_str(), &status) == -1)
+	{
+		if (errno == ENOENT)
+			throw (HttpException("File doesn't exist", 404));
+		throw (HttpException("Failed stat function", 500));
+	}
+	return (true);
+}
+
 /*
 #include <iostream>
 
@@ -187,6 +240,7 @@ int	main(void)
 	}
 	catch (std::exception const &ex)
 	{
+#include <cstdlib>
 		std::cout << "Error occured: " << ex.what() << std::endl;
 	}
 }*/

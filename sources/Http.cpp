@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 21:18:52 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/09 17:56:27 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/12 19:19:43 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ std::map< int, std::string >	createErrorCodes(void)
     map[101] = "Switching Protocols";
     map[102] = "Processing";
     map[103] = "Early Hints";
-    map[200] = "SuckSexx";
+    map[200] = "SuckSexs";
     map[201] = "Created";
     map[202] = "Accepted";
     map[203] = "Non-Authoritative Information";
