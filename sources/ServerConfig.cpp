@@ -284,6 +284,13 @@ void	ServerConfig::addDefault()
 		newRoute.addDefault();
 		routes.push_back(newRoute);
 	}
+
+	// Check if there are two same routes
+
+	for (unsigned int i = 0; i < routes.size(); i++)
+		for (unsigned int j = 0; j < routes.size(); j++)
+			if (i != j && routes[i].getPath() == routes[j].getPath())
+				sentError("The routes are unique: " + routes[i].getPath());
 }
 
 // Display all the data of the server
