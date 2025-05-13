@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:22:14 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/13 11:38:38 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,8 @@ ParserConfig::ParserConfig(std::string input)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
-	for (size_t i = 0; i < _servers.size(); i++)
-		_servers[i].display();
+	//for (size_t i = 0; i < _servers.size(); i++)
+	//	_servers[i].display();
 }
 
 // Create a new server data

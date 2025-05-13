@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/10 19:09:34 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/13 11:38:02 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,6 @@ int main(int ac, char **av)
 	{
 		ParserConfig	parser(av[1]);
 		servers = parser.getServers();
-		return 0;
 	}
 	catch (std::exception const &e)
 	{
