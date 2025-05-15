@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/12 22:06:43 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/15 17:18:17 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include <fstream>
 #include <utility>
 #include <cstdlib>
+#include <sys/stat.h>
 #include "../includes/HttpResponse.hpp"
 #include "../includes/exceptions.hpp"
 #include "../includes/Libft.hpp"
@@ -71,6 +72,7 @@ void	HttpResponse::getResource(HttpRequest const &request)
 	_body.clear();
 	while (std::getline(fileStream, line))
 		_body.append(line).append(1, '\n');
+	fileStream.close();
 	/*	*
 	 *	Setting headers
 	 */
@@ -97,6 +99,7 @@ void	HttpResponse::postResource(HttpRequest const &request)
 	if (fileStream.fail())
 		throw (HttpException("Failed to create the file", 500));
 	fileStream.write(body.c_str(), body.length());
+	fileStream.close();
 	/*	*
 	 *	Tha Body
 	 */
@@ -190,17 +193,23 @@ std::string	HttpResponse::_searchEndpoint(std::string const &path)
 
 bool	HttpResponse::_validFile(std::string const &file)
 {
-	if (file == "/" || file.find("home/") != 0)
+	if (file == "/" || file.find("html/") != 0)
 		return (false);
-	struct stat	status;
+	struct stat	sb;
 
-	if (stat(file.c_str(), &status) == -1)
+	if (stat(file.c_str(), &sb) == -1)
 	{
 		if (errno == ENOENT)
-			throw (HttpException("File doesn't exist", 404));
+			throw (HttpException("File not found", 404));
+		if (errno == EACCES)
+			throw (HttpException("Permission denied: Forbidden", 403));
 		throw (HttpException("Failed stat function", 500));
 	}
-	return (true);
+	if (!S_ISREG(sb.st_mode) && !S_ISDIR(sb.st_mode))
+		throw (HttpException("Is nor a file nor a directory", 403));
+	if (S_ISREG(sb.st_mode))
+		return (true);
+	return (false);
 }
 
 /*
