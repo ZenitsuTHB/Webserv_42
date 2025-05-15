@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/15 18:02:38 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/15 19:01:42 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@ void signalHandler(int signum)
 
 extern "C" void* serverLauncher(void* arg)
 {
+	try
+	{
 	ServerConfig	*obj = static_cast<ServerConfig*>(arg);
 	Server		server(AF_INET, SOCK_STREAM, 0);
 
@@ -42,12 +44,17 @@ extern "C" void* serverLauncher(void* arg)
 	server.start(obj->getIpNum(), obj->getPortNum(), obj->getBacklog());
 	server.run();
 	
+	}
+	catch (std::exception const &ex)
+	{
+		std::cerr << "Me cago en todo 2 " << ex.what() << std::endl;
+	}
 	return NULL;
 }
 
 int main(int ac, char **av)
 {
-	if (ac < 2)
+	if (ac != 2)
 		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
 
 	std::vector<ServerConfig>	servers;
@@ -63,6 +70,10 @@ int main(int ac, char **av)
 		return 1;
 	}
 
+	std::cout << "No es mi problema es de Ash ly de pueblo paleta" << std::endl;
+	try
+	{
+
 	pthread_t	threads[servers.size()];
 
 	for (unsigned int i = 0; i < servers.size(); i++)
@@ -76,6 +87,11 @@ int main(int ac, char **av)
 		pthread_join(threads[i], NULL);
 	
 	std::cout << "[MAIN] All servers terminated.\n";
+	}
+	catch (std::exception const &ex)
+	{
+		std::cerr << "Me cago en todo " << ex.what() << std::endl;
+	}
 
 	return 0;
 }
