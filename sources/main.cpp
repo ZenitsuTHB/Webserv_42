@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/15 17:28:25 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/15 18:02:38 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,9 @@ Server *serverPtr = nullptr;
 
 void signalHandler(int signum)
 {
-    if (serverPtr)
-        serverPtr->shutDownServer();
-    exit(signum);
+	if (serverPtr)
+		serverPtr->shutDownServer();
+	exit(signum);
 }
 
 extern "C" void* serverLauncher(void* arg)
