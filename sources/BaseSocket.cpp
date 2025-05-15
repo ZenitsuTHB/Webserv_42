@@ -1,5 +1,6 @@
 /* ************************************************************************** */
 /*                                                                            */
+<<<<<<< HEAD
 /*                                                         :::      ::::::::  */
 /*  BaseSocket.cpp                                       :+:      :+:    :+:  */
 /*                                                     +:+ +:+         +:+    */
@@ -7,6 +8,15 @@
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/03/05 18:26:18 by mvelazqu            #+#    #+#            */
 /*  Updated: 2025/03/11 18:35:55 by mvelazqu           ###   ########.fr      */
+=======
+/*                                                        :::      ::::::::   */
+/*   BaseSocket.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/03/05 18:26:18 by velazqu           #+#    #+#             */
+/*   Updated: 2025/05/15 11:57:03 by adrmarqu         ###   ########.fr       */
+>>>>>>> newConfig
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +30,7 @@ BaseSocket::~BaseSocket(void)
 	return ;
 }
 
-BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
+BaseSocket::BaseSocket(void): _type(0),  _sockFd(-1), _domain(0), _protocol(0),
 	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;
@@ -29,7 +39,7 @@ BaseSocket::BaseSocket(void): _sockFd(-1), _domain(0), _type(0), _protocol(0),
 	return ;
 }
 
-BaseSocket::BaseSocket(int fd): _sockFd(fd), _domain(0), _type(0), _protocol(0),
+BaseSocket::BaseSocket(int fd): _type(0), _sockFd(fd), _domain(0), _protocol(0),
 	_addrLen(sizeof(_address))
 {
 	_address.sin_family = 0;
@@ -68,7 +78,7 @@ void	BaseSocket::create(int domain, int type, int protocol)
 void	BaseSocket::bind(struct sockaddr_in address)
 {
 	_address = address;
-	if (::bind(_sockFd, (struct sockaddr *)&_address, sizeof(_address)) == -1)
+	if (::bind(_sockFd, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		return (perror("<BaseSocket> Error binding"), close());
 }
 
@@ -76,7 +86,7 @@ void	BaseSocket::bind(int ip, int port)
 {
 	_address.sin_port = htons(port);
 	_address.sin_addr.s_addr = htonl(ip);
-	if (::bind(_sockFd, (struct sockaddr *)&_address, sizeof(_address)) == -1)
+	if (::bind(_sockFd, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		return (perror("<BaseSocket> Error binding"), close());
 }
 
@@ -84,6 +94,7 @@ void	BaseSocket::close(void)
 {
 	if (_sockFd == -1)
 		return ;
+	std::cout << "\nClosing socket: [" << _sockFd << "]\n";
 	::close(_sockFd);
 	_sockFd = -1;
 }

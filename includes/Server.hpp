@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  Server.hpp                                           :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/03/07 21:48:42 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/09 23:08:29 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
+/*   Updated: 2025/04/16 16:56:36 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,31 +14,67 @@
 # define SERVER_HPP
 
 # include <string>
+# include <iostream>
+# include <cstring>
+# include <unistd.h>
+# include <fcntl.h>
+# include <sys/types.h>
 # include <vector>
 # include "ListenSocket.hpp"
+# include <sys/epoll.h>
+# include <map>
+# include <cstddef>
+# include <cstdlib>
 
-# define BUFF_SIZE 100
+static const size_t BUFF_SIZE = 42;
+//# define BUFF_SIZE 42
+# define MAX_EVENTS 5
+# define PORT 8080
+# define BACKLOG 10
+# define END "\r\n\r\n"
 
-class	Server
+class  ListenSocket;
+
+class	Server : public BaseSocket 
 {
 	public:
 		~Server( void );
 		Server( int domain, int type, int protocol );
 		Server( Server const &obj );
+		
+		void		prepareStaticResponse();
+		std::string     readRequest( int );
+		void		requestResponse( int );
+		void		disconnectingClient( int , uint32_t );
 
-		void		start( int ip, int port, int backlog );
-		int			accept( void );
+		void		shutDownServer();
+		void		run( void );
 		std::string	receive( int idx ) const;
 		std::string	manage( std::string request ) const;
+		void		start( int ip, int port, int backlog );
 		void		respond( std::string response, int idx ) const;
-		void		close( int idx );
-		void		run( void );
 
-		Server	& operator = ( Server const &obj );
+		Server& 	operator = ( Server const &obj );
+
+		void	setNonBlocking( int, bool );
 
 	private:
-		ListenSocket			_socket;
-		std::vector<BaseSocket>	_clientList;
-};
+		std::string _cachedResponse;
+		std::map<int, std::string> 		_recvBuffers;//persitent buff to accumulate
+		bool _responseReady;
 
+		ListenSocket				_socket;
+		int							_epoll_fd;
+		bool						_running;
+		int							_clientfd;
+		std::map< int, BaseSocket >	_clientsMap;
+		//std::map< int, time_t > 	_timeoutMap;
+		std::vector< char >			_buffer;
+		struct	epoll_event			_events[MAX_EVENTS];
+
+		void				closeClient( int clientFd );
+		void				acceptNewConnection( void ); 
+		void				handleClientEvent( int clientFd, uint32_t events ); 
+
+};
 #endif
