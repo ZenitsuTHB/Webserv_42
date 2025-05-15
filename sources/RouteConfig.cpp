@@ -6,13 +6,13 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:33:48 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/15 11:55:45 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/RouteConfig.hpp"
 
-RouteConfig::RouteConfig(): autoindex(false), uploadEnable(false), cgiEnable(false) {}
+RouteConfig::RouteConfig(): autoindex(false), cgiEnable(false) {}
 RouteConfig::~RouteConfig() {}
 
 void	RouteConfig::sentError(std::string msg) const
@@ -105,22 +105,6 @@ void	RouteConfig::setCgiEnable(VectorStr const &data)
 		sentError("Syntax error: cgi -> cgi_enable [on | off]");
 }
 
-// upload_enable/allow_upload [true | false]
-// default: false
-
-void	RouteConfig::enableUpload(VectorStr const &data)
-{
-	if (data.size() != 1)
-		sentError("Syntax error: upload -> upload_enable [on | off]");
-	
-	if (data[0] == "on")
-		uploadEnable = true;
-	else if (data[0] == "off")
-		uploadEnable = false;
-	else
-		sentError("Syntax error: upload -> upload_enable [on | off]");
-}
-
 // upload_dir/upload_path
 // default: ./uploads
 
@@ -172,11 +156,6 @@ bool	RouteConfig::isCgiEnabled() const
 	return cgiEnable;
 }
 
-bool	RouteConfig::isAllowedUpload() const
-{
-	return uploadEnable;
-}
-
 std::string const	RouteConfig::getUploadPath() const
 {
 	return uploadPath;
@@ -216,7 +195,6 @@ void	RouteConfig::display()
 	std::cout << "ClientMaxBody: " << clientMaxBodySize << std::endl;
 	std::cout << "Autoindex: " << autoindex << std::endl;
 	std::cout << "Methods: " << methods << std::endl;
-	std::cout << "UploadEnabled: " << uploadEnable << std::endl;
 	std::cout << "UploadPath: " << uploadPath << std::endl;
 	std::cout << "CgiEnable: " << cgiEnable << std::endl;
 	std::cout << "CgiPass: " << cgiPass << std::endl;

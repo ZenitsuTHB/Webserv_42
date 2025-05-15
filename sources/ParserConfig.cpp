@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/13 11:38:38 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/15 11:55:57 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,8 +196,6 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 		route.addErrorPage(values);
 	else if (var == "client_max_body_size")
 		route.setMaxSize(values);
-	else if (var == "upload_enable")
-		route.enableUpload(values);
 	else if (var == "upload_dir" || var == "upload_path")
 		route.setUploadPath(values);
 	else if (var == "return" || var == "redirect")
