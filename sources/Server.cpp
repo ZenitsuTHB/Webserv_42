@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*  Server2.cpp                                          :+:      :+:    :+:  */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*  Updated: 2025/05/09 18:14:55 by mvelazqu           ###   ########.fr      */
+/*   Updated: 2025/05/16 18:59:31 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ void	Server::shutDownServer(void)
 		it->second.close();
 	::close( _epoll_fd );
 	_socket.close();
-	std::cout << "<SERVER> Shutdown complete." << std::endl;
+	LOG("Shutdown complete.");
 }
 
 void    Server::closeClient( int fd )
