@@ -7,7 +7,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address
 #<---------------------------------|FILES|------------------------------------>#
 
 SRC_F = main.cpp BaseSocket.cpp ListenSocket.cpp RouteConfig.cpp \
-		BaseConfig.cpp ParserConfig.cpp ServerConfig.cpp Server2.cpp \
+		BaseConfig.cpp ParserConfig.cpp ServerConfig.cpp Server.cpp \
 		Libft.cpp Http.cpp HttpRequest.cpp HttpResponse.cpp
 #SRC_F = main.cpp BaseSocket.cpp ListenSocket.cpp Server.cpp \
 #		Libft.cpp Http.cpp HttpRequest.cpp HttpResponse.cpp
