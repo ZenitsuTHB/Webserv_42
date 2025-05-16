@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/03 20:04:59 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/15 19:01:42 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/16 18:37:15 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void signalHandler(int signum)
 		serverPtr->shutDownServer();
 	exit(signum);
 }
-
+/*
 extern "C" void* serverLauncher(void* arg)
 {
 	try
@@ -51,25 +51,49 @@ extern "C" void* serverLauncher(void* arg)
 	}
 	return NULL;
 }
+*/
+void	launchServer(ServerConfig obj)
+{
+	try
+	{
+		// Hacer fork()
+
+		Server	server(obj.getIpNum(), obj.getPortNum(), obj.getBacklog());
+
+		serverPtr = &server;
+
+		signal(SIGINT, signalHandler);
+		std::cout << "Starting serevr in port: " << obj.getPortNum() << std::endl;
+
+		server.run();
+	}
+	catch (std::exception const &e)
+	{
+		std::cerr << "Error in server " << obj.getPortNum() << " -> " << e.what() << std::endl;
+	}
+}
 
 int main(int ac, char **av)
 {
 	if (ac != 2)
 		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
 
-	std::vector<ServerConfig>	servers;
-
 	try
 	{
+		std::vector<ServerConfig>	servers;
+		
 		ParserConfig	parser(av[1]);
 		servers = parser.getServers();
+
+		for (unsigned int i = 0; i < servers.size(); i++)
+			launchServer(servers[i]);
 	}
 	catch (std::exception const &e)
 	{
 		std::cerr << "Error: " << e.what() << std::endl;
 		return 1;
 	}
-
+/*
 	std::cout << "No es mi problema es de Ash ly de pueblo paleta" << std::endl;
 	try
 	{
@@ -92,6 +116,6 @@ int main(int ac, char **av)
 	{
 		std::cerr << "Me cago en todo " << ex.what() << std::endl;
 	}
-
+*/
 	return 0;
 }

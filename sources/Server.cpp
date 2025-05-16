@@ -28,7 +28,8 @@
 
 static int requestCount = 0;
 
-Server::Server(int ip, int port, int backlog ): _socket(), _buffer(BUFF_SIZE)
+Server::Server(in_addr_t ip, in_port_t port, int backlog ): 
+	_socket(AF_INET, SOCK_STREAM, 0), _buffer(BUFF_SIZE)
 {
 	int     fd;
 	int     opt;
@@ -46,7 +47,7 @@ Server::Server(int ip, int port, int backlog ): _socket(), _buffer(BUFF_SIZE)
 	_epoll_fd = epoll_create1( 0 );
 	if ( _epoll_fd == -1 )
 		perror("<SERVER> Failed to create epoll instance");
-	start( int ip, int port, int backlog )
+	start(ip, port, backlog);
 	return ;
 }
 
@@ -362,7 +363,7 @@ void	Server::run( void )
 	}
 }
 
-void    Server::start( int ip, int port, int backlog )
+void    Server::start( in_addr_t ip, in_port_t port, int backlog )
 {
 	_socket.bind( ip, port );
 	_socket.listen( backlog );
