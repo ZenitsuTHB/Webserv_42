@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <poll.h>
-#include <fcntl.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <iostream>

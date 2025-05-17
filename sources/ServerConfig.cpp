@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 18:25:49 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/17 13:50:40 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,7 +255,7 @@ void	ServerConfig::addDefault()
 	{
 		ip = "0.0.0.0";
 		ipNum = 0;
-		port = 80;
+		port = 8000;
 	}
 	if (serverName.empty())
 		serverName = "default";
