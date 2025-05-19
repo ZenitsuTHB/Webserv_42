@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/12 21:14:37 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/19 18:00:10 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,13 @@
 # define HTTPRESPONSE_HPP
 
 # include "HttpRequest.hpp"
+# include "ServerConfig.hpp"
 
 class	HttpResponse
 {
 	public:
 		~HttpResponse( void );
-		HttpResponse( HttpRequest const &request );
+		HttpResponse( HttpRequest const &req, ServerConfig const &conf );
 		HttpResponse( HttpResponse const &obj );
 
 		HttpResponse	& operator = ( HttpResponse const &obj );
@@ -39,6 +40,7 @@ class	HttpResponse
 		int			_code;
 		Headers		_header;
 		std::string	_body;
+		RouteConfig	_route;
 };
 
 #endif

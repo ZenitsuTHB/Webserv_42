@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/15 17:18:17 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/19 18:00:18 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,18 +24,20 @@ HttpResponse::~HttpResponse(void)
 	return ;
 }
 
-HttpResponse::HttpResponse(HttpRequest const &request): _version("HTTP/1.1")
+HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
+	_version("HTTP/1.1")
 {
-	switch (request.getMethod())
+	(void)conf;
+	switch (req.getMethod())
 	{
 		case GET:
-			getResource(request);
+			getResource(req);
 			break ;
 		case POST:
-			postResource(request);
+			postResource(req);
 			break ;
 		case DELETE:
-			deleteResource(request);
+			deleteResource(req);
 			break ;
 		default:
 			throw (HttpException("Unkwon method", 400));
