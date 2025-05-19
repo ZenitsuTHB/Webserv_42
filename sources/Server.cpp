@@ -1,279 +1,380 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  Server.cpp                                           :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/03/07 21:48:44 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/03/11 18:52:42 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*  Server2.cpp                                          :+:      :+:    :+:  */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
+/*  Updated: 2025/05/09 18:14:55 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <unistd.h>
-#include <sys/errno.h>
-#include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <iostream>
-#include <sys/select.h>
-#include <poll.h>
+#include <fstream>
+#include <sstream>
 #include <algorithm>
+#include <sys/errno.h>
 #include "../includes/Server.hpp"
+#include "../includes/HttpResponse.hpp"
 
-Server::~Server(void)
-{
-}
+//siege -g 127.0.0.1:8080 
+//request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"
+#define LOG( msg ) std::cout << "[SERVER]\n" << msg << std::endl
 
-Server::Server(int domain, int type, int protocol):
-	_socket(domain, type, protocol)
+static int requestCount = 0;
+
+Server::Server(in_addr_t ip, in_port_t port, int backlog ): 
+	_socket(AF_INET, SOCK_STREAM, 0), _buffer(BUFF_SIZE)
 {
-	int	flags;
-	int	fd;
-	int	opt;
+	int     fd;
+	int     opt;
 
 	fd = _socket.getSockFd();
 	opt = 1;
 	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
 	{
 		_socket.close();
-		perror("<Server> Error in opt");
-		return ;
+		throw std::runtime_error("<Server> setsockopt(SO_REUSEADDR) failed");
 	}
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1)
-	{
-		_socket.close();
-		perror("<Server> fcntl failed");
-		return ;
-	}
-	flags |= O_NONBLOCK;
-	if (fcntl(fd, F_SETFL, flags) == -1)
-	{
-		_socket.close();
-		perror("<Server> Error to add O_NONBLOCK");
-	}
+	setNonBlocking( fd, true );
+
 	_clientfd = -1;
 	_epoll_fd = epoll_create1( 0 );
-	if (_epoll_fd == -1)
-	{
-    		perror("<SERVER> Failed to create epoll instance");
-    		return ;
-	}
-
+	if ( _epoll_fd == -1 )
+		perror("<SERVER> Failed to create epoll instance");
+	start(ip, port, backlog);
 	return ;
 }
 
-Server::Server(Server const &obj):
-	_socket(obj._socket)
+Server::~Server(void) { return ;}
+
+void	Server::setNonBlocking( int socketFd, bool enable )
 {
-	*this = obj;
-}
-
-void	Server::start(int ip, int port, int backlog)
-{
-	_socket.bind(ip, port);
-	_socket.listen(backlog);
-}
-
-int	Server::accept(void)
-{
-	BaseSocket	client;
-	int			statusFlag;
-
-	std::cout << "<SERVER> Accepting client..." << std::endl;
-	client = _socket.accept();
-	if (client.getSockFd() == -1)
-		return (-1);
-	statusFlag = fcntl(client.getSockFd(), F_GETFL) | O_NONBLOCK;
-	if (fcntl(client.getSockFd(), F_SETFL, statusFlag) == -1)
-		return (client.close(), -1);
-	_clientList.push_back(client);
-	std::cout << "<SERVER> I just took the size of the list..." << _clientList.size() << std::endl;
-	return (_clientList.size());
-}
-
-/*	*
- *	Esta función es teniendo en cuenta que tiene que sí o sí terminar
- *	en doble CRLF, si solo mirasemos si está o no en el string, se
- *	podría reemplazar por un simple ::find(CRLF)
- */
-bool	endRequest(std::string message)
-{
-	size_t	len;
-
-	len = message.length();
-	if (len <= 3)
-		return (false);
-	return (message.find("\r\n\r\n", len - 4) == std::string::npos);
-}
-
-std::string	Server::receive( int idx ) const
-{
-	std::string	request;
-	char		buffer[BUFF_SIZE + 1];
-	int			bytes;
-
-	if (idx < 0 || (size_t)idx >= _clientList.size())
-		return ("<Server> Invalid Index");
-	while (true)
+	int flags = fcntl( socketFd, F_GETFL, 0 );
+	if ( flags  == -1 )
 	{
-		bytes = read(_clientList[idx].getSockFd(), buffer, BUFF_SIZE );
-		if (bytes == -1)
+		_socket.close();
+		return (perror( "<SERVER> fcntl failed !"));
+	}	
+	if ( enable )
+	{
+		if ( fcntl( socketFd, F_SETFL, flags | O_NONBLOCK ) == -1 )
 		{
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break ;
-			return ( perror( "<Server> Error reading" ), std::string() );
+			_socket.close();
+			return ( perror("<SERVER> Error Activating O_NONBLOCK"));
 		}
-		if ( bytes == 0 )
-		{
-			std::cout << "<SERVER> Client closed connection: " << _clientfd << std::endl;
-			return "";
-		}
-			//break ;
-		buffer[bytes] = '\0';
-		request.append(buffer);
-		if (endRequest(request))
-			break ;
 	}
-	return (request);
-}
-
-void	Server::respond(std::string response, int idx) const
-{
-	int	bytes;
-
-	if (idx < 0 || (size_t)idx >= _clientList.size())
-		return ;
-	bytes = write(_clientList[idx].getSockFd(), response.c_str(),
-			response.length());
-	if (bytes == -1)
-		return (perror("<Server> Error responding"));
-}
-
-void	Server::close(int idx)
-{
-	if (idx < 0 || (size_t)idx >= _clientList.size() || _clientList.empty())
-		return ;
-	_clientList[idx].close();
-	_clientList.erase(_clientList.begin() + idx);
-}
-
-std::string	Server::manage(std::string request) const
-{
-	std::cout << "Request received:" << std::endl << request << std::endl;
-	//return ("This is the Server Respond\r\n\r\n");
-	std::string http_response =
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: text/plain\r\n"
-        "Content-Length: 25\r\n"
-        "Connection: close\r\n"
-        "\r\n"
-        "This is the Server Respond";
-
-    return http_response;
-}
-
-int	Server::storeFdsset( int idx )//idx debugging purpose
-{
-	std::cout << "<SERVER> New client: " << idx << " of : ( " << _clientList.size() 
-		  << " )" << std::endl;
-	if ( _clientList.empty())
+	else
 	{
-		std::cerr << "<SERVER> The client list seems to be empty" << std::endl;
-		return ( 0 );
-	}
-
-	struct epoll_event newClient;
-
-	_clientfd  = _clientList.back().getSockFd();
-	if( _clientfd == -1 )
-	{
-		std::cerr << "Invalid clientfd !" << std::endl;
-		return ( 0 );
-	}
-
-	newClient.events = EPOLLIN | EPOLLET;//epollet keep fds from being process in loop but only when new data arrived
-	newClient.data.fd = _clientfd;
-	std::cout << "<SERVER> Storing client... fd is : [" << this->_clientfd << "] Filling the epollfd to read..." << std::endl;
-
-	int ready = epoll_ctl(  _epoll_fd, EPOLL_CTL_ADD, _clientfd, &newClient );
-	std::cout << "\n<SERVER> This is the epoll result : " << ready << std::endl;
-	return ( ready );
-}
-
-void	Server::run(void)
-{
-	int idx = 0;
-	int fdReady = 0;
-
-	while (true)
-	{
-		idx = accept( );
-		std::cout << "<SERVER> this is from accept : [ " << idx << " ]\n";
-		if ( idx != -1 )
-			fdReady = storeFdsset( idx );
-		if ( fdReady == -1 )
+		if ( fcntl( socketFd, F_SETFL, flags & ~O_NONBLOCK) == -1 )
 		{
-			perror( "<SERVER> epoll_ctl failed !\n" );
-			close( _clientfd );
-			continue ;
+			_socket.close();
+			return ( perror("<SERVER> Error deActivating O_NONBLOCK"));
 		}
-		int counter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, 100 );
-		if ( counter == -1 )
-		{
-			perror( "<SERVER> Error epoll_wait\n" );
-			continue ;
-		}
-		if ( counter == 0 )
-		{
-			std::cout << "<SERVER> Time OUT ! No Client is ready yet !\n";
-			continue ;
-		}
-
-		std::cout << "<SERVER> Looking for reads\n" << std::endl;
-		for ( int i = 0; i < counter; i++ )
-		{
-			int clientfd = _events[i].data.fd;
-
-			if ( !(_events[i].events & EPOLLIN))
-				continue;
-			
-			
-			std::cout << "<SERVER> managing: [" << i << "]" << std::endl;
-			std::string request = receive( i );
-			if ( request.empty() )
-			{
-				std::cout << "Closing client: " << clientfd << std::endl;
-				epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, clientfd, NULL );
-				close( clientfd );
-				continue ;
-			}
-			std::string response = manage(request);
-			respond(response, i );
-
-		}
-
-
-		// modificar SERVER::close para que reciba un client fd para cerrar
-		// y lo quita de la structura epoll
 	}
 }
 
-Server	&Server:: operator = (Server const &obj)
+Server::Server( Server const &obj ) : BaseSocket(obj), _socket(obj._socket),
+	_epoll_fd(obj._epoll_fd), _running(obj._running), _clientfd(obj._clientfd),
+	_clientsMap(obj._clientsMap), _buffer(obj._buffer) { return ;}
+
+Server&	Server::operator = ( Server const &obj )
 {
-	if (this != &obj)
-	{
+	if ( this != &obj )
+	{       
+		BaseSocket::operator=(obj);
 		_socket = obj._socket;
+		_epoll_fd = obj._epoll_fd;
+		_running = obj._running;
+		_clientfd = obj._clientfd;
+		_clientsMap = obj._clientsMap;
+		_buffer = obj._buffer;
 	}
-	return (*this);
+	return ( *this );
 }
 
-
-int	main(void)
+void	Server::shutDownServer(void)
 {
-	Server	server(AF_INET, SOCK_STREAM, 0);
+	std::map< int, BaseSocket >::iterator it;
+	_running = false;
+	for ( it = _clientsMap.begin(); it != _clientsMap.end(); ++it )
+		it->second.close();
+	::close( _epoll_fd );
+	_socket.close();
+	std::cout << "<SERVER> Shutdown complete." << std::endl;
+}
 
-	server.start(INADDR_ANY, 8080, SOMAXCONN);
-	server.run();
+void    Server::closeClient( int fd )
+{
+	std::map< int, BaseSocket >::iterator it = _clientsMap.find( fd ); 
+	if ( it == _clientsMap.end() ) return;
+
+	if ( epoll_ctl( _epoll_fd, EPOLL_CTL_DEL, fd, NULL ) == -1)
+	{
+		if ( errno != EBADF && errno != ENOENT)
+			perror("<SERVER> ERR removing client from epoll\nPerror ");
+	}
+	_clientsMap.erase( it );
+	::close( fd );
+	//or it->second.close();
+}
+
+void	Server::disconnectingClient( int fdClient, uint32_t events )
+{
+	if ( events & EPOLLRDHUP )
+	{
+		std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] gracefully" << std::endl;
+		// read the remain data
+		char tmpBuf[1024];
+		while (read(fdClient, tmpBuf, sizeof(tmpBuf)) > 0) {}//empty the buffer
+		closeClient( fdClient );
+		return ;
+	}
+	if ( events & EPOLLHUP )
+	{
+		std::cout << "<SERVER> Client has been disconnected : [ " << fdClient << " ] abrutptly" << std::endl;
+		closeClient( fdClient );
+		return ;
+	}
+	closeClient( fdClient );
+	return ;
+}
+
+void	Server::acceptNewConnection( void )
+{
+	while (true)
+	{
+		BaseSocket clientSocket = _socket.accept();
+		if ( clientSocket.getSockFd() == -1)
+		{
+			if ( errno == EAGAIN || errno == EWOULDBLOCK )
+				break;
+			else
+				return( perror( "<SERVER> Error accepting client" ));
+		}
+
+		_clientsMap[clientSocket.getSockFd()] = clientSocket;
+		setNonBlocking( clientSocket.getSockFd(), true );
+		//_socket.getSockFd() fd du Server
+
+		struct epoll_event event;
+
+		event.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
+		event.data.fd = clientSocket.getSockFd();
+
+		if ( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, clientSocket.getSockFd(), &event ) == -1 )
+		{
+			perror( "<SERVER> Failed to add client to epoll" );
+			closeClient( clientSocket.getSockFd() );
+		}
+	}
+	return ;
+}
+
+// EPOLLHUP the connection get entirely cut off
+// EPOLLRDHUP the client shut its part using close or 
+// shutdown(fd , SHUT_WR) and it can still receive data
+
+void Server::prepareStaticResponse() {
+	std::ifstream file("./html/index.html");
+	if (!file) {
+		std::cerr << "<SERVER> Failed to load index.html at startup.\n";
+		_responseReady = false;
+		return;
+	}
+
+	std::string body( (std::istreambuf_iterator< char >( file )),  std::istreambuf_iterator< char >());
+	std::ostringstream response;
+	response << "HTTP/1.1 200 OK\r\n"
+		<< "Content-Type: text/html\r\n"
+		<< "Content-Length: " << body.size() << "\r\n\r\n"
+		<< body;
+
+	_cachedResponse = response.str();
+	_responseReady = true;
+	LOG("index.html preloaded successfully (" << body.size() << " bytes)");
+}
+
+void Server::requestResponse(int fd)
+{
+	if ( !_responseReady )
+	{
+		std::string notFound = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
+		write(fd, notFound.c_str(), notFound.size());
+		//closeClient(fd);
+		return;
+	}
+
+	size_t totalSent = 0;
+	while (totalSent < _cachedResponse.size()) {
+		ssize_t sent = write(fd, _cachedResponse.c_str() + totalSent, _cachedResponse.size() - totalSent);
+		if (sent == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break;
+			LOG("Write error to client " << fd << ": " << strerror(errno));
+			//closeClient(fd);
+			return;
+		}
+		totalSent += sent;
+	}
+}
+
+std::string	Server::readRequest( int ftFlClient )
+{
+	std::vector<char> dynamBuff(1024);
+	std::string &buffer = _recvBuffers[ ftFlClient ];
+	ssize_t bytesRead = 0;
+
+	while( true )
+	{
+		bytesRead = read( ftFlClient  , dynamBuff.data(), dynamBuff.size() );
+		if ( bytesRead > 0 )
+			buffer.append( dynamBuff.data(), bytesRead );
+		else if ( bytesRead == 0 )
+		{
+			LOG("Client [" << ftFlClient  << "] closed connection.");
+			closeClient( ftFlClient );
+			break ;
+		}
+		else
+		{
+			if ( errno == EAGAIN || errno == EWOULDBLOCK )
+			{
+				LOG("No more data to read");
+				break ; 
+			}
+			else
+			{
+				LOG("Read error on Client fd [" << ftFlClient << "] : " << strerror(errno));
+				closeClient( ftFlClient );
+				break;
+			}
+
+		}
+	}
+	return ( buffer );
+}
+
+void	Server::handleClientEvent( int fdClient, uint32_t events )
+{
+	if ( events & ( EPOLLRDHUP | EPOLLHUP | EPOLLERR ))
+		disconnectingClient( fdClient, events );
+	else if ( events & EPOLLIN )
+	{
+		std::string	reqStr = readRequest( fdClient );
+		//	maxiiii
+		/*
+		   try
+		   {
+		   HttpRequest		request(reqStr);
+		   HttpResponse	response(request);
+
+		   _cachedResponse = response.generate();
+		   _responseReady = true;
+		   requestCount++;
+		   LOG("Request total count: " << requestCount);
+		   }
+		   catch (std::exception const &ex)
+		   {
+		   _responseReady = true;
+		   _cachedResponse = "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
+		   LOG("Requested failed");
+		   }
+		   prepareStaticResponse();
+		   bool	shouldClose = false;
+		   LOG("=========[ HTTP REQUEST ]=========");
+		   LOG(reqStr);
+		   LOG("=========[    END       ]=========");
+		   std::cout << "Response:" << std::endl << _cachedResponse;
+		   requestResponse( fdClient );
+		   _recvBuffers[ fdClient ].clear();
+		   if ( shouldClose )
+		   {
+		   LOG("Client requested connection close.");
+		   closeClient(fdClient);
+		   return;
+		   }
+		   std::cout << "Termina mi parte" << std::endl;
+		   */
+		//	archly
+		if (!reqStr.empty())
+		{
+
+			std::string&	buffer = _recvBuffers[ fdClient ];
+			size_t	headerEnd = buffer.find(END);
+
+			while( headerEnd != std::string::npos )
+			{
+				std::string fullRequest = buffer.substr( 0, headerEnd + 4 );//4 for END 
+				buffer.erase( 0, headerEnd + 4);
+				bool shouldClose = false;
+				if (fullRequest.find("Connection: close") != std::string::npos)
+					shouldClose = true;
+				LOG("=========[ HTTP REQUEST ]=========");
+				LOG(fullRequest);
+				LOG("=========[    END       ]=========");
+				requestResponse( fdClient );
+				if ( shouldClose )
+				{
+					LOG("Client requested connection close.");
+					closeClient(fdClient);
+					return;
+				}
+				headerEnd = buffer.find(END);
+			}
+
+			requestCount++;
+			LOG("Request total count: " << requestCount);
+			//HttpRequest	req = Adri.brainParser( reqStr );
+			//HttpResponse	res = Maxim.responseArtBuilder( req, config );
+
+			//std::string confidentialStuff = res.serialize();
+			//write( fdClient, confidentialStuff.c_str(), confidentialStuff.size());
+		}
+		//	adioss hasta aqui termina
+	}
+}
+
+void	Server::run( void )
+{
+	while ( _running )
+	{
+		int eventCounter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, -1);
+		if ( eventCounter == -1 )
+		{
+			if( errno == EINTR ) continue;
+			throw std::runtime_error( "<SERVER> epoll_wait failed " + std::string(strerror( errno )));
+		}
+
+		for ( int i = 0; i < eventCounter; i++)
+		{
+			int clientFd = _events[i].data.fd;//new client
+			if ( clientFd == _socket.getSockFd() )
+				acceptNewConnection();
+			else
+				handleClientEvent( clientFd, _events[i].events );//manage connected client
+		}
+
+	}
+}
+
+void    Server::start( in_addr_t ip, in_port_t port, int backlog )
+{
+	_socket.bind( ip, port );
+	_socket.listen( backlog );
+	setNonBlocking( _socket.getSockFd() , true );
+
+	struct  epoll_event event;
+	event.events = EPOLLIN | EPOLLET;
+	event.data.fd = _socket.getSockFd();
+	if( epoll_ctl( _epoll_fd, EPOLL_CTL_ADD, _socket.getSockFd(), &event) == -1 )
+		throw std::runtime_error( "<SERVER> Failed to add socket to epoll: " +
+				std::string(strerror(errno)));
+	_running = true;
+	prepareStaticResponse();
+	std::cout << "<SERVER> started on ip : [ " << ip << " ] and port : [ " << port << " ]\n";
 }
