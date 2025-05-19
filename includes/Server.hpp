@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 0025/03/07 21:48:42 by velazqu           #+#    #+#             */
-/*   Updated: 2025/04/16 16:56:36 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/19 15:31:47 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ class	Server : public BaseSocket
 {
 	public:
 		~Server( void );
-		Server( int domain, int type, int protocol );
+		Server( in_addr_t ip, in_port_t port, int backlog );
 		Server( Server const &obj );
 		
 		void		prepareStaticResponse();
@@ -51,7 +51,6 @@ class	Server : public BaseSocket
 		void		run( void );
 		std::string	receive( int idx ) const;
 		std::string	manage( std::string request ) const;
-		void		start( int ip, int port, int backlog );
 		void		respond( std::string response, int idx ) const;
 
 		Server& 	operator = ( Server const &obj );
@@ -72,9 +71,10 @@ class	Server : public BaseSocket
 		std::vector< char >			_buffer;
 		struct	epoll_event			_events[MAX_EVENTS];
 
-		void				closeClient( int clientFd );
-		void				acceptNewConnection( void ); 
-		void				handleClientEvent( int clientFd, uint32_t events ); 
+		void		closeClient( int clientFd );
+		void		acceptNewConnection( void ); 
+		void		handleClientEvent( int clientFd, uint32_t events ); 
+		void		start( in_addr_t ip, in_port_t port, int backlog );
 
 };
 #endif
