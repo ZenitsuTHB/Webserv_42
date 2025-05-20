@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/19 18:00:18 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/20 20:40:25 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	_version("HTTP/1.1")
 {
 	(void)conf;
+	//_route = conf.getRoute(req.getPath());
+	_route = &conf;
 	switch (req.getMethod())
 	{
 		case GET:
@@ -40,7 +42,7 @@ HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 			deleteResource(req);
 			break ;
 		default:
-			throw (HttpException("Unkwon method", 400));
+			throw (HttpException("<Response> Unkwon method", 400));
 	}
 }
 
@@ -184,12 +186,18 @@ std::string	HttpResponse::_fileType(std::string const &file)
 
 std::string	HttpResponse::_searchEndpoint(std::string const &path)
 {
-	std::string	file;
-	std::string::const_iterator	it(path.begin());
+	std::string const	&root = _route->getRoot();
+	std::string			file;
+	
+	//std::string::const_iterator	it(path.begin());
 
+
+	std::cout << "Rut " << root <<" root.l() = "<< root.length() << std::endl;
+	file.append(root).append(path, root.length(), std::string::npos);
+	std::cout << "2Hola Mudno" << std::endl;
 	//if (path.begin() != path.end() && path.front() == '/')
-	if (it != path.end() && *it == '/')
-		file.assign(path.substr(1));
+	//if (it != path.end() && *it == '/')
+	//	file.assign(path.substr(1));
 	return (file);
 }
 
@@ -214,13 +222,18 @@ bool	HttpResponse::_validFile(std::string const &file)
 	return (false);
 }
 
-/*
-#include <iostream>
 
-int	main(void)
+#include <iostream>
+#include <cstdlib>
+#include "../includes/ServerConfig.hpp"
+#include "../includes/ParserConfig.hpp"
+
+int	main(int argc, char **av)
 {
+	if (argc != 2)
+		return (1);
 	std::string	str =
-		"GET /html/index.html HTTP/3\r\n"
+		"GET / HTTP/3\r\n"
 		"Host: http.cat\r\n"
 		"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:135.0)     \r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;\r\n"
@@ -237,10 +250,14 @@ int	main(void)
 		"12345678901234567890123456789012345678901234567890";
 	try
 	{
+		ParserConfig					parser(av[1]);
+		ServerConfig const	server = parser.getServers().front();
+		//std::vector<ServerConfig> const	&server = parser.getServers();
+
 		HttpRequest		request(str);
 
 		request.print();
-		HttpResponse	response(request);
+		HttpResponse	response(request, server);
 
 		std::cout << "Response:" << std::endl << response.generate();
 	}
@@ -251,7 +268,6 @@ int	main(void)
 	}
 	catch (std::exception const &ex)
 	{
-#include <cstdlib>
 		std::cout << "Error occured: " << ex.what() << std::endl;
 	}
-}*/
+}
