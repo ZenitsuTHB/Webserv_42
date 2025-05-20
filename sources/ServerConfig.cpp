@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 18:25:49 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/20 11:52:08 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,18 +255,17 @@ void	ServerConfig::addDefault()
 	{
 		ip = "0.0.0.0";
 		ipNum = 0;
-		port = 80;
+		port = 8000;
 	}
 	if (serverName.empty())
 		serverName = "default";
-
 	if (backlog == -1)
 		backlog = 100;
 
 	bool	therIs = false;
 	for (unsigned int i = 0; i < routes.size(); i++)
 	{
-		routes[i].addDefault();
+		routes[i].addDefault(root, errorPages, indexFiles, clientMaxBodySize);
 		if (routes[i].getPath() == "/" && !therIs)
 			therIs = true;
 	}
@@ -277,7 +276,7 @@ void	ServerConfig::addDefault()
 	{
 		RouteConfig	newRoute;
 
-		newRoute.addDefault();
+		newRoute.addDefault(root, errorPages, indexFiles, clientMaxBodySize);
 		routes.push_back(newRoute);
 	}
 

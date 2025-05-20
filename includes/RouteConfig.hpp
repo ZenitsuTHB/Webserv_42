@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 11:55:05 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/20 11:50:44 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ class RouteConfig: public BaseConfig
 
 		void	sentError(std::string msg) const;
 		void	display();
-		void	addDefault();
+		void	addDefault(std::string const &root, ErrorMap const &errors, VectorStr const &files, size_t size);
 
 	private:
 

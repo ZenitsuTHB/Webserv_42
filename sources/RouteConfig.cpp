@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 11:55:45 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/20 11:51:04 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,16 +163,18 @@ std::string const	RouteConfig::getUploadPath() const
 
 // Add all the data that is not in the configuration file
 
-void	RouteConfig::addDefault()
+void	RouteConfig::addDefault(std::string const &root, ErrorMap const &errors, VectorStr const &files, size_t size)
 {
 	if (path.empty())
 		path = "/";
 	if (root.empty())
-		root = "html";
+		this->root = root;
+	if (errorPages.empty())
+		errorPages = errors;
 	if (indexFiles.empty())
-		indexFiles.push_back("index.html");
+		indexFiles = files;
 	if (!clientMaxBodySize)
-		setMaxSize(MAX_SIZE_CLIENT);
+		clientMaxBodySize = size;
 }
 
 // Display all the data of the route

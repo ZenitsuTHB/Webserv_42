@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/17 13:26:52 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/17 13:45:56 by adrmarqu         ###   ########.fr       */
+/*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
+/*   Updated: 2025/05/20 11:56:26 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ void	launchServer(ServerConfig const &obj)
 	catch (std::exception const &e)
 	{
 		std::cerr << "Error in child process: " << e.what() << std::endl;
-		exit(1);
+		//exit(1);
 	}
 }
 
@@ -60,6 +60,9 @@ int	main(int ac, char **av)
 		std::vector<pid_t> 				pids;
 
 		for (size_t i = 0; i < server.size(); i++)
+			launchServer(server[i]);
+
+		/*for (size_t i = 0; i < server.size(); i++)
 		{
 			pid_t	pid = fork();
 			
@@ -80,6 +83,7 @@ int	main(int ac, char **av)
 			waitpid(pids[i], &status, 0);
 			std::cout << "Server process " << pids[i] << " exited with " << status << std::endl;
 		}
+		*/
 		
 		std::cout << "[MAIN] All servers terminated.\n";
 	}
