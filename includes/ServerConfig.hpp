@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 14:50:28 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 17:58:49 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class ServerConfig: public BaseConfig
 		in_addr_t						getIpNum() const;
 		in_port_t						getPortNum() const;
 		std::string const				&getServerName() const;
-		RouteConfig const				&getRoute(std::string const &path) const;
+		RouteConfig const				*getRoute(std::string const &path) const;
 		std::vector<RouteConfig> const	&getRoutes() const;
 		unsigned int					getNumRoutes() const;
 		int								getBacklog() const;

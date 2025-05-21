@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:43:04 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 17:58:40 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ class BaseConfig
 		int				returnCode;
 		std::string		redirectUrl;
 		size_t			clientMaxBodySize;
+
+		std::string		cleanLine(std::string const &path) const;
 		
 	private:
 

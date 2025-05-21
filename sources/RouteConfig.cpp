@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:51:04 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 18:03:07 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void	RouteConfig::setPath(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: multiple path -> location [path]");
 	
-	this->path = data[0];
+	path = cleanLine(data[0]);
 }
 
 // autoindex [on | off]

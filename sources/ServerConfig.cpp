@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 14:54:37 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 17:58:58 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,12 +221,25 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	&ServerConfig::getRoute(std::string const &path) const
+RouteConfig const	*ServerConfig::getRoute(std::string const &path) const
 {
-	for (size_t i = 0; i < routes.size(); i++)
-		if (routes[i].getPath() == path)
-			return routes[i];
-	throw std::runtime_error("Location not found");
+	RouteConfig const	*best = NULL;
+	size_t				bestLen = 0;
+
+	std::string cleanPath = cleanLine(path);
+	for (std::vector<RouteConfig>::const_iterator it = routes.begin(); it != routes.end(); it++)
+	{
+		const std::string	&routePath = it->getPath();
+		if (cleanPath.compare(0, it->getPath().length(), it->getPath()) == 0)
+		{
+			if (routePath.length() > bestLen)
+			{
+				bestLen = routePath.length();
+				best = &(*it);
+			}
+		}
+	}
+	return best;
 }
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const

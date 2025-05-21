@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:31:25 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 17:59:13 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,4 +217,21 @@ std::string const	&BaseConfig::getRedirectUrl() const
 size_t	BaseConfig::getMaxSize() const
 {
 	return clientMaxBodySize;
+}
+
+std::string	BaseConfig::cleanLine(std::string const &path) const
+{
+	std::string	newPath;
+
+	for (size_t i = 0; i < path.length(); i++)
+	{
+		if (path[i] == '/')
+		{
+			newPath += path[i++];
+			while (i < path.length() && path[i] == '/')
+				i++;
+		}
+		newPath += path[i];
+	}
+	return newPath;
 }
