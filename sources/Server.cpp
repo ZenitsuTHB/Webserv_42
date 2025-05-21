@@ -21,6 +21,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/HttpResponse.hpp"
 
+//TODO std::string respond(std::string request, ServerConfig server)
 //siege -g 127.0.0.1:8080 
 //request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"
 #define LOG( msg ) std::cout << "[SERVER]\n" << msg << std::endl

@@ -1,0 +1,26 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   NetworkUtils.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/21 18:13:28 by avolcy            #+#    #+#             */
+/*   Updated: 2025/05/21 18:13:50 by avolcy           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef NETWORK_UTILS_HPP
+#define NETWORK_UTILS_HPP
+
+#include <string>
+#include <sys/socket.h>
+
+namespace NetworkUtils {
+    void setNonBlocking(int fd, bool enable);
+    void closeSocket(int fd);
+    void epollControl(int epollFd, int op, int fd, uint32_t events);
+    bool isConnectionClosed(const std::string& request);
+}
+
+#endif
