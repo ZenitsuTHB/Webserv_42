@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerConfig.cpp                                   :+:      :+:    :+:   */
+/*  ServerConfig.cpp                                     :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 18:25:49 by adrmarqu         ###   ########.fr       */
+/*  Updated: 2025/05/21 16:19:26 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,9 +221,12 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	&ServerConfig::getRoute(int route) const
+RouteConfig const	&ServerConfig::getRoute(std::string const &path) const
 {
-	return routes[route];
+	for (size_t i = 0; i < routes.size(); i++)
+		if (routes[i].getPath() == path)
+			return routes[i];
+	throw std::runtime_error("Location not found");
 }
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
