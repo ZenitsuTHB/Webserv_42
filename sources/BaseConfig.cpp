@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 17:59:13 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 19:50:31 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,13 +225,13 @@ std::string	BaseConfig::cleanLine(std::string const &path) const
 
 	for (size_t i = 0; i < path.length(); i++)
 	{
+		newPath += path[i];
 		if (path[i] == '/')
 		{
-			newPath += path[i++];
 			while (i < path.length() && path[i] == '/')
 				i++;
+			i--;
 		}
-		newPath += path[i];
 	}
 	return newPath;
 }

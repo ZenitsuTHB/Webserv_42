@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 17:55:57 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 20:03:36 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ int	main(int ac, char **av)
 		std::vector<ServerConfig> const	&server = parser.getServers();
 		std::vector<pid_t> 				pids;
 
-		std::cout << "X: " << server[0].getRoute("////images///xd//")->getPath() << std::endl;
 		for (size_t i = 0; i < server.size(); i++)
 			launchServer(server[i]);
 

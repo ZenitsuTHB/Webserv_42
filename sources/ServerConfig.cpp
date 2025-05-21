@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 17:58:58 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 19:59:03 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,22 +221,19 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	*ServerConfig::getRoute(std::string const &path) const
+RouteConfig const	*ServerConfig::getRoute(std::string const &request) const
 {
 	RouteConfig const	*best = NULL;
-	size_t				bestLen = 0;
+	size_t				longest = 0;
 
-	std::string cleanPath = cleanLine(path);
-	for (std::vector<RouteConfig>::const_iterator it = routes.begin(); it != routes.end(); it++)
+	std::vector<RouteConfig>::const_iterator	it = routes.begin();
+	for (; it != routes.end(); it++)
 	{
-		const std::string	&routePath = it->getPath();
-		if (cleanPath.compare(0, it->getPath().length(), it->getPath()) == 0)
+		std::string const	path = it->getPath();
+		if (request.compare(0, path.length(), path) == 0 && path.length() > longest)
 		{
-			if (routePath.length() > bestLen)
-			{
-				bestLen = routePath.length();
-				best = &(*it);
-			}
+			longest = path.length();
+			best = &(*it);
 		}
 	}
 	return best;
@@ -282,7 +279,7 @@ void	ServerConfig::addDefault()
 	for (unsigned int i = 0; i < routes.size(); i++)
 	{
 		routes[i].addDefault(root, errorPages, indexFiles, clientMaxBodySize);
-		if (routes[i].getPath() == "/" && !therIs)
+		if (routes[i].getPath() == "/")
 			therIs = true;
 	}
 

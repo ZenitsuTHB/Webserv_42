@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 11:57:58 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 17:33:29 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 19:35:02 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ class ParserConfig
 		bool	isEmpty(std::string const &line) const;
 		void	deleteComment(std::string &line);
 		void	getDataLine(std::string line, std::string &var, VectorStr &values);
+		void	cleanUnknownChar(std::string &str);
 
 		void	addServer(std::ifstream &file);
 		void	addRoute(std::ifstream &file, VectorStr const &path, ServerConfig &server);

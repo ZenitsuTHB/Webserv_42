@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 11:55:57 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/21 19:38:44 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,6 +112,7 @@ void	ParserConfig::addServer(std::ifstream &file)
 	
 	server.addDefault();
 	_servers.push_back(server);
+	
 }
 
 // Create a new route data
@@ -241,12 +242,7 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 	// Safe all the data except the first element into values
 
 	while (iss >> val)
-	{
-		if (iss.fail())
-			sentError("Unexpected error in istringstream: " + val);
-
 		values.push_back(val);
-	}
 
 	// Check if there is a key and it is alone
 
