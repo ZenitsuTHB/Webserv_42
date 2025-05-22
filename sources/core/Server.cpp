@@ -18,8 +18,8 @@
 #include <sstream>
 #include <algorithm>
 #include <sys/errno.h>
-#include "../includes/Server.hpp"
-#include "../includes/HttpResponse.hpp"
+#include "../../includes/Server.hpp"
+#include "../../includes/HttpResponse.hpp"
 
 //TODO std::string respond(std::string request, ServerConfig server)
 //siege -g 127.0.0.1:8080 

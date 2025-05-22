@@ -10,9 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/HttpRequest.hpp"
-#include "../includes/Libft.hpp"
-#include "../includes/exceptions.hpp"
+#include "../../includes/HttpRequest.hpp"
+#include "../../includes/Libft.hpp"
+#include "../../includes/exceptions.hpp"
 #include <iostream>
 
 HttpRequest::~HttpRequest(void)

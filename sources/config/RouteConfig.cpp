@@ -6,11 +6,11 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:51:04 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/22 16:58:14 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/RouteConfig.hpp"
+#include "../../includes/RouteConfig.hpp"
 
 RouteConfig::RouteConfig(): autoindex(false), cgiEnable(false) {}
 RouteConfig::~RouteConfig() {}

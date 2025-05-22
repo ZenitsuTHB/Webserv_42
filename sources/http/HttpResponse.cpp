@@ -15,9 +15,9 @@
 #include <utility>
 #include <cstdlib>
 #include <sys/stat.h>
-#include "../includes/HttpResponse.hpp"
-#include "../includes/exceptions.hpp"
-#include "../includes/Libft.hpp"
+#include "../../includes/HttpResponse.hpp"
+#include "../../includes/exceptions.hpp"
+#include "../../includes/Libft.hpp"
 
 HttpResponse::~HttpResponse(void)
 {

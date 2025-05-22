@@ -6,11 +6,11 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/10 20:31:25 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/22 16:57:50 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/BaseConfig.hpp"
+#include "../../includes/BaseConfig.hpp"
 #include <cstdlib>
 #include <sstream>
 
