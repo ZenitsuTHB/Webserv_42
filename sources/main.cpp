@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:56:26 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/22 17:40:44 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/wait.h>
-#include "../includes/Server.hpp"
+#include "../includes/core/Server.hpp"
 #include "../includes/Config.hpp"
 #include "../includes/ParserConfig.hpp"
 

@@ -6,7 +6,11 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:19 by adrmarqu          #+#    #+#             */
+<<<<<<< HEAD:includes/Server.hpp
 /*   Updated: 2025/05/21 18:16:14 by avolcy           ###   ########.fr       */
+=======
+/*   Updated: 2025/05/22 17:41:20 by avolcy           ###   ########.fr       */
+>>>>>>> f0ccd73 (something good is coming):includes/core/Server.hpp
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +24,7 @@
 # include <fcntl.h>
 # include <sys/types.h>
 # include <vector>
-# include "ListenSocket.hpp"
+# include "../ListenSocket.hpp"
 # include <sys/epoll.h>
 # include <map>
 # include <cstddef>

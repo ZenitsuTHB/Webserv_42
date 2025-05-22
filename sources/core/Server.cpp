@@ -18,7 +18,7 @@
 #include <sstream>
 #include <algorithm>
 #include <sys/errno.h>
-#include "../../includes/Server.hpp"
+#include "../../includes/core/Server.hpp"
 #include "../../includes/HttpResponse.hpp"
 
 //TODO std::string respond(std::string request, ServerConfig server)
