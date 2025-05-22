@@ -18,8 +18,8 @@
 #include <sstream>
 #include <algorithm>
 #include <sys/errno.h>
-#include "../includes/Server.hpp"
-#include "../includes/HttpResponse.hpp"
+#include "../../includes/Server.hpp"
+#include "../../includes/HttpResponse.hpp"
 
 //siege -g 127.0.0.1:8080 
 //request from term "echo -e GET / HTTP/1.1\r\nHost: localhost\r\n\r\n | nc localhost 8080"

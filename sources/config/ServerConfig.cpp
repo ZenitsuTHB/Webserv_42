@@ -6,11 +6,11 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:52:08 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/22 16:58:26 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/ServerConfig.hpp"
+#include "../../includes/ServerConfig.hpp"
 #include <climits>
 #include <cstdlib>
 #include <sstream>

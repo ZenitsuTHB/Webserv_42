@@ -6,11 +6,11 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/15 11:55:57 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/22 16:58:03 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/ParserConfig.hpp"
+#include "../../includes/ParserConfig.hpp"
 #include <sstream>
 
 void	ParserConfig::sentError(std::string msg)
