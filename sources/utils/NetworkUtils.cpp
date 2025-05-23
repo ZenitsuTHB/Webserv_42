@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 18:27:37 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/21 18:27:40 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/23 19:10:37 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 // 📁 NetworkUtils.cpp
 // ======================
 
-#include "NetworkUtils.hpp"
+#include "../../includes/core/NetworkUtils.hpp"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdexcept>

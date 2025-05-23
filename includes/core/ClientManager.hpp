@@ -6,14 +6,14 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 18:13:08 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/21 18:39:26 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/23 18:50:16 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CLIENT_MANAGER_HPP
 #define CLIENT_MANAGER_HPP
 
-#include "BaseSocket.hpp"
+#include "../BaseSocket.hpp"
 #include <map>
 #include <string>
 

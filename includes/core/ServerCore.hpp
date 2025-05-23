@@ -6,17 +6,20 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/21 18:11:08 by avolcy            #+#    #+#             */
-/*   Updated: 2025/05/21 18:11:11 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/23 18:51:09 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_CORE_HPP
 #define SERVER_CORE_HPP
 
-#include "ListenSocket.hpp"
+#include "Server.hpp"
+#include "../ListenSocket.hpp"
 #include "ClientManager.hpp"
 #include "RequestHandler.hpp"
 #include <sys/epoll.h>
+static const int  MAX_EVENTS  = 5;
+
 
 class ServerCore {
 public:

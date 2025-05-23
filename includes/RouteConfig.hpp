@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/20 11:50:44 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/05/23 17:32:59 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,10 @@ typedef std::map<int, std::string>	ErrorMap;
 
 enum	HttpMetthod
 {
-	GET = 0,
-	POST,
-	DELETE,
-	SIZE
+	GETT = 0,
+	POSTT,
+	DELETEE,
+	SIZEE
 };
 
 class RouteConfig: public BaseConfig
@@ -43,7 +43,7 @@ class RouteConfig: public BaseConfig
 		
 		std::string const			&getPath() const;
 		bool						isAutoindex() const;
-		std::bitset<SIZE> const		&getMethods() const;
+		std::bitset<SIZEE> const		&getMethods() const;
 		bool						isAllowed(HttpMetthod method) const;
 		std::string const			getUploadPath() const;
 		bool						isCgiEnabled() const;
@@ -58,7 +58,7 @@ class RouteConfig: public BaseConfig
 
 		std::string			path;
 		bool				autoindex;
-		std::bitset<SIZE>	methods;
+		std::bitset<SIZEE>	methods;
 		std::string			uploadPath;
 		bool				cgiEnable;
 		std::string			cgiPass;

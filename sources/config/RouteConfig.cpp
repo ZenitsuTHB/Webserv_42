@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RouteConfig.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/22 16:58:14 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/05/23 18:52:05 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,11 +54,11 @@ void	RouteConfig::addMethods(VectorStr const &data)
 	for (unsigned int i = 0; i < data.size(); i++)
 	{
 		if (data[i] == "GET")
-			methods.set(GET);
+			methods.set(GETT);
 		else if (data[i] == "POST")
-			methods.set(POST);
+			methods.set(POSTT);
 		else if (data[i] == "DELETE")
-			methods.set(DELETE);
+			methods.set(DELETEE);
 		else
 			sentError("The methods are GET, POST, DELETE: " + data[i]);
 	}
@@ -129,7 +129,7 @@ bool	RouteConfig::isAutoindex() const
 	return autoindex;
 }
 
-std::bitset<SIZE> const	&RouteConfig::getMethods() const
+std::bitset<SIZEE> const	&RouteConfig::getMethods() const
 {
 	return methods;
 }
