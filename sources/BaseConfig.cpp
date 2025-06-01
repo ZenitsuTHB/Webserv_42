@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:56:39 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 16:06:15 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void	BaseConfig::setRoot(VectorStr const &data)
 	if (root != "")
 		sentError("You cannot have multiple root");
 
-	root = data[0];
+	root = cleanLine(data[0]);
 	
 	if (root[0] != '/')
 		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
@@ -63,7 +63,7 @@ void	BaseConfig::setRoot(VectorStr const &data)
 
 void	BaseConfig::setRoot(std::string const &root)
 {
-	this->root = root;
+	this->root = cleanLine(root);
 	
 	if (root[0] != '/')
 		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
@@ -281,5 +281,8 @@ std::string	BaseConfig::cleanLine(std::string const &path) const
 			i--;
 		}
 	}
+	if (newPath.length() > 1 && newPath[newPath.length() - 1] == '/')
+		newPath.erase(newPath.length() - 1);
+	std::cout << "PATH: " << newPath << std::endl;
 	return newPath;
 }

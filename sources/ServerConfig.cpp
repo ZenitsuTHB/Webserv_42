@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:51:27 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 16:04:39 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,7 +254,7 @@ int	ServerConfig::getBacklog() const
 void	ServerConfig::addDefault()
 {
 	if (root.empty())
-		root = "html";
+		root = "/html";
 	if (indexFiles.empty())
 		indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
