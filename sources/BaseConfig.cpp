@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:50:42 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 15:56:39 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,17 @@ void	BaseConfig::setRoot(VectorStr const &data)
 		sentError("You cannot have multiple root");
 
 	root = data[0];
+	
+	if (root[0] != '/')
+		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
 }
 
 void	BaseConfig::setRoot(std::string const &root)
 {
 	this->root = root;
+	
+	if (root[0] != '/')
+		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
 }
 
 // index [URLS]
