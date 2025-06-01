@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParserConfig.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/22 16:58:03 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/01 16:12:23 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,9 @@ ParserConfig::ParserConfig(std::string input)
 
 	for (unsigned int i = 0; i < _servers.size(); i++)
 	{
-		in_addr_t	ip = _servers[i].getIpNum(); in_port_t	port = _servers[i].getPortNum();
+		in_addr_t	ip = _servers[i].getIp(); in_port_t	port = _servers[i].getPort();
 		for (unsigned int j = 0; j < _servers.size(); j++)
-			if (i != j && _servers[j].getIpNum() == ip && _servers[j].getPortNum() == port)
+			if (i != j && _servers[j].getIp() == ip && _servers[j].getPort() == port)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
@@ -112,6 +112,7 @@ void	ParserConfig::addServer(std::ifstream &file)
 	
 	server.addDefault();
 	_servers.push_back(server);
+	
 }
 
 // Create a new route data
@@ -189,19 +190,17 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 	else if (var == "index")
 		route.addIndexFile(values);
 	else if (var == "autoindex")
-		route.setAutoIndex(values);
+		route.setAutoindex(values);
 	else if (var == "limit_except" || var == "methods" || var == "allowed_methods")
 		route.addMethods(values);
 	else if (var == "error_page")
 		route.addErrorPage(values);
 	else if (var == "client_max_body_size")
 		route.setMaxSize(values);
-	else if (var == "upload_dir" || var == "upload_path")
-		route.setUploadPath(values);
 	else if (var == "return" || var == "redirect")
 		route.setReturn(values);
-	else if (var == "cgi_pass" || var == "cgi_path")
-		route.setCgiPass(values);
+	else if (var == "cgi_path")
+		route.setCgiPath(values);
 	else if (var == "cgi_extension")
 		route.addCgiExtension(values);
 	else if (var == "cgi_enable")
@@ -241,12 +240,7 @@ void	ParserConfig::getDataLine(std::string line, std::string &var, VectorStr &va
 	// Safe all the data except the first element into values
 
 	while (iss >> val)
-	{
-		if (iss.fail())
-			sentError("Unexpected error in istringstream: " + val);
-
 		values.push_back(val);
-	}
 
 	// Check if there is a key and it is alone
 

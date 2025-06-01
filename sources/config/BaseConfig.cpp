@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BaseConfig.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/22 16:57:50 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/01 16:09:53 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,11 +16,32 @@
 
 BaseConfig::~BaseConfig() {}
 
-BaseConfig::BaseConfig(): returnCode(-1), clientMaxBodySize(0) {}
+BaseConfig::BaseConfig(): autoindex(false), returnCode(-1), clientMaxBodySize(0) {}
 
 void	BaseConfig::sentError(std::string msg) const
 {	
 	throw std::invalid_argument("<BaseConfig> : " + msg);
+}
+
+// autoindex [on | off]
+// default: off
+
+void	BaseConfig::setAutoindex(VectorStr const &data)
+{
+	if (data.size() != 1)
+		sentError("Syntax error: autoindex -> autoindex [on | off]");
+
+	if (data[0] == "on")
+		autoindex = true;
+	else if (data[0] == "off")
+		autoindex = false;
+	else
+		sentError("Syntax error: autoindex -> autoindex [on | off]");
+} 
+
+void	BaseConfig::setAutoindex(bool autoindex)
+{
+	this->autoindex = autoindex;
 }
 
 // root [URL]
@@ -35,6 +56,17 @@ void	BaseConfig::setRoot(VectorStr const &data)
 		sentError("You cannot have multiple root");
 
 	root = data[0];
+	
+	if (root[0] != '/')
+		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
+}
+
+void	BaseConfig::setRoot(std::string const &root)
+{
+	this->root = root;
+	
+	if (root[0] != '/')
+		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
 }
 
 // index [URLS]
@@ -66,6 +98,11 @@ void	BaseConfig::addErrorPage(VectorStr const &data)
 		
 		errorPages.insert(std::make_pair(num, data.back()));
 	}
+}
+
+void	BaseConfig::addErrorPage(ErrorMap const &errors)
+{
+	this->errorPages = errors;
 }
 
 // Check if the code of error/redirection exists
@@ -110,6 +147,12 @@ void	BaseConfig::setReturn(VectorStr const &data)
 	}
 	else
 		sentError("Sintax error -> return (optional)[code] [URL]");
+}
+
+void	BaseConfig::setReturn(int code, std::string const &url)
+{
+	returnCode = code;
+	redirectUrl = url;
 }
 
 // Converts into a bytes (size_t)
@@ -180,6 +223,11 @@ void	BaseConfig::setMaxSize(size_t size)
 	clientMaxBodySize = size;
 }
 
+bool	BaseConfig::isAutoindex() const
+{
+	return autoindex;
+}
+
 std::string const	&BaseConfig::getRoot() const
 {
 	return root;
@@ -217,4 +265,21 @@ std::string const	&BaseConfig::getRedirectUrl() const
 size_t	BaseConfig::getMaxSize() const
 {
 	return clientMaxBodySize;
+}
+
+std::string	BaseConfig::cleanLine(std::string const &path) const
+{
+	std::string	newPath;
+
+	for (size_t i = 0; i < path.length(); i++)
+	{
+		newPath += path[i];
+		if (path[i] == '/')
+		{
+			while (i < path.length() && path[i] == '/')
+				i++;
+			i--;
+		}
+	}
+	return newPath;
 }
