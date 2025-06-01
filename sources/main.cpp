@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:26:49 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 17:10:19 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,9 +58,9 @@ int	main(int ac, char **av)
 		ParserConfig					parser(av[1]);
 		std::vector<ServerConfig> const	&server = parser.getServers();
 		std::vector<pid_t> 				pids;
-
-		for (size_t i = 0; i < server.size(); i++)
-			launchServer(server[i]);
+		while (true)
+			for (size_t i = 0; i < server.size(); i++)
+				launchServer(server[i]);
 
 		/*for (size_t i = 0; i < server.size(); i++)
 		{

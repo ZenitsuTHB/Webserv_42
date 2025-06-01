@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*  Server2.cpp                                          :+:      :+:    :+:  */
+/*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*  Updated: 2025/05/09 18:14:55 by mvelazqu           ###   ########.fr      */
+/*   Updated: 2025/06/01 20:03:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 
 static int requestCount = 0;
 
-Server::Server(in_addr_t ip, in_port_t port, int backlog ): 
+Server::Server(in_addr_t ip, in_port_t port, int backlog , int shared_epoll): 
 	_socket(AF_INET, SOCK_STREAM, 0), _buffer(BUFF_SIZE)
 {
 	int     fd;
@@ -43,7 +43,7 @@ Server::Server(in_addr_t ip, in_port_t port, int backlog ):
 	setNonBlocking( fd, true );
 
 	_clientfd = -1;
-	_epoll_fd = epoll_create1( 0 );
+	//_epoll_fd = epoll_create1( 0 );
 	if ( _epoll_fd == -1 )
 		perror("<SERVER> Failed to create epoll instance");
 	start(ip, port, backlog);
@@ -103,7 +103,7 @@ void	Server::shutDownServer(void)
 	_running = false;
 	for ( it = _clientsMap.begin(); it != _clientsMap.end(); ++it )
 		it->second.close();
-	::close( _epoll_fd );
+	//::close( _epoll_fd );
 	_socket.close();
 	std::cout << "<SERVER> Shutdown complete." << std::endl;
 }
@@ -119,7 +119,7 @@ void    Server::closeClient( int fd )
 			perror("<SERVER> ERR removing client from epoll\nPerror ");
 	}
 	_clientsMap.erase( it );
-	::close( fd );
+	//::close( fd );
 	//or it->second.close();
 }
 
@@ -341,12 +341,14 @@ void	Server::handleClientEvent( int fdClient, uint32_t events )
 
 void	Server::run( void )
 {
+	//std::cout << "This is SErver" << std::endl;
+	//return ;
 	while ( _running )
 	{
 		int eventCounter = epoll_wait( _epoll_fd, _events, MAX_EVENTS, -1);
 		if ( eventCounter == -1 )
 		{
-			if( errno == EINTR ) continue;
+			if( errno == EINTR ) return ; //continue;
 			throw std::runtime_error( "<SERVER> epoll_wait failed " + std::string(strerror( errno )));
 		}
 
