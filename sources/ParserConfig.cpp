@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 19:38:44 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 15:34:47 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,9 +61,9 @@ ParserConfig::ParserConfig(std::string input)
 
 	for (unsigned int i = 0; i < _servers.size(); i++)
 	{
-		in_addr_t	ip = _servers[i].getIpNum(); in_port_t	port = _servers[i].getPortNum();
+		in_addr_t	ip = _servers[i].getIp(); in_port_t	port = _servers[i].getPort();
 		for (unsigned int j = 0; j < _servers.size(); j++)
-			if (i != j && _servers[j].getIpNum() == ip && _servers[j].getPortNum() == port)
+			if (i != j && _servers[j].getIp() == ip && _servers[j].getPort() == port)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
 
@@ -190,19 +190,17 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 	else if (var == "index")
 		route.addIndexFile(values);
 	else if (var == "autoindex")
-		route.setAutoIndex(values);
+		route.setAutoindex(values);
 	else if (var == "limit_except" || var == "methods" || var == "allowed_methods")
 		route.addMethods(values);
 	else if (var == "error_page")
 		route.addErrorPage(values);
 	else if (var == "client_max_body_size")
 		route.setMaxSize(values);
-	else if (var == "upload_dir" || var == "upload_path")
-		route.setUploadPath(values);
 	else if (var == "return" || var == "redirect")
 		route.setReturn(values);
-	else if (var == "cgi_pass" || var == "cgi_path")
-		route.setCgiPass(values);
+	else if (var == "cgi_path")
+		route.setCgiPath(values);
 	else if (var == "cgi_extension")
 		route.addCgiExtension(values);
 	else if (var == "cgi_enable")

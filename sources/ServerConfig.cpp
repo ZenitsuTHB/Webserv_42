@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 19:59:03 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 15:51:27 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,7 +113,7 @@ in_addr_t	ServerConfig::getInet(std::string const &ip)
 
 // Converts a std::string port to a number port
 
-in_port_t	ServerConfig::getPort(std::string const &port)
+in_port_t	ServerConfig::getPortNum(std::string const &port)
 {
 	for (unsigned int i = 0; i < port.size(); i++)
 		if (!std::isdigit(port[i]))
@@ -138,7 +138,7 @@ void	ServerConfig::setListen(VectorStr const &data)
 	if (data.size() != 1)
 		sentError("Syntax error: listen -> listen [ip]:[port]");
 
-	if (ip != "")
+	if (ipStr != "")
 		sentError("You cannot have multiple listen");
 
 	std::string	listen = data[0];
@@ -146,9 +146,9 @@ void	ServerConfig::setListen(VectorStr const &data)
 
 	if (pos == std::string::npos)
 	{
-		this->ip = "0.0.0.0";
-		this->ipNum = getInet(this->ip);
-		this->port = getPort(listen);
+		this->ipStr = "0.0.0.0";
+		this->ip = getInet(this->ipStr);
+		this->port = getPortNum(listen);
 		return ;
 	}
 	std::string	host = listen.substr(0, pos);
@@ -166,9 +166,9 @@ void	ServerConfig::setListen(VectorStr const &data)
 			host += ip[i];
 		}
 	}
-	this->ipNum = getInet(host);
-	this->ip = host;
-	this->port = getPort(port);
+	this->ip = getInet(host);
+	this->ipStr = host;
+	this->port = getPortNum(port);
 }
 
 // server_name [name]
@@ -201,17 +201,12 @@ void	ServerConfig::addRoute(RouteConfig route)
 	routes.push_back(route);
 }
 
-std::string const	&ServerConfig::getIp() const
+in_addr_t	ServerConfig::getIp() const
 {
 	return ip;
 }
 
-in_addr_t	ServerConfig::getIpNum() const
-{
-	return ipNum;
-}
-
-in_port_t	ServerConfig::getPortNum() const
+in_port_t	ServerConfig::getPort() const
 {
 	return port;
 }
@@ -221,7 +216,7 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	*ServerConfig::getRoute(std::string const &request) const
+RouteConfig const	*ServerConfig::getLocation(std::string const &request) const
 {
 	RouteConfig const	*best = NULL;
 	size_t				longest = 0;
@@ -264,10 +259,10 @@ void	ServerConfig::addDefault()
 		indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
 		setMaxSize(MAX_SIZE_CLIENT);
-	if (ip.empty())
+	if (ipStr.empty())
 	{
-		ip = "0.0.0.0";
-		ipNum = 0;
+		ipStr = "0.0.0.0";
+		ip = 0;
 		port = 8000;
 	}
 	if (serverName.empty())
@@ -275,10 +270,19 @@ void	ServerConfig::addDefault()
 	if (backlog == -1)
 		backlog = 100;
 
+	BaseConfig	base;
+
+	base.setAutoindex(this->autoindex);
+	base.setRoot(this->root);
+	base.addIndexFile(this->indexFiles);
+	base.addErrorPage(this->errorPages);
+	base.setReturn(this->returnCode, this->redirectUrl);
+	base.setMaxSize(this->clientMaxBodySize);
+
 	bool	therIs = false;
 	for (unsigned int i = 0; i < routes.size(); i++)
 	{
-		routes[i].addDefault(root, errorPages, indexFiles, clientMaxBodySize);
+		routes[i].addDefault(base);
 		if (routes[i].getPath() == "/")
 			therIs = true;
 	}
@@ -289,7 +293,7 @@ void	ServerConfig::addDefault()
 	{
 		RouteConfig	newRoute;
 
-		newRoute.addDefault(root, errorPages, indexFiles, clientMaxBodySize);
+		newRoute.addDefault(base);
 		routes.push_back(newRoute);
 	}
 
@@ -307,8 +311,8 @@ void	ServerConfig::display()
 {
 	std::cout << std::endl << "Server: " << serverName << std::endl << std::endl;
 
-	std::cout << "Listen ip: " << ip << ", port: " << port << std::endl;
-	std::cout << "ip number: " << ipNum << std::endl;
+	std::cout << "Listen ip: " << ipStr << ", port: " << port << std::endl;
+	std::cout << "ip number: " << ip << std::endl;
 	std::cout << "backlog: " << backlog << std::endl;
 	
 	std::cout << "Root: " << root << std::endl;

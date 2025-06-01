@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 20:03:36 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 15:26:49 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,12 @@ void	launchServer(ServerConfig const &obj)
 {
 	try
 	{
-		Server server(obj.getIpNum(), obj.getPortNum(), obj.getBacklog());
+		Server server(obj.getIp(), obj.getPort(), obj.getBacklog());
 		
 		serverPtr = &server;
 		signal(SIGINT, signalHandler);
 
-		std::cout << "[PROCESS] Starting server on port " << obj.getPortNum() << std::endl;
+		std::cout << "[PROCESS] Starting server on port " << obj.getPort() << std::endl;
 		server.run();
 	}
 	catch (std::exception const &e)

@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/21 17:58:40 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/01 15:51:47 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,19 @@ class BaseConfig
 		BaseConfig();
 		virtual ~BaseConfig();
 
+		void	setAutoindex(VectorStr const &data);
+		void	setAutoindex(bool autoindex);
 		void	setRoot(VectorStr const &data);
+		void	setRoot(std::string const &root);
 		void	addIndexFile(VectorStr const &data);
 		void	addErrorPage(VectorStr const &data);
+		void	addErrorPage(ErrorMap const &errors);
 		void	setReturn(VectorStr const &data);
+		void	setReturn(int code, std::string const &url);
 		void	setMaxSize(VectorStr const &data);
 		void	setMaxSize(size_t size);
 
+		bool				isAutoindex() const;
 		std::string const	&getRoot() const;
 		VectorStr const		&getIndexFiles() const;
 		ErrorMap const		&getErrorPages() const;
@@ -45,11 +51,11 @@ class BaseConfig
 		std::string const	&getRedirectUrl() const;
 		size_t				getMaxSize() const;
 		
-		virtual void	sentError(std::string msg) const = 0;
-		virtual void	display() = 0;
+		virtual void	sentError(std::string msg) const;
 
 	protected:
 
+		bool			autoindex;
 		std::string		root;
 		VectorStr		indexFiles;
 		ErrorMap		errorPages;
@@ -67,3 +73,24 @@ class BaseConfig
 };
 
 #endif
+
+/*
+
+
+autoindex: 					server, location
+root:						server, location
+index						server, location
+error_page					server, location
+return						server, location
+client_max_body_size		server, location
+
+limit_except/methods		location
+cgi_enable					location
+cgi_path					location					
+cgi_extension				location
+
+listen						server
+server_name					server
+backlog						server
+
+*/
