@@ -116,6 +116,7 @@ $(OBJ_D)%.o: $(SRC_CONFIG_D)%.cpp
 	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS) -MMD $(BCYAN)-c $(BIRED)$< $(BCYAN)-o $(BIGREEN)$@$(DF)"
 	@echo "$(BCYAN)mv $(BYELLOW)$(@:.o=.d) $(BCYAN)$(DEP_D)$(DF)"
 
+
 # ... (el resto del Makefile permanece igual)
 
 $(OBJ_D):
@@ -132,10 +133,12 @@ clean:
 	@rm -rf $(OBJ_D) $(DEP_D)
 	@echo "$(RED)rm -rf $(BIGREEN)OBJECTS: $(OBJ_F)$(DF)"
 	@echo "$(RED)rm -rf $(BYELLOW)DEPENDENCIES: $(DEP_F)$(DF)"
+	@clear
 
 fclean: clean
 	@rm -rf $(NAME)
 	@echo "$(RED)rm -rf $(RED)PROGRAM: $(NAME)$(DF)\n"
+	@clear
 
 cleanTest:
 	rm -rf client.exe server.exe
