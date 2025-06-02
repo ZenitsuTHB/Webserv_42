@@ -1,95 +1,47 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 17:10:19 by avolcy           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <iostream>
 #include <vector>
 #include <csignal>
 #include <cstdlib>
 #include <unistd.h>
-#include <sys/wait.h>
 #include "../includes/Server.hpp"
-#include "../includes/Config.hpp"
+#include "../includes/ServerManager.hpp"
 #include "../includes/ParserConfig.hpp"
 
-Server *serverPtr = nullptr;
+ServerManager* serverManagerPtr = NULL;
 
-void	signalHandler(int signum)
-{
-	if (serverPtr)
-		serverPtr->shutDownServer();
+void signalHandler(int signum) {
+	if (serverManagerPtr)
+		serverManagerPtr->stop();
 	exit(signum);
 }
 
-void	launchServer(ServerConfig const &obj)
+int main(int ac, char **av)
 {
-	try
-	{
-		Server server(obj.getIp(), obj.getPort(), obj.getBacklog());
-		
-		serverPtr = &server;
+	if (ac != 2) {
+		std::cerr << "Error: ./webserv [Configuration file]" << std::endl;
+		return 1;
+	}
+
+	try {
+		ParserConfig parser(av[1]);
+		const std::vector<ServerConfig>& configs = parser.getServers();
+
+		if (configs.empty()) {
+			std::cerr << "Error: No servers defined in config file." << std::endl;
+			return 1;
+		}
+
+		ServerManager manager(configs);
+		serverManagerPtr = &manager;
 		signal(SIGINT, signalHandler);
 
-		std::cout << "[PROCESS] Starting server on port " << obj.getPort() << std::endl;
-		server.run();
-	}
-	catch (std::exception const &e)
-	{
-		std::cerr << "Error in child process: " << e.what() << std::endl;
-		//exit(1);
-	}
-}
+		std::cout << "[MAIN] Starting " << configs.size() << " servers..." << std::endl;
+		manager.run();
 
-int	main(int ac, char **av)
-{
-	if (ac != 2)
-		return std::cerr << "Error: ./webserv [Configuration file]" << std::endl, 1;
-
-	try
-	{
-		ParserConfig					parser(av[1]);
-		std::vector<ServerConfig> const	&server = parser.getServers();
-		std::vector<pid_t> 				pids;
-		while (true)
-			for (size_t i = 0; i < server.size(); i++)
-				launchServer(server[i]);
-
-		/*for (size_t i = 0; i < server.size(); i++)
-		{
-			pid_t	pid = fork();
-			
-			if (pid < 0)
-				std::cerr << "Fork failed" << std::endl;
-			else if (pid == 0)
-			{
-				launchServer(server[i]);
-				exit(0);
-			}
-			else
-				pids.push_back(pid);
-		}
-		
-		for (size_t i = 0; i < pids.size(); i++)
-		{
-			int	status;
-			waitpid(pids[i], &status, 0);
-			std::cout << "Server process " << pids[i] << " exited with " << status << std::endl;
-		}
-		*/
-		
-		std::cout << "[MAIN] All servers terminated.\n";
+		std::cout << "[MAIN] Servers shut down gracefully." << std::endl;
 	}
-	catch (std::exception const &e)
-	{
-		std::cerr << "Error: " << e.what() << std::endl;
+	catch (const std::exception& e) {
+		std::cerr << "Fatal Error: " << e.what() << std::endl;
 		return 1;
 	}
 	return 0;
