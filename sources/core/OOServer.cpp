@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   OOServer.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/27 16:55:48 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/01 20:03:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/03 17:02:43 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,7 +174,7 @@ void	Server::acceptNewConnection( void )
 	}
 	return ;
 }
-
+since you know that the reading of a request can be done by chunks or is not necessarily done at once I want to mange that as if the content-length 20 and I found \r\n\r\n but the by
 // EPOLLHUP the connection get entirely cut off
 // EPOLLRDHUP the client shut its part using close or 
 // shutdown(fd , SHUT_WR) and it can still receive data

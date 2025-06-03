@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:19 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/02 18:53:48 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/03 15:40:44 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,14 +45,14 @@ class Server {
         void prepareStaticResponse();
     
     private:
-        std::string _cachedResponse;
-        std::map<int, std::string> _recvBuffers;
-        bool _responseReady;
+        bool                        _responseReady;
+        std::string                 _cachedResponse;
+        std::map<int, std::string>  _recvBuffers;
     
-        ListenSocket _socket;
         int _clientfd;
-        std::map<int, BaseSocket> _clientsMap;
+        ListenSocket _socket;
         std::vector<char> _buffer;
+        std::map<int, BaseSocket> _clientsMap;
     };
 
 #endif

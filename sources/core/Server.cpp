@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 18:06:07 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/02 18:34:41 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/03 15:49:15 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ int Server::getSocketFd() const {
 }
 
 int Server::acceptConnection() {
+    
     BaseSocket clientSocket = _socket.accept();
     if (clientSocket.getSockFd() == -1)
         return -1;
@@ -62,7 +63,6 @@ std::string Server::processRequest(const std::string& request) {
     (void)request;
     if (!_responseReady)
         return "HTTP/1.1 404 Not Found\r\nContent-Length:13\r\n\r\n404 Not Found";
-
     return _cachedResponse;
 }
 
