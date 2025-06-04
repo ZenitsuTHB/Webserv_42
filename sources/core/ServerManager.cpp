@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/03 19:05:37 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/04 15:51:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ void ServerManager::stop() {
 }
 
 void ServerManager::run() {
+    
     struct epoll_event events[MAX_EVENTS];
     while (_running) {
         time_t now = time(NULL);
@@ -100,7 +101,6 @@ void ServerManager::run() {
             } else {
                 std::cerr << "[ServerManager] Unknown fd triggered epoll: " << fd << std::endl;
             }
-
             if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
                 handleClientDisconnect(fd);
             }
@@ -199,10 +199,12 @@ void ServerManager::modifyEpoll(int fd, uint32_t events) {
 }
 
 void ServerManager::removeFromEpoll(int fd) {
+    if (fcntl(fd, F_GETFD) == -1 && errno == EBADF) return; // Already closed
     if (epoll_ctl(_epoll_fd, EPOLL_CTL_DEL, fd, NULL) == -1) {
         std::cerr << "Warning: epoll_ctl DEL failed: " << strerror(errno) << std::endl;
     }
 }
+
 
 ServerManager::~ServerManager() {
     stop();
