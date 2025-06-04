@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/04 15:51:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 01:02:37 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,11 +42,16 @@ ServerManager::ServerManager(const std::vector<ServerConfig>& configs) : _epoll_
         }
     }
 
-    _running = true;
+    _running = (!_servers.empty());
+}
+
+size_t ServerManager::getServerCount() const {
+    return _servers.size();
 }
 
 void ServerManager::stop() {
     if (!_running) return;
+    std::cout <<  "running" << _running << std::endl;
 
     for (std::vector<Server*>::iterator it = _servers.begin(); 
          it != _servers.end(); ++it) {
@@ -66,9 +71,16 @@ void ServerManager::stop() {
 }
 
 void ServerManager::run() {
-    
+       
     struct epoll_event events[MAX_EVENTS];
     while (_running) {
+        
+        if (g_shouldStop) {
+            std::cout << "\n[SIGNALS] Caught termination signal. Stopping server..." << std::endl;
+            stop();
+            break ;
+        }
+        
         time_t now = time(NULL);
         for (TimeMap::iterator it = _lastActivity.begin(); it != _lastActivity.end(); ) {
             if (now - it->second > 30) { // 30 seconds timeout
@@ -132,11 +144,15 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         size_t headerEnd = clientBuffer.find(END);
         if (headerEnd != std::string::npos) {
             std::string request = clientBuffer.substr(0, headerEnd + 4);
+            // if (request.find("Connection: close") != std::string::npos)
+            // {
+            //     std::cout << "[CONN] Client requested close: " << client_fd << std::endl;
+            //     handleClientDisconnect(client_fd);
+            // }
             std::string response = server->processRequest(request);
 
             _writeBuffers[client_fd] = response;
             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
-
             _buffers[client_fd].erase(0, headerEnd + 4);
             break;
         }

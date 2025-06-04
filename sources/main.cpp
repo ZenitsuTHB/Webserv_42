@@ -8,11 +8,14 @@
 #include "../includes/ParserConfig.hpp"
 
 ServerManager* serverManagerPtr = NULL;
+volatile sig_atomic_t g_shouldStop = 0;  // ✅ Initialization here only
 
 void signalHandler(int signum) {
-	if (serverManagerPtr)
-		serverManagerPtr->stop();
-	exit(signum);
+	(void)signum;
+	g_shouldStop = 1;
+	// if (serverManagerPtr)
+	// 	serverManagerPtr->stop();
+	// exit(signum);
 }
 
 int main(int ac, char **av)
@@ -30,12 +33,18 @@ int main(int ac, char **av)
 			std::cerr << "Error: No servers defined in config file." << std::endl;
 			return 1;
 		}
+		
 
 		ServerManager manager(configs);
 		serverManagerPtr = &manager;
-		signal(SIGINT, signalHandler);
-
+		if (!manager.getServerCount()) {
+			std::cerr << "[MAIN] No servers started successfully. Exiting." << std::endl;
+			return 1;
+		}		
 		std::cout << "[MAIN] Starting " << configs.size() << " servers..." << std::endl;
+		signal(SIGINT, signalHandler);
+		signal(SIGTERM, signalHandler);
+		signal(SIGHUP, signalHandler);
 		manager.run();
 
 		std::cout << "[MAIN] Servers shut down gracefully." << std::endl;

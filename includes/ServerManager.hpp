@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 19:16:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/03 18:44:31 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 00:25:49 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,11 +28,13 @@
 #include <vector>
 #include <map>
 #include <sys/epoll.h>
+#include <csignal>
 #include "Server.hpp"
 #include "ServerConfig.hpp"
 
 #define MAX_EVENTS 10
 #define BUFFER_SIZE 4096
+extern volatile sig_atomic_t g_shouldStop;
 
 typedef std::map<int, time_t> TimeMap;
 
@@ -44,6 +46,8 @@ public:
 
     void stop();
     void run();
+    size_t getServerCount() const;
+
 
 private:
     int                         _epoll_fd;
@@ -62,6 +66,7 @@ private:
     void removeFromEpoll(int fd);
     void modifyEpoll(int fd, uint32_t events);
     void flushWriteBuffer(int client_fd);
+
 
 
 
