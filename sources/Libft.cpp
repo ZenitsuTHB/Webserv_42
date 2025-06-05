@@ -6,12 +6,13 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/25 12:36:07 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/08 14:36:19 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/01 18:57:41 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/Libft.hpp"
-#include <iostream>
+//#include <iostream>
+#include <fstream>
 
 std::string	Libft::itos(int integer)
 {
@@ -108,6 +109,26 @@ std::string	&Libft::trim(std::string &str, std::string const set)
 		}
 	}
 	return (str);
+}
+
+std::string	Libft::readFile(std::string const &filename)
+{
+	std::ifstream	file(filename.c_str(), std::ios::binary);
+	std::string		fileText;
+	int				size;
+	char			*textBuf;
+
+	file.seekg(0, file.end);
+	size = file.tellg();
+	file.seekg(0, file.beg);
+	if (file.fail() || size == -1)
+		throw (std::ios_base::failure("Failed to manage file"));
+	textBuf = new char[size];
+	file.read(textBuf, size);
+	fileText.assign(textBuf, size);
+	delete[] textBuf;
+	file.close();
+	return (fileText);
 }
 
 //int	main(void)
