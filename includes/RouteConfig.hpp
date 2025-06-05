@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:37:39 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/06/05 16:40:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,17 @@
 
 #include <bitset>
 #include "BaseConfig.hpp"
+#include "Http.hpp"
 
 typedef std::map<int, std::string>	ErrorMap;
 
-enum	HttpMetthod
+/*enum	HttpMetthod
 {
 	GET = 0,
 	POST,
 	DELETE,
 	SIZE
-};
+};*/
 
 class RouteConfig: public BaseConfig
 {
@@ -41,7 +42,8 @@ class RouteConfig: public BaseConfig
 		
 		std::string const			&getPath() const;
 		std::bitset<SIZE> const		&getMethods() const;
-		bool						isAllowed(HttpMetthod method) const;
+		bool						isAllowed(Method method) const;
+		std::string const			getUploadPath() const;
 		bool						isCgiEnabled() const;
 		std::string const			&getCgiPath() const;
 		VectorStr const				&getCgiExtensions() const;

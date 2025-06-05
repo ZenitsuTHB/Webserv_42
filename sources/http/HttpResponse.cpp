@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/15 17:18:17 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/05 16:31:02 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,30 +15,68 @@
 #include <utility>
 #include <cstdlib>
 #include <sys/stat.h>
+#include <unistd.h>
 #include "../../includes/HttpResponse.hpp"
 #include "../../includes/exceptions.hpp"
 #include "../../includes/Libft.hpp"
 
+/*
+=======================
+Auxiliar Functions
+=======================
+*/
+static BaseConfig const	*assignRoute(ServerConfig const &conf)
+{
+	return (&conf);
+}
+
+//QUITAR SI NO HACE FALTA
+std::string	getPath(BaseConfig const *conf)
+{
+	std::string	path;
+
+	path.assign(conf->getRoot());
+	if (RouteConfig const *ptr = dynamic_cast<RouteConfig const *>(conf))
+		path.append(ptr->getPath());
+	else
+		path.append(1, '/');
+	return (path);
+}
+
+static bool	isAutoindex(BaseConfig const *conf)
+{
+	if (RouteConfig const *ptr = dynamic_cast<RouteConfig const *>(conf))
+		return (ptr->isAutoindex());
+	return (true);
+}
+
+/*
+=======================
+-tructors
+=======================
+*/
 HttpResponse::~HttpResponse(void)
 {
 	return ;
 }
 
-HttpResponse::HttpResponse(HttpRequest const &request): _version("HTTP/1.1")
+HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
+	_version("HTTP/1.1"), _index(false)
 {
-	switch (request.getMethod())
+	_route = assignRoute(conf);
+	switch (req.getMethod())
 	{
 		case GET:
-			getResource(request);
+			getResource(req);
 			break ;
 		case POST:
-			postResource(request);
+			postResource(req);
 			break ;
 		case DELETE:
-			deleteResource(request);
+			deleteResource(req);
 			break ;
 		default:
-			throw (HttpException("Unkwon method", 400));
+			throw (HttpException("<Response> Unkwon method", 400));
 	}
 }
 
@@ -47,59 +85,174 @@ HttpResponse::HttpResponse(HttpResponse const &obj)
 	*this = obj;
 }
 
-HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
+/*
+=======================
+Member methods
+=======================
+*/
+void	HttpResponse::searchGETendPoint(std::string &file)
 {
-	if (this != &obj)
+	struct stat	sb;
+
+	/*	*
+	 *	Add root to the file path
+	 */
+	file.insert(0, _route->getRoot());
+	/*	*
+	 *	Check file permissions
+	 */
+	if (stat(file.c_str(), &sb) == -1)
 	{
+		/*	*
+		 *	Errors while looking for file
+		 */
+		switch (errno)
+		{
+			case ENOTDIR:// PODRIA QUITAR LOS BARRA DE DESPUES
+				//fallthrow
+			case ENOENT:
+				throw (HttpException("GET st NOTDIRENT File not found", 404));
+				break ;
+			case EACCES:
+				throw (HttpException("GET st ACCES Permission denied", 403));
+				break ;
+			case ENAMETOOLONG:
+				//fallthrow
+			case ELOOP:
+				throw (HttpException("GET st TOOLONGLOOP Name too long", 414));
+				break ;
+			default:
+				throw (HttpException("GET st dflt Server internal error", 500));
+		}
 	}
-	return (*this);
+	/*	*
+	 *	If it is a regular file and has read permissions
+	 */
+	if (S_ISREG(sb.st_mode))
+	{
+		if (!(sb.st_mode & S_IRUSR))
+			throw (HttpException("GET reg read Permission denaid", 403));
+		std::cout << "File: " << file << std::endl;
+		return ;
+	}
+	/*	*
+	 *	If it is a folder
+	 */
+	else if (S_ISDIR(sb.st_mode))
+	{
+		/*	*
+		 *	Search for index file
+		 */
+		std::string indexFile;
+
+		for (VecStr::const_iterator it = _route->getIndexFiles().begin();
+				it != _route->getIndexFiles().end(); ++it)
+		{
+			indexFile.assign(file + *it);
+			if (access(indexFile.c_str(), R_OK) == -1)
+				continue ;
+			file.assign(indexFile);
+			std::cout << "File: " << file << std::endl;
+			return ;
+		}
+		/*	*
+		 *	or create index
+		 */
+		if (isAutoindex(_route))
+		{
+			std::cout << "File: " << file << std::endl;
+			_index = true;
+			return ;
+		}
+	}
+	/*	*
+	 *	If it didn't return, error
+	 */
+	std::cout << "File: " << file << std::endl;
+	throw (HttpException("GET nothing File not faun", 404));
 }
 
 void	HttpResponse::getResource(HttpRequest const &request)
 {
+	std::string		fileName = request.getPath();
 	/*	*
-	 *	Stringing resource
+	 *	Search the Endpoint
 	 */
-	std::string		file(_searchEndpoint(request.getPath()));
-	std::string		line;
-	std::ifstream	fileStream(file.c_str());
-
-	if (!fileStream)
-		throw (HttpException("File not found", 404));
+	searchGETendPoint(fileName);
 	/*	*
 	 *	Tha Body
 	 */
-	_body.clear();
-	while (std::getline(fileStream, line))
-		_body.append(line).append(1, '\n');
-	fileStream.close();
+	if (_index)
+		_body = _indexFolder(fileName);
+	else
+		_body = Libft::readFile(fileName);
 	/*	*
 	 *	Setting headers
 	 */
 	_header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(_body.length()))));
-	_header.insert(PairStr("Content-type", _fileType(file)));
+//	if (_index)
+//		_header.insert(PairStr("Content-type", "text/html"));
+//	else
+	_header.insert(PairStr("Content-type", _fileType(fileName)));
 	/*	*
 	 *	Setting status line
 	 */
 	_code = 200;
 }
 
+void	HttpResponse::searchPOSTendPoint(std::string &file)
+{
+	struct stat	sb;
+
+	file.insert(0, _route->getRoot());
+	if (stat(file.c_str(), &sb) == -1)
+	{
+		/*	*
+		 *	Errors while looking for file
+		 */
+		switch (errno)
+		{
+			case ENOTDIR:// PODRIA QUITAR LOS BARRA DE DESPUES
+				throw (HttpException("POST st NOTDIR File not found", 404));
+				break ;
+			case ENOENT:
+				return ;
+			case EACCES:
+				throw (HttpException("POST st ACCES Permission denied", 403));
+				break ;
+			case ENAMETOOLONG:
+				//fallthrow
+			case ELOOP:
+				throw (HttpException("POST st TOOLONGLOOP Name too long", 414));
+				break ;
+			default:
+				throw (HttpException("POST st dft Server internal error", 500));
+		}
+	}
+	if (S_ISDIR(sb.st_mode))
+		throw (HttpException("POST dir File not found", 404));
+	if (S_ISREG(sb.st_mode) && !(sb.st_mode & S_IWUSR))
+		throw (HttpException("POST reg write Permission denaid", 403));
+	std::cout << "File: " << file << std::endl;
+}
+
 void	HttpResponse::postResource(HttpRequest const &request)
 {
-	if (request.getPath().length() >= 255)
-		throw (HttpException("Too large el mensaje ese", 414));
 	/*	*
 	 *	Creating resource
 	 */
-	std::string			file(_searchEndpoint(request.getPath()));
-	std::string const	&body = request.getBody();
-	std::ofstream		fileStream(file.c_str());
+	std::string			fileName(request.getPath());
+	searchPOSTendPoint(fileName);
 
-	if (fileStream.fail())
-		throw (HttpException("Failed to create the file", 500));
-	fileStream.write(body.c_str(), body.length());
-	fileStream.close();
+	std::string const	&body = request.getBody();
+	std::ofstream		file(fileName.c_str(), std::ios::binary);
+
+	// Plantear si hay que hacer lo del parámetro Burundy en el Content-type
+	if (file.fail())
+		throw (HttpException("POST stream Failed to create the file", 500));
+	file.write(body.c_str(), body.length());
+	file.close();
 	/*	*
 	 *	Tha Body
 	 */
@@ -115,17 +268,53 @@ void	HttpResponse::postResource(HttpRequest const &request)
 	//throw (HttpException("Not done yet", 400)); IS DONE NOW
 }
 
+void	HttpResponse::searchDELETEendPoint(std::string &file)
+{
+	struct stat	sb;
+
+	file.insert(0, _route->getRoot());
+	if (stat(file.c_str(), &sb) == -1)
+	{
+		/*	*
+		 *	Errors while looking for file
+		 */
+		switch (errno)
+		{
+			case ENOTDIR:// PODRIA QUITAR LOS BARRA DE DESPUES
+				//fallthrow
+			case ENOENT:
+				std::cout << "File: " << file << std::endl;
+				throw (HttpException("DEL st NODIRENT File not found", 404));
+			case EACCES:
+				throw (HttpException("DEL st ACCES Permission denied", 403));
+				break ;
+			case ENAMETOOLONG:
+				//fallthrow
+			case ELOOP:
+				throw (HttpException("DEL st TOOLONGLOOP Name too long", 414));
+				break ;
+			default:
+				throw (HttpException("DEL st dflt Server internal error", 500));
+		}
+	}
+	// If it is a directory should the directory files be removed?
+	if (S_ISDIR(sb.st_mode))
+		throw (HttpException("DEL dir File not found", 404));
+	if (!S_ISREG(sb.st_mode))
+		throw (HttpException("DEL not reg File not faun", 404));
+	std::cout << "File: " << file << std::endl;
+}
+
 void	HttpResponse::deleteResource(HttpRequest const &request)
 {
 	/*	*
 	 *	Removing resource
 	 */
-	std::string	file(_searchEndpoint(request.getPath()));
+	std::string	file(request.getPath());
 	
-	if (!_validFile(file))
-		throw (HttpException("Real reasone inside validFile", 400));
+	searchDELETEendPoint(file);
 	if (std::remove(file.c_str())== -1)
-		throw (HttpException("Failed to remove the file", 500));
+		throw (HttpException("DEL remove Failed to remove the file", 500));
 	/*	*
 	 *	Tha Body
 	 */
@@ -179,77 +368,72 @@ std::string	HttpResponse::_fileType(std::string const &file)
 		type.assign("text/plain");
 	return (type);
 }
-
-std::string	HttpResponse::_searchEndpoint(std::string const &path)
+std::string	HttpResponse::_indexFolder(std::string const &folder)
 {
-	std::string	file;
-	std::string::const_iterator	it(path.begin());
-
-	//if (path.begin() != path.end() && path.front() == '/')
-	if (it != path.end() && *it == '/')
-		file.assign(path.substr(1));
-	return (file);
+	(void)folder;
+	return ("Folder Indexado\r\n");
 }
 
-bool	HttpResponse::_validFile(std::string const &file)
+HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
 {
-	if (file == "/" || file.find("html/") != 0)
-		return (false);
-	struct stat	sb;
-
-	if (stat(file.c_str(), &sb) == -1)
+	if (this != &obj)
 	{
-		if (errno == ENOENT)
-			throw (HttpException("File not found", 404));
-		if (errno == EACCES)
-			throw (HttpException("Permission denied: Forbidden", 403));
-		throw (HttpException("Failed stat function", 500));
 	}
-	if (!S_ISREG(sb.st_mode) && !S_ISDIR(sb.st_mode))
-		throw (HttpException("Is nor a file nor a directory", 403));
-	if (S_ISREG(sb.st_mode))
-		return (true);
-	return (false);
+	return (*this);
 }
-
 /*
-#include <iostream>
 
-int	main(void)
+#include <iostream>
+#include <cstdlib>
+#include "../includes/ServerConfig.hpp"
+#include "../includes/ParserConfig.hpp"
+
+int	main(int argc, char **av)
 {
+	if (argc != 2)
+		return (1);
 	std::string	str =
-		"GET /html/index.html HTTP/3\r\n"
+		"POST /TEST/this HTTP/3\r\n"
 		"Host: http.cat\r\n"
-		"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:135.0)     \r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;\r\n"
 		"Accept-Language: en-US,en;q=0.5\r\n"
 		"Accept-Encoding: gzip, deflate, br, zstd\r\n"
 		"Connection: keep-alive\r\n"
-		"Cookie: _ga=GA1.2.549077782.1743611458; \r\n"
-		"Upgrade-Insecure-Requests: 1\r\n"
-		"Sec-Fetch-Dest: document\r\n"
-		"Sec-Fetch-Mode: navigate\r\n"
-		"Sec-Fetch-Site: none\r\n"
-		"Sec-Fetch-User: ?1\r\n"
 		"\t\v\r\f Priority\t\v\r\f :\t\v\r\f u=0, i\t\v\r\f \r\n\r\n"
 		"12345678901234567890123456789012345678901234567890";
 	try
 	{
+		ParserConfig					parser(av[1]);
+		ServerConfig const	server = parser.getServers().front();
+		//std::vector<ServerConfig> const	&server = parser.getServers();
+
 		HttpRequest		request(str);
 
 		request.print();
-		HttpResponse	response(request);
+		HttpResponse	response(request, server);
 
-		std::cout << "Response:" << std::endl << response.generate();
+		std::cout << std::endl << "######Response:"
+			<< std::endl << response.generate();
 	}
 	catch (HttpException const &ex)
 	{
-		std::cout << "Http error uccored: " << ex.what() << " with code: "
+		std::cerr << "Http error uccored: " << ex.what() << " with code: "
 			<< ex.whatCode() << std::endl;
 	}
 	catch (std::exception const &ex)
 	{
-#include <cstdlib>
-		std::cout << "Error occured: " << ex.what() << std::endl;
+		std::cerr << "Error occured: " << ex.what() << std::endl;
 	}
-}*/
+	catch (...)
+	{
+		std::cerr << "Unkown throw ocurred" << std::endl;
+	}
+}
+//		"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:135.0)     \r\n"
+//		"Cookie: _ga=GA1.2.549077782.1743611458; \r\n"
+//		"Upgrade-Insecure-Requests: 1\r\n"
+//		"Sec-Fetch-Dest: document\r\n"
+//		"Sec-Fetch-Mode: navigate\r\n"
+//		"Sec-Fetch-Site: none\r\n"
+//		"Sec-Fetch-User: ?1\r\n"
+*/

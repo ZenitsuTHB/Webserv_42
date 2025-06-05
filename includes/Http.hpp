@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 21:16:17 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/08 19:26:12 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/19 17:32:23 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,11 @@
 
 typedef enum e_method
 {
-	NO_METHOD = 0,
+	NO_METHOD = -1,
 	GET,
 	POST,
-	DELETE
+	DELETE,
+	SIZE
 }	Method;
 
 typedef std::map< std::string, std::string >	Headers;

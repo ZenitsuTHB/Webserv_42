@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 16:21:46 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 16:41:48 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ std::bitset<SIZE> const	&RouteConfig::getMethods() const
 	return methods;
 }
 
-bool	RouteConfig::isAllowed(HttpMetthod method) const
+bool	RouteConfig::isAllowed(Method method) const
 {
 	if (methods.test(method))
 		return true;

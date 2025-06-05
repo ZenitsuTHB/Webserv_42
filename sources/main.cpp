@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.cpp                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
+/*   Updated: 2025/06/05 16:47:02 by avolcy           ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <iostream>
 #include <vector>
 #include <csignal>
@@ -49,9 +61,11 @@ int main(int ac, char **av)
 
 		std::cout << "[MAIN] Servers shut down gracefully." << std::endl;
 	}
-	catch (const std::exception& e) {
-		std::cerr << "Fatal Error: " << e.what() << std::endl;
-		return 1;
+	catch (std::exception const &e)
+	{
+		std::cerr << "Error in child process: " << e.what() << std::endl;
+		//exit(1);
 	}
 	return 0;
 }
+

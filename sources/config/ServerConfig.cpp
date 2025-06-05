@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 16:21:52 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 16:43:50 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,22 +216,12 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	*ServerConfig::getLocation(std::string const &request) const
+RouteConfig const	&ServerConfig::getRoute(std::string const &path) const
 {
-	RouteConfig const	*best = NULL;
-	size_t				longest = 0;
-
-	std::vector<RouteConfig>::const_iterator	it = routes.begin();
-	for (; it != routes.end(); it++)
-	{
-		std::string const	path = it->getPath();
-		if (request.compare(0, path.length(), path) == 0 && path.length() > longest)
-		{
-			longest = path.length();
-			best = &(*it);
-		}
-	}
-	return best;
+	for (size_t i = 0; i < routes.size(); i++)
+		if (routes[i].getPath() == path)
+			return routes[i];
+	throw std::runtime_error("Location not found");
 }
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
