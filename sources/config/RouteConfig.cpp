@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   RouteConfig.cpp                                    :+:      :+:    :+:   */
+/*  RouteConfig.cpp                                      :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/05/22 16:58:14 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/06/05 16:34:16 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,7 @@ std::bitset<SIZE> const	&RouteConfig::getMethods() const
 	return methods;
 }
 
-bool	RouteConfig::isAllowed(HttpMetthod method) const
+bool	RouteConfig::isAllowed(Method method) const
 {
 	if (methods.test(method))
 		return true;

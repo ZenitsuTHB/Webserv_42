@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 22:39:03 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/08 18:48:20 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/05/20 20:17:46 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,8 +41,9 @@ HttpRequest::HttpRequest(std::string const &req)
 	if (reqLine.size() != 3)
 		throw (HttpException("Bad request line", 400));
 	_method = Http::toMethod(reqLine.front());
-	if (!_method)
-		throw (HttpException("Unkwon method", 400));
+	std::cout << "METHOD" << _method << std::endl;
+	if (_method == NO_METHOD)
+		throw (HttpException("<Request> Unkwon method", 400));
 	_path = reqLine[1];
 	_version = reqLine[2];
 	reqSplit.erase(reqSplit.begin());
