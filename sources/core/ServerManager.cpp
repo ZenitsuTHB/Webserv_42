@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/05 01:02:37 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 19:19:10 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,24 +24,25 @@ ServerManager::ServerManager(const std::vector<ServerConfig>& configs) : _epoll_
         throw std::runtime_error(std::string("epoll_create1: ") + strerror(errno));
     }
 
-    for (std::vector<ServerConfig>::const_iterator it = configs.begin(); it != configs.end(); ++it) {
-        Server* server = NULL;
+    // Reserve space to prevent reallocations (minor optimization)
+    _servers.reserve(configs.size());
 
-        try {
-            server = new Server(it->getIp(), it->getPort(), it->getBacklog(), _epoll_fd);
-            if (server->getSocketFd() == -1) {
-                delete server;
-                continue;
-            }
-            addToEpoll(server->getSocketFd(), EPOLLIN);
-            _fd_to_server[server->getSocketFd()] = server;
-            _servers.push_back(server);
-        } catch (const std::exception& e) {
-            std::cerr << "[ServerManager] Failed to initialize server: " << e.what() << std::endl;
-            delete server;
-        }
+    std::vector<ServerConfig>::const_iterator it;    
+    try {
+        for (it = configs.begin(); it != configs.end(); ++it) {
+            SmartPtr<Server> server(new Server(it->getIp(), it->getPort(), it->getBacklog(), _epoll_fd));
+            
+            if (server->getSocketFd() == -1) { continue; } // Automated deletion when SmartPtr is out of scope
+            
+                addToEpoll(server->getSocketFd(), EPOLLIN);
+                _fd_to_server[server->getSocketFd()] = server.getPtr();
+                _servers.push_back(server.release()); // Ownership transferred
+        }           
+    } catch (...) {
+        // Cleanup any successfully created servers if we fail mid-construction
+        stop();
+        throw;
     }
-
     _running = (!_servers.empty());
 }
 
@@ -51,8 +52,6 @@ size_t ServerManager::getServerCount() const {
 
 void ServerManager::stop() {
     if (!_running) return;
-    std::cout <<  "running" << _running << std::endl;
-
     for (std::vector<Server*>::iterator it = _servers.begin(); 
          it != _servers.end(); ++it) {
         delete *it;
@@ -129,33 +128,94 @@ void ServerManager::handleNewConnection(Server* server) {
     addToEpoll(client_fd, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }
 
+bool ServerManager::parseContentLength(const std::string& headers, size_t& outLength) {
+	size_t clPos = headers.find("Content-Length:");
+	if (clPos == std::string::npos)
+		return false;
+
+	clPos += 15; // skip label
+	while (clPos < headers.size() && isspace(headers[clPos])) ++clPos;
+
+	std::string lenStr;
+	while (clPos < headers.size() && isdigit(headers[clPos])) {
+		lenStr += headers[clPos];
+		++clPos;
+	}
+	if (lenStr.empty())
+		return false;
+
+    std::istringstream iss(lenStr);
+    unsigned long len = 0;
+    if (!(iss >> len)) return false;
+    outLength = static_cast<size_t>(len);  //avoid portability issues on 32-bit sys  
+	return true;
+}
+
 void ServerManager::handleClientData(int client_fd, uint32_t events) {
     (void)events;
     Server* server = _client_to_server[client_fd];
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_read;
 
     std::string& clientBuffer = _buffers[client_fd];
 
+    if (clientBuffer.size() > MAX_TOTAL_REQUEST_SIZE) {
+        std::cerr << "[ServerManager] Request too large from client: " << client_fd << std::endl;
+        handleClientDisconnect(client_fd);
+        return;
+    }
+
+    char buffer[READ_BUFFER_SIZE];
+    ssize_t bytes_read;
+
     while ((bytes_read = read(client_fd, buffer, sizeof(buffer)))) {
         if (bytes_read <= 0) break;
+
+        if (clientBuffer.size() + bytes_read > MAX_TOTAL_REQUEST_SIZE) {
+            std::cerr << "[ServerManager] Request size limit exceeded from client: "
+                      << client_fd << std::endl;
+            handleClientDisconnect(client_fd);
+            return;
+        }
+
         clientBuffer.append(buffer, bytes_read);
 
-        size_t headerEnd = clientBuffer.find(END);
+        size_t headerEnd = clientBuffer.find("\r\n\r\n");
         if (headerEnd != std::string::npos) {
-            std::string request = clientBuffer.substr(0, headerEnd + 4);
-            // if (request.find("Connection: close") != std::string::npos)
-            // {
-            //     std::cout << "[CONN] Client requested close: " << client_fd << std::endl;
-            //     handleClientDisconnect(client_fd);
-            // }
+            size_t contentLength = 0;
+            std::string headers = clientBuffer.substr(0, headerEnd);
+
+            if (!parseContentLength(headers, contentLength)) {
+                std::cerr << "[ServerManager] Malformed Content-Length header from client: "
+                          << client_fd << std::endl;
+                handleClientDisconnect(client_fd);
+                return;
+            }
+
+            if (contentLength > MAX_BODY_SIZE) {
+                std::cerr << "[ServerManager] Content-Length too large from client: "
+                          << client_fd << std::endl;
+                handleClientDisconnect(client_fd);
+                return;
+            }
+
+            size_t bodySize = clientBuffer.size() - (headerEnd + 4);
+            if (bodySize < contentLength) {
+                continue;
+            }
+
+            std::string request = clientBuffer.substr(0, headerEnd + 4 + contentLength);
             std::string response = server->processRequest(request);
 
             _writeBuffers[client_fd] = response;
             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
-            _buffers[client_fd].erase(0, headerEnd + 4);
+            clientBuffer.erase(0, headerEnd + 4 + contentLength);
             break;
         }
+    }
+
+    if (clientBuffer.size() > MAX_HEADER_SIZE &&
+        clientBuffer.find("\r\n\r\n") == std::string::npos) {
+        std::cerr << "[ServerManager] Header too large from client: " << client_fd << std::endl;
+        handleClientDisconnect(client_fd);
     }
 }
 
@@ -185,6 +245,7 @@ void ServerManager::flushWriteBuffer(int client_fd) {
         }
     }
 }
+
 
 void ServerManager::handleClientDisconnect(int client_fd) {
     removeFromEpoll(client_fd);

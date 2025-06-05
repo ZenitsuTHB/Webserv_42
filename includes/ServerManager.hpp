@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 19:16:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/05 00:25:49 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/05 19:15:24 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@
 #include <csignal>
 #include "Server.hpp"
 #include "ServerConfig.hpp"
+#include "core/ScopedPtr.tpp"
+#include "sstream"
 
 #define MAX_EVENTS 10
 #define BUFFER_SIZE 4096
@@ -66,9 +68,16 @@ private:
     void removeFromEpoll(int fd);
     void modifyEpoll(int fd, uint32_t events);
     void flushWriteBuffer(int client_fd);
+    bool parseContentLength(const std::string& headers, size_t& outLength);
 
 
-
+    enum BufferLimits {
+        
+        READ_BUFFER_SIZE = 8192,      // 8KB read buffer
+        MAX_HEADER_SIZE = 8192,       // 8KB max for headers
+        MAX_BODY_SIZE = 1024 * 1024,  // 1MB max for body
+        MAX_TOTAL_REQUEST_SIZE = MAX_HEADER_SIZE + MAX_BODY_SIZE
+    };
 
     // Interdiction de copie
     ServerManager(const ServerManager&);
