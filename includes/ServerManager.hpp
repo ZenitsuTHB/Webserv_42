@@ -5,20 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/06/01 19:16:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/05 19:15:24 by avolcy           ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ServerManager.hpp                                  :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/03 14:00:00 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/06 18:49:18 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,8 +44,8 @@ private:
     bool                        _running;
     TimeMap                     _lastActivity;
     std::vector<Server*>        _servers;
-    std::map<int, Server*>      _client_to_server;
     std::map<int, Server*>      _fd_to_server;
+    std::map<int, Server*>      _client_to_server;
     std::map<int, std::string>  _buffers;
     std::map<int, std::string>  _writeBuffers;
     // Méthodes privées

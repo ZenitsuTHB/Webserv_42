@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/05 16:47:02 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/06 16:21:48 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,9 +25,6 @@ volatile sig_atomic_t g_shouldStop = 0;  // ✅ Initialization here only
 void signalHandler(int signum) {
 	(void)signum;
 	g_shouldStop = 1;
-	// if (serverManagerPtr)
-	// 	serverManagerPtr->stop();
-	// exit(signum);
 }
 
 int main(int ac, char **av)

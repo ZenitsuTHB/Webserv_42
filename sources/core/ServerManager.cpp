@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/05 19:19:10 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/06 16:19:27 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ ServerManager::ServerManager(const std::vector<ServerConfig>& configs) : _epoll_
 
     // Reserve space to prevent reallocations (minor optimization)
     _servers.reserve(configs.size());
-
     std::vector<ServerConfig>::const_iterator it;    
     try {
         for (it = configs.begin(); it != configs.end(); ++it) {
@@ -182,25 +181,30 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         if (headerEnd != std::string::npos) {
             size_t contentLength = 0;
             std::string headers = clientBuffer.substr(0, headerEnd);
-
-            if (!parseContentLength(headers, contentLength)) {
-                std::cerr << "[ServerManager] Malformed Content-Length header from client: "
-                          << client_fd << std::endl;
-                handleClientDisconnect(client_fd);
-                return;
+    
+            bool hasContentLength = (headers.find("Content-Length:") != std::string::npos);
+            
+            if (hasContentLength) {
+                if (!parseContentLength(headers, contentLength)) {
+                    std::cerr << "[ServerManager] Malformed Content-Length header from client: "
+                              << client_fd << std::endl;
+                    handleClientDisconnect(client_fd);
+                    return;
+                }
+            
+                if (contentLength > MAX_BODY_SIZE) {
+                    std::cerr << "[ServerManager] Content-Length too large from client: "
+                              << client_fd << std::endl;
+                    handleClientDisconnect(client_fd);
+                    return;
+                }
+            
+                size_t bodySize = clientBuffer.size() - (headerEnd + 4);
+                if (bodySize < contentLength) {
+                    continue;
+                }
             }
-
-            if (contentLength > MAX_BODY_SIZE) {
-                std::cerr << "[ServerManager] Content-Length too large from client: "
-                          << client_fd << std::endl;
-                handleClientDisconnect(client_fd);
-                return;
-            }
-
-            size_t bodySize = clientBuffer.size() - (headerEnd + 4);
-            if (bodySize < contentLength) {
-                continue;
-            }
+            
 
             std::string request = clientBuffer.substr(0, headerEnd + 4 + contentLength);
             std::string response = server->processRequest(request);
@@ -232,7 +236,6 @@ void ServerManager::flushWriteBuffer(int client_fd) {
         }
         return;
     }
-
     if ((size_t)sent < response.size()) {
         _writeBuffers[client_fd] = response.substr(sent);
     } else {
@@ -245,7 +248,6 @@ void ServerManager::flushWriteBuffer(int client_fd) {
         }
     }
 }
-
 
 void ServerManager::handleClientDisconnect(int client_fd) {
     removeFromEpoll(client_fd);
