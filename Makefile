@@ -16,7 +16,7 @@ SRC_CONFIG_D = sources/config/
 # Source files
 SRC_CORE_F = Server.cpp ServerManager.cpp
 SRC_HTTP_F = Http.cpp HttpRequest.cpp HttpResponse.cpp Libft.cpp
-SRC_UTILS_F = Client.cpp 
+SRC_UTILS_F = Client.cpp ParseReqUtils.cpp
 SRC_SOCKET_F = BaseSocket.cpp ConnectSocket.cpp ListenSocket.cpp
 SRC_CONFIG_F = BaseConfig.cpp ParserConfig.cpp RouteConfig.cpp ServerConfig.cpp 
 MAIN_F = main.cpp

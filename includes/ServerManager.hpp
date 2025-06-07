@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/06 18:49:18 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/07 02:25:54 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include "ServerConfig.hpp"
 #include "core/ScopedPtr.tpp"
 #include "sstream"
+#include "core/ParseReqUtils.hpp"
 
 #define MAX_EVENTS 10
 #define BUFFER_SIZE 4096

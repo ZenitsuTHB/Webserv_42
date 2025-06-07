@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/06 16:19:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/07 02:11:19 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,6 @@ void ServerManager::run() {
     }
 }
 
-
 void ServerManager::handleNewConnection(Server* server) {
     int client_fd = server->acceptConnection();
     if (client_fd == -1) return;
@@ -181,9 +180,8 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         if (headerEnd != std::string::npos) {
             size_t contentLength = 0;
             std::string headers = clientBuffer.substr(0, headerEnd);
-    
+
             bool hasContentLength = (headers.find("Content-Length:") != std::string::npos);
-            
             if (hasContentLength) {
                 if (!parseContentLength(headers, contentLength)) {
                     std::cerr << "[ServerManager] Malformed Content-Length header from client: "
@@ -191,27 +189,35 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
                     handleClientDisconnect(client_fd);
                     return;
                 }
-            
+
                 if (contentLength > MAX_BODY_SIZE) {
                     std::cerr << "[ServerManager] Content-Length too large from client: "
                               << client_fd << std::endl;
                     handleClientDisconnect(client_fd);
                     return;
                 }
-            
+
                 size_t bodySize = clientBuffer.size() - (headerEnd + 4);
                 if (bodySize < contentLength) {
                     continue;
                 }
             }
-            
 
             std::string request = clientBuffer.substr(0, headerEnd + 4 + contentLength);
-            std::string response = server->processRequest(request);
 
-            _writeBuffers[client_fd] = response;
-            modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
-            clientBuffer.erase(0, headerEnd + 4 + contentLength);
+            try {
+                
+                std::string cleaned = parsereq::prepareRequestForMax(request, client_fd);
+                std::string response = server->processRequest(cleaned);
+                
+                _writeBuffers[client_fd] = response;
+                modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
+                clientBuffer.erase(0, headerEnd + 4 + contentLength);
+            } catch (const std::exception& e) {
+                std::cerr << "[ERROR] Failed to prepare request for HttpRequest: " << e.what() << std::endl;
+                handleClientDisconnect(client_fd);
+            }
+
             break;
         }
     }
@@ -222,6 +228,7 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         handleClientDisconnect(client_fd);
     }
 }
+
 
 void ServerManager::flushWriteBuffer(int client_fd) {
     std::map<int, std::string>::iterator it = _writeBuffers.find(client_fd);
