@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 02:25:54 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/07 14:30:42 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,10 @@ public:
 
     void stop();
     void run();
-    size_t getServerCount() const;
-
+    
+    size_t getServerCount() const { 
+        return (_servers.size());
+    }
 
 private:
     int                         _epoll_fd;
@@ -49,6 +51,8 @@ private:
     std::map<int, Server*>      _client_to_server;
     std::map<int, std::string>  _buffers;
     std::map<int, std::string>  _writeBuffers;
+    std::map<int, bool> _pendingClose;
+
     // Méthodes privées
     void handleNewConnection(Server* server);
     void handleClientData(int client_fd, uint32_t events);

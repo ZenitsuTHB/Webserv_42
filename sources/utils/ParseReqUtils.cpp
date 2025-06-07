@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/07 01:12:04 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 02:31:35 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/07 14:33:13 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 
 namespace parsereq 
 {
+
+    // ===========| Request Validation |============ //
     bool hasValidRequestLine(const std::string& request) {
         size_t firstCRLF = request.find("\r\n");
         if (firstCRLF == std::string::npos) return false;
@@ -59,6 +61,8 @@ namespace parsereq
         return result;
     }
     
+    // ===========| Request Processing |============ //
+    
     std::string sanitizeRequest(const std::string& req) {
         std::string sanitized;
         for (size_t i = 0; i < req.size(); ++i) {
@@ -82,7 +86,7 @@ namespace parsereq
     }
     
     std::string prepareRequestForMax(const std::string& rawRequest, int client_fd) {
-        (void)client_fd; // Suppress unused parameter warning
+        (void)client_fd;
     
         if (isEmptyRequest(rawRequest)) {
             throw std::runtime_error("Empty request");
@@ -100,5 +104,5 @@ namespace parsereq
         }
     
         return sanitized;
-    }
+    }   
 }
