@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/03 15:11:44 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/11 15:53:14 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,18 +27,23 @@ class	HttpResponse
 
 		std::string	generate( void ) const;
 
+		static std::string	_fileType( std::string const &file );
+		static std::string	createError( int code, ServerConfig const &conf );
+
 	private:
 		void	getResource( HttpRequest const &request );
 		void	postResource( HttpRequest const &request );
 		void	deleteResource( HttpRequest const &request );
 
-		static std::string	_fileType( std::string const &file );
 //		static bool			_validFile( std::string const &file );
 		static std::string	_indexFolder( std::string const &folder );
 
 		void		searchGETendPoint( std::string &file );
 		void		searchPOSTendPoint( std::string &file );
 		void		searchDELETEendPoint( std::string &file );
+		//Esta puede cambiar
+		static void	getHeaderBody( int code, std::string &body,
+				Headers &header, ServerConfig const &config);
 //		std::string	_searchEndpoint( std::string const &path );
 
 		std::string			_version;
