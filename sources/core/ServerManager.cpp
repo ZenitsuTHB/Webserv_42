@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 14:55:54 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 15:40:19 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <map>
-#include "../../includes/ServerManager.hpp"
+#include "../../includes/core/ServerManager.hpp"
 #include "../../includes/HttpRequest.hpp"
 #include "../../includes/HttpResponse.hpp"
 
@@ -28,7 +28,7 @@ ServerManager::ServerManager(const std::vector<ServerConfig>& configs) : _epoll_
 
     // Reserve space to prevent reallocations (minor optimization)
     _servers.reserve(configs.size());
-    std::vector<ServerConfig>::const_iterator it;    
+    std::vector<ServerConfig>::const_iterator it;
     try {
         for (it = configs.begin(); it != configs.end(); ++it) {
             SmartPtr<Server> server(new Server(it->getIp(), it->getPort(), it->getBacklog(), _epoll_fd, *it));
@@ -147,117 +147,120 @@ bool ServerManager::parseContentLength(const std::string& headers, size_t& outLe
 	return true;
 }
 
-// void ServerManager::handleClientData(int client_fd, uint32_t events) {
-//     (void)events;
-//     Server* server = _client_to_server[client_fd];
-
-//     std::string& clientBuffer = _buffers[client_fd];
-
-//     if (clientBuffer.size() > MAX_TOTAL_REQUEST_SIZE) {
-//         std::cerr << "[ServerManager] Request too large from client: " << client_fd << std::endl;
-//         handleClientDisconnect(client_fd);
-//         return;
-//     }
-
-//     char buffer[READ_BUFFER_SIZE];
-//     ssize_t bytes_read;
-
-//     while ((bytes_read = read(client_fd, buffer, sizeof(buffer)))) {
-//         if (bytes_read <= 0) break;
-
-//         if (clientBuffer.size() + bytes_read > MAX_TOTAL_REQUEST_SIZE) {
-//             std::cerr << "[ServerManager] Request size limit exceeded from client: "
-//                       << client_fd << std::endl;
-//             handleClientDisconnect(client_fd);
-//             return;
-//         }
-
-//         clientBuffer.append(buffer, bytes_read);
-
-//         size_t headerEnd = clientBuffer.find("\r\n\r\n");
-//         if (headerEnd == std::string::npos)
-//             continue;
-
-//         std::string headers = clientBuffer.substr(0, headerEnd);
-//         size_t contentLength = 0;
-//         bool hasContentLength = headers.find("Content-Length:") != std::string::npos;
-
-//         if (hasContentLength) {
-//             if (!parseContentLength(headers, contentLength)) {
-//                 std::cerr << "[ServerManager] Malformed Content-Length header from client: "
-//                           << client_fd << std::endl;
-//                 handleClientDisconnect(client_fd);
-//                 return;
-//             }
-
-//             if (contentLength > MAX_BODY_SIZE) {
-//                 std::cerr << "[ServerManager] Content-Length too large from client: "
-//                           << client_fd << std::endl;
-//                 handleClientDisconnect(client_fd);
-//                 return;
-//             }
-
-//             size_t bodySize = clientBuffer.size() - (headerEnd + 4);
-//             if (bodySize < contentLength)
-//                 continue;
-//         }
-
-//         try {
-//             std::string rawRequest = clientBuffer.substr(0, headerEnd + 4 + contentLength);
-            
-//             //Prepare cleaned HTTP string
-//             std::string cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
-            
-//             // Parse the cleaned request to an HttpRequest object
-//             HttpRequest parsedRequest(cleaned);
-            
-//             // Create response based on config
-//             HttpResponse response(parsedRequest, server->getConfig());
-            
-//             // Generate response
-//             std::string fullResponse = response.generate();
-//             _writeBuffers[client_fd] = fullResponse;
-//             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
-//             clientBuffer.erase(0, headerEnd + 4 + contentLength);
-
-//             if (parsereq::shouldCloseConnection(cleaned)) {
-//                 _pendingClose[client_fd] = true;
-//             }
-//         } catch (const std::exception& e) {
-//             std::cerr << "[ERROR] Failed to prepare request for HttpRequest: " << e.what() << std::endl;
-//             handleClientDisconnect(client_fd);
-//         }
-
-//         break;
-//     }
-
-//     if (clientBuffer.size() > MAX_HEADER_SIZE &&
-//         clientBuffer.find("\r\n\r\n") == std::string::npos) {
-//         std::cerr << "[ServerManager] Header too large from client: " << client_fd << std::endl;
-//         handleClientDisconnect(client_fd);
-//     }
-// }
-
 void ServerManager::handleClientData(int client_fd, uint32_t events) {
     (void)events;
     Server* server = _client_to_server[client_fd];
+
     std::string& clientBuffer = _buffers[client_fd];
 
-    if (!parsereq::readClientData(client_fd, clientBuffer)) {
-        return;  // Error already handled
+    if (clientBuffer.size() > MAX_TOTAL_REQUEST_SIZE) {
+        std::cerr << "[ServerManager] Request too large from client: " << client_fd << std::endl;
+        handleClientDisconnect(client_fd);
+        return;
     }
 
-    RequestData requestData;
-    if (!parseRequestHeaders(client_fd, clientBuffer, requestData)) {
-        return;  // Error already handled
+    char buffer[READ_BUFFER_SIZE];
+    ssize_t bytes_read;
+
+    while ((bytes_read = read(client_fd, buffer, sizeof(buffer)))) {
+        if (bytes_read <= 0) break;
+
+        if (clientBuffer.size() + bytes_read > MAX_TOTAL_REQUEST_SIZE) {
+            std::cerr << "[ServerManager] Request size limit exceeded from client: "
+                      << client_fd << std::endl;
+            handleClientDisconnect(client_fd);
+            return;
+        }
+
+        clientBuffer.append(buffer, bytes_read);
+
+        size_t headerEnd = clientBuffer.find("\r\n\r\n");
+        if (headerEnd == std::string::npos)
+            continue;
+
+        std::string headers = clientBuffer.substr(0, headerEnd);
+        size_t contentLength = 0;
+        bool hasContentLength = headers.find("Content-Length:") != std::string::npos;
+
+        if (hasContentLength) {
+            if (!parseContentLength(headers, contentLength)) {
+                std::cerr << "[ServerManager] Malformed Content-Length header from client: "
+                          << client_fd << std::endl;
+                handleClientDisconnect(client_fd);
+                return;
+            }
+
+            if (contentLength > MAX_BODY_SIZE) {
+                std::cerr << "[ServerManager] Content-Length too large from client: "
+                          << client_fd << std::endl;
+                handleClientDisconnect(client_fd);
+                return;
+            }
+
+            size_t bodySize = clientBuffer.size() - (headerEnd + 4);
+            if (bodySize < contentLength)
+                continue;
+        }
+        try {
+            std::string rawRequest = clientBuffer.substr(0, headerEnd + 4 + contentLength);
+            
+            std::cout << "ESTO ES EL REQUEST : \n" << rawRequest << "\n";
+            //Prepare cleaned HTTP string
+            std::string cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
+            
+            // Parse the cleaned request to an HttpRequest object
+            HttpRequest parsedRequest(cleaned);
+            
+            // Create response based on config
+            HttpResponse response(parsedRequest, server->getConfig());
+            
+            // Generate response
+            std::string fullResponse = response.generate();
+            std::cout << "response " << fullResponse << std::endl;
+            _writeBuffers[client_fd] = fullResponse;
+            modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
+            clientBuffer.erase(0, headerEnd + 4 + contentLength);
+
+            if (parsereq::shouldCloseConnection(cleaned)) {
+                _pendingClose[client_fd] = true;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "[ERROR] Failed to prepare request for HttpRequest: " << e.what() << std::endl;
+            handleClientDisconnect(client_fd);
+        }
+
+        break;
     }
 
-    if (!validateRequest(client_fd, requestData)) {
-        return;  // Error already handled
+    if (clientBuffer.size() > MAX_HEADER_SIZE &&
+        clientBuffer.find("\r\n\r\n") == std::string::npos) {
+        std::cerr << "[ServerManager] Header too large from client: " << client_fd << std::endl;
+        handleClientDisconnect(client_fd);
     }
-
-    processValidRequest(client_fd, server, clientBuffer, requestData);
 }
+/*
+std::string    responseMessage(std::string const &request, ServerConfig const &server)
+{
+    std::string response;
+
+    try
+    {
+        HttpRequest requestObj(request);
+        HttpResponse responseObj(requestObj, server);
+
+        response = responseObj.generate();
+    }
+    catch (const HttpException & ex)
+    {
+        response = createError(ex.wathCode(), server);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        response = createError(500, server);
+    }
+    return (response);
+}*/
 
 void ServerManager::flushWriteBuffer(int client_fd) {
     std::map<int, std::string>::iterator it = _writeBuffers.find(client_fd);

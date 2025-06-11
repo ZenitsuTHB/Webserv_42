@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/07 00:48:54 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 14:21:23 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/08 14:54:49 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,11 @@
 #include <map>
 #include <iostream>
 
-struct RequestData {
-    size_t headerEnd = 0;
-    size_t contentLength = 0;
-    std::string headers;
-};
+// struct RequestData {
+//     size_t headerEnd = 0;
+//     size_t contentLength = 0;
+//     std::string headers;
+// };
 
 namespace parsereq {
 

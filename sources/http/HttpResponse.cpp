@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  HttpResponse.cpp                                     :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/05 16:31:02 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   HttpResponse.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/05/07 17:02:47 by velazqu           #+#    #+#             */
+/*   Updated: 2025/06/11 15:34:31 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,11 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 	/*	*
 	 *	Check file permissions
 	 */
+	std::cout << "stat function argument : " << file << std::endl;
+//	if (file.length() >= 2){
+//		if (file.find('/'), file.length() - 2)
+//			file.erase(file.length() - 1);
+//	}
 	if (stat(file.c_str(), &sb) == -1)
 	{
 		/*	*

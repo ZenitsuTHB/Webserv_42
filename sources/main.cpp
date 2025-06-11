@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/06 16:21:48 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 15:05:03 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,8 @@
 #include <csignal>
 #include <cstdlib>
 #include <unistd.h>
-#include "../includes/Server.hpp"
-#include "../includes/ServerManager.hpp"
+#include "../includes/core/Server.hpp"
+#include "../includes/core/ServerManager.hpp"
 #include "../includes/ParserConfig.hpp"
 
 ServerManager* serverManagerPtr = NULL;

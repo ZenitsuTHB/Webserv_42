@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:19 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/07 11:58:49 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 15:30:47 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,11 +20,12 @@
 # include <fcntl.h>
 # include <sys/types.h>
 # include <vector>
-# include "ListenSocket.hpp"
+# include "../ListenSocket.hpp"
 # include <sys/epoll.h>
 # include <map>
 # include <cstddef>
 # include <cstdlib>
+#include "../ServerConfig.hpp"
 
 
 static const size_t BUFF_SIZE = 42;
@@ -47,14 +48,17 @@ class Server {
     
     private:
 
-        ServerConfig    _configs;
+        //Server(const Server& obj);TODO
+        //Server& operator =(const Server& obj);TODO
+
+        ServerConfig                _configs;
         bool                        _responseReady;
         std::string                 _cachedResponse;
         std::map<int, std::string>  _recvBuffers;
-        int _clientfd;
-        ListenSocket _socket;
-        std::vector<char> _buffer;
-        std::map<int, BaseSocket> _clientsMap;
+        int                         _clientfd;
+        ListenSocket                _socket;
+        std::vector<char>           _buffer;
+        std::map<int, BaseSocket>   _clientsMap;
     };
 
 #endif

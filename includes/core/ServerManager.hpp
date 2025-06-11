@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 14:30:42 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 15:05:54 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@
 #include <sys/epoll.h>
 #include <csignal>
 #include "Server.hpp"
-#include "ServerConfig.hpp"
-#include "core/ScopedPtr.tpp"
+#include "../ServerConfig.hpp"
+#include "../core/ScopedPtr.tpp"
 #include "sstream"
-#include "core/ParseReqUtils.hpp"
+#include "../core/ParseReqUtils.hpp"
 
 #define MAX_EVENTS 10
 #define BUFFER_SIZE 4096

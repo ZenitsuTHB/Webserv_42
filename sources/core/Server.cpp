@@ -6,11 +6,11 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 18:06:07 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/07 11:58:31 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 15:04:21 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/Server.hpp"
+#include "../../includes/core/Server.hpp"
 #include "../../includes/ServerConfig.hpp"
 #include <fstream>
 #include <sstream>
@@ -18,7 +18,7 @@
 #include <stdexcept>
 
 Server::Server(in_addr_t ip, in_port_t port, int backlog, int epoll_fd, const ServerConfig& configs)
-    : _socket(AF_INET, SOCK_STREAM, 0), _buffer(BUFF_SIZE), _configs(configs)
+    : _configs(configs),  _socket(AF_INET, SOCK_STREAM, 0), _buffer(BUFF_SIZE)
 {
     (void)epoll_fd;
     int fd = _socket.getSockFd();
