@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/05 16:31:02 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/11 15:55:52 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -381,19 +381,72 @@ HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
 	}
 	return (*this);
 }
-/*
+
+#include <stdexcept>
+void	HttpResponse::getHeaderBody(
+		int code,
+		std::string &body,
+		Headers &header,
+		ServerConfig const &config
+		)
+{
+	std::string	page;
+	page = const_cast<ServerConfig *>(&config)->getErrorPage(code);
+	std::cerr << "Im reading this: " << page << std::endl;
+	try
+	{
+		struct stat	sb;
+		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
+			throw (std::invalid_argument("Page not found"));
+		body = Libft::readFile(page);
+	}
+	catch (std::exception const &ex)
+	{
+		body.clear();
+		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
+	}
+	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+	header.insert(PairStr("Content-length",
+				Libft::itos(static_cast<int>(body.length()))));
+}
+
+std::string	HttpResponse::createError(int code, ServerConfig const &conf)
+{
+	std::string	response;
+	std::string	body;
+	Headers		header;
+
+	/*	*
+	 *	Status Line
+	 */
+	response.append("HTTP/1.1 ").append(Libft::itos(code)).append(1, ' ');
+	response.append(Http::getError(code)).append(CRLF);
+	/*	*
+	 *	Headers
+	 */
+	getHeaderBody(code, body, header, conf);
+	for (Headers::iterator it = header.begin(); it != header.end(); ++it)
+		response.append(it->first).append(": ").append(it->second).append(CRLF);
+	response.append(Libft::itos(static_cast<int>(body.length()))).append(CRLF);
+	response.append(CRLF);
+	/*	*
+	 *	Body
+	 */
+	response.append(body);
+	return (response);
+}
 
 #include <iostream>
 #include <cstdlib>
-#include "../includes/ServerConfig.hpp"
-#include "../includes/ParserConfig.hpp"
+#include "../../includes/ServerConfig.hpp"
+#include "../../includes/ParserConfig.hpp"
 
-int	main(int argc, char **av)
+/*int	main(int argc, char **av)
 {
 	if (argc != 2)
 		return (1);
 	std::string	str =
-		"POST /TEST/this HTTP/3\r\n"
+		"GET /TEST/this HTTP/3\r\n"
 		"Host: http.cat\r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;\r\n"
 		"Accept-Language: en-US,en;q=0.5\r\n"
@@ -401,9 +454,11 @@ int	main(int argc, char **av)
 		"Connection: keep-alive\r\n"
 		"\t\v\r\f Priority\t\v\r\f :\t\v\r\f u=0, i\t\v\r\f \r\n\r\n"
 		"12345678901234567890123456789012345678901234567890";
+
+		std::string	resString;
+		ParserConfig					parser(av[1]);
 	try
 	{
-		ParserConfig					parser(av[1]);
 		ServerConfig const	server = parser.getServers().front();
 		//std::vector<ServerConfig> const	&server = parser.getServers();
 
@@ -412,13 +467,13 @@ int	main(int argc, char **av)
 		request.print();
 		HttpResponse	response(request, server);
 
-		std::cout << std::endl << "######Response:"
-			<< std::endl << response.generate();
+		resString = response.generate();
 	}
 	catch (HttpException const &ex)
 	{
 		std::cerr << "Http error uccored: " << ex.what() << " with code: "
 			<< ex.whatCode() << std::endl;
+		resString = HttpResponse::createError(ex.whatCode(), parser.getServers().front());
 	}
 	catch (std::exception const &ex)
 	{
@@ -428,6 +483,8 @@ int	main(int argc, char **av)
 	{
 		std::cerr << "Unkown throw ocurred" << std::endl;
 	}
+	std::cout << std::endl << "######Response:"
+		<< std::endl << resString;
 }
 //		"User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:135.0)     \r\n"
 //		"Cookie: _ga=GA1.2.549077782.1743611458; \r\n"
