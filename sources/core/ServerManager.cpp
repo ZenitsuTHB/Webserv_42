@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/11 15:40:19 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/11 17:17:50 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ void ServerManager::run() {
             }
         }
 
-        int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, 1000);
+        int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, 10);
         if (nfds == -1) {
             if (errno == EINTR) continue;
             throw std::runtime_error(std::string("epoll_wait: ") + strerror(errno));
@@ -147,6 +147,31 @@ bool ServerManager::parseContentLength(const std::string& headers, size_t& outLe
 	return true;
 }
 
+#include "../../includes/exceptions.hpp"
+
+std::string    responseMessage(std::string const &request, ServerConfig const &server)
+{
+    std::string response;
+
+    try
+    {
+        HttpRequest requestObj(request);
+        HttpResponse responseObj(requestObj, server);
+
+        response = responseObj.generate();
+    }
+    catch (const HttpException & ex)
+    {
+        response = HttpResponse::createError(ex.whatCode(), server);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        response = HttpResponse::createError(500, server);
+    }
+    return (response);
+}
+    
 void ServerManager::handleClientData(int client_fd, uint32_t events) {
     (void)events;
     Server* server = _client_to_server[client_fd];
@@ -209,13 +234,14 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
             std::string cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
             
             // Parse the cleaned request to an HttpRequest object
-            HttpRequest parsedRequest(cleaned);
+            //HttpRequest parsedRequest(cleaned);
             
             // Create response based on config
-            HttpResponse response(parsedRequest, server->getConfig());
+            //HttpResponse response(parsedRequest, server->getConfig());
             
             // Generate response
-            std::string fullResponse = response.generate();
+            std::string fullResponse;// = response.generate();
+            fullResponse = responseMessage(cleaned, server->getConfig());
             std::cout << "response " << fullResponse << std::endl;
             _writeBuffers[client_fd] = fullResponse;
             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
@@ -238,29 +264,6 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         handleClientDisconnect(client_fd);
     }
 }
-/*
-std::string    responseMessage(std::string const &request, ServerConfig const &server)
-{
-    std::string response;
-
-    try
-    {
-        HttpRequest requestObj(request);
-        HttpResponse responseObj(requestObj, server);
-
-        response = responseObj.generate();
-    }
-    catch (const HttpException & ex)
-    {
-        response = createError(ex.wathCode(), server);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-        response = createError(500, server);
-    }
-    return (response);
-}*/
 
 void ServerManager::flushWriteBuffer(int client_fd) {
     std::map<int, std::string>::iterator it = _writeBuffers.find(client_fd);
