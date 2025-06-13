@@ -24,8 +24,17 @@
 Auxiliar Functions
 =======================
 */
-static BaseConfig const	*assignRoute(ServerConfig const &conf)
+static BaseConfig const	*assignRoute(ServerConfig const &conf,
+		std::string const &path)
 {
+	try 
+	{
+		return (&conf.getRoute(path));
+	}
+	catch (...)
+	{
+		std::cerr << "This is Adri's fault" << std::endl;
+	}
 	return (&conf);
 }
 
@@ -42,7 +51,8 @@ std::string	getPath(BaseConfig const *conf)
 	return (path);
 }
 
-static bool	isAutoindex(BaseConfig const *conf)
+//BORRAR?
+bool	isAutoindex(BaseConfig const *conf)
 {
 	if (RouteConfig const *ptr = dynamic_cast<RouteConfig const *>(conf))
 		return (ptr->isAutoindex());
@@ -62,7 +72,7 @@ HttpResponse::~HttpResponse(void)
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	_version("HTTP/1.1"), _index(false)
 {
-	_route = assignRoute(conf);
+	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
 	{
 		case GET:
@@ -162,7 +172,8 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 		/*	*
 		 *	or create index
 		 */
-		if (isAutoindex(_route))
+		if (_route->isAutoindex())
+		//if (isAutoindex(_route))
 		{
 			std::cout << "File: " << file << std::endl;
 			_index = true;
