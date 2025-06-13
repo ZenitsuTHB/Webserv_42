@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/11 15:05:54 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/13 16:10:24 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@
 extern volatile sig_atomic_t g_shouldStop;
 
 typedef std::map<int, time_t> TimeMap;
+typedef std::map<int, Server*> ServerMap;
+typedef std::map<int, std::string> BuffersMap;
 
 class ServerManager {
 public:
@@ -47,13 +49,13 @@ private:
     bool                        _running;
     TimeMap                     _lastActivity;
     std::vector<Server*>        _servers;
-    std::map<int, Server*>      _fd_to_server;
-    std::map<int, Server*>      _client_to_server;
-    std::map<int, std::string>  _buffers;
-    std::map<int, std::string>  _writeBuffers;
-    std::map<int, bool> _pendingClose;
+    BuffersMap                  _buffers;
+    BuffersMap                  _writeBuffers;
+    ServerMap                   _fd_to_server;
+    ServerMap                   _client_to_server;
+    std::map<int, bool>         _pendingClose;
 
-    // Méthodes privées
+    // Private methode
     void handleNewConnection(Server* server);
     void handleClientData(int client_fd, uint32_t events);
     void handleClientDisconnect(int client_fd);
@@ -72,7 +74,7 @@ private:
         MAX_TOTAL_REQUEST_SIZE = MAX_HEADER_SIZE + MAX_BODY_SIZE
     };
 
-    // Interdiction de copie
+    // Avoiding copy
     ServerManager(const ServerManager&);
     ServerManager& operator=(const ServerManager&);
 };
