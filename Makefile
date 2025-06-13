@@ -64,9 +64,11 @@ server.exe: server_socket.c
 client.exe: client_socket.c
 	cc client_socket.c -o client.exe
 
-$(NAME): $(OBJ_D) $(DEP_D) $(OBJ)
-	@echo "\n$(RED)Compiling program:$(DF)"
-	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS) $(BIGREEN)$(OBJ_F) $(BCYAN)-o $(RED)$(NAME)$(DF)"
+$(NAME): $(OBJ_D) $(DEP_D) $(OBJ) Makefile
+	@clear
+	@echo "$(RED)Compiling program:$(DF)"
+	@echo "$(BCYAN)$(CC) $(BBLUE)$(CFLAGS)\n\
+	$(BIGREEN) $(OBJ_F) $(BCYAN)-o $(RED)$(NAME)$(DF)"
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
 
 # Pattern rule for compiling .cpp files
@@ -79,7 +81,6 @@ $(OBJ_D)%.o: sources/%.cpp
 
 # Specific pattern rules for each subdirectory
 # ... (el resto del Makefile permanece igual)
-
 # Specific pattern rules for each subdirectory
 $(OBJ_D)%.o: $(SRC_CORE_D)%.cpp
 	@mkdir -p $(@D)

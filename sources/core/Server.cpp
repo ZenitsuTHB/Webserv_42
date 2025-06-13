@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/02 18:06:07 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/11 15:04:21 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/13 15:04:44 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,6 @@ int Server::acceptConnection() {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags != -1)
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
     return fd;
 }
 

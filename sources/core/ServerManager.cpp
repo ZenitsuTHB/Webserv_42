@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/11 17:17:50 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/13 15:31:02 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "../../includes/core/ServerManager.hpp"
 #include "../../includes/HttpRequest.hpp"
 #include "../../includes/HttpResponse.hpp"
+#include "../../includes/exceptions.hpp" 
 
 ServerManager::ServerManager(const std::vector<ServerConfig>& configs) : _epoll_fd(-1), _running(false) {
     _epoll_fd = epoll_create1(0);
@@ -79,7 +80,7 @@ void ServerManager::run() {
         
         time_t now = time(NULL);
         for (TimeMap::iterator it = _lastActivity.begin(); it != _lastActivity.end(); ) {
-            if (now - it->second > 30) { // 30 seconds timeout
+            if (now - it->second > 42) {
                 std::cout << "[TIMEOUT] Closing idle client: " << it->first << std::endl;
                 handleClientDisconnect(it->first);
                 _lastActivity.erase(it++);
@@ -88,7 +89,7 @@ void ServerManager::run() {
             }
         }
 
-        int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, 10);
+        int nfds = epoll_wait(_epoll_fd, events, MAX_EVENTS, 100);
         if (nfds == -1) {
             if (errno == EINTR) continue;
             throw std::runtime_error(std::string("epoll_wait: ") + strerror(errno));
@@ -146,8 +147,6 @@ bool ServerManager::parseContentLength(const std::string& headers, size_t& outLe
     outLength = static_cast<size_t>(len);  //avoid portability issues on 32-bit sys  
 	return true;
 }
-
-#include "../../includes/exceptions.hpp"
 
 std::string    responseMessage(std::string const &request, ServerConfig const &server)
 {
@@ -229,24 +228,13 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
         try {
             std::string rawRequest = clientBuffer.substr(0, headerEnd + 4 + contentLength);
             
-            std::cout << "ESTO ES EL REQUEST : \n" << rawRequest << "\n";
             //Prepare cleaned HTTP string
             std::string cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
-            
-            // Parse the cleaned request to an HttpRequest object
-            //HttpRequest parsedRequest(cleaned);
-            
-            // Create response based on config
-            //HttpResponse response(parsedRequest, server->getConfig());
-            
-            // Generate response
-            std::string fullResponse;// = response.generate();
-            fullResponse = responseMessage(cleaned, server->getConfig());
-            std::cout << "response " << fullResponse << std::endl;
+            std::string fullResponse = responseMessage(cleaned, server->getConfig());
             _writeBuffers[client_fd] = fullResponse;
             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
             clientBuffer.erase(0, headerEnd + 4 + contentLength);
-
+            //flushWriteBuffer(client_fd);
             if (parsereq::shouldCloseConnection(cleaned)) {
                 _pendingClose[client_fd] = true;
             }
@@ -270,7 +258,7 @@ void ServerManager::flushWriteBuffer(int client_fd) {
     if (it == _writeBuffers.end()) return;
 
     const std::string& response = it->second;
-    ssize_t sent = send(client_fd, response.c_str(), response.size(), 0);
+    ssize_t sent = send(client_fd, response.c_str(), response.size(), MSG_NOSIGNAL);
 
     if (sent == -1) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -286,7 +274,11 @@ void ServerManager::flushWriteBuffer(int client_fd) {
     }
 
     // Full response sent
+    //shutdown(client_fd, SHUT_WR) this signal EOF, tells the kernel to flush any buffered 
+    //output and sends a FIN packet to the client, indicating that the server is done writing.
+    
     _writeBuffers.erase(client_fd);
+    shutdown(client_fd, SHUT_WR);//tells the kernel to flush any buffered output and sends a FIN packet to the client, indicating that the server is done writing.
     _buffers.erase(client_fd);  // 🧼 Clean up input buffer too
 
     if (_pendingClose.count(client_fd)) {
