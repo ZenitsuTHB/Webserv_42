@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/11 15:53:14 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/15 19:54:44 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,10 @@ class	HttpResponse
 
 		static std::string	_fileType( std::string const &file );
 		static std::string	createError( int code, ServerConfig const &conf );
+		static std::string	executeCGI( std::string const &command );
+		static bool			isCGI( std::string const &command );
+		static bool			isCgiAllowed( std::string const &command,
+				ServerConfig const &server );
 
 	private:
 		void	getResource( HttpRequest const &request );

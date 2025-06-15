@@ -15,6 +15,8 @@
 #include <cstdlib>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 #include "../../includes/HttpResponse.hpp"
 #include "../../includes/exceptions.hpp"
 #include "../../includes/Libft.hpp"
@@ -449,6 +451,94 @@ std::string	HttpResponse::createError(int code, ServerConfig const &conf)
 	 */
 	response.append(body);
 	return (response);
+}
+
+bool	HttpResponse::isCgiAllowed(std::string const &command,
+		ServerConfig const &server)
+{
+	RouteConfig	*route;
+
+	route = server.getLocation(command);
+
+	if (!route->isCgiAllowed())
+		return false;
+	
+	VectorStr const ext = route->getCgiExtensions();
+
+	for (size_t i = 0; i < ext.size(); i++)
+	{
+		int	len = command.length() - ext[i].length();
+		if (len >= 0 && ext[i] == command.substr(len))
+			return (true);
+	}
+	return false;
+}
+
+std::string HttpResponse::executeCGI(std::string const &command)
+{
+	int	pipefd[2];
+	std::string	cgiOut;
+
+	if (pipe(pipefd) == -1)
+	{
+		std::cerr << "Pipe error: " << strerror(errno) << std::endl;
+		throw (HttpException("CGI pipe error", 500));
+	}
+
+	pid_t	pid = fork();
+	if (pid < 0)
+	{
+		std::cerr << "Fork failed: " << strerror(errno) << std::endl;
+		close(pipefd[0]);
+		close(pipefd[1]);
+		throw (HttpException("CGI fork error", 500));
+	}
+
+	if (pid == 0)
+	{
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[0]);
+		close(pipefd[1]);
+
+		char	*argv[] = { const_cast<char*>(command.c_str()), NULL };
+		char	*envp[] = {
+			const_cast<char*>("REQUEST_METHOD=GET"),
+			const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
+			const_cast<char*>("SCRIPT_FILENAME="),
+			NULL
+		};
+
+		execve(command.c_str(), argv, envp);
+		std::cerr << "Execve failed: " << strerror(errno) << std::endl;
+		exit(127);
+	}
+	close(pipefd[1]);
+
+	char		buffer[1024];
+	ssize_t		count;
+
+	while ((count = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+		cgiOut.append(buffer, count);
+
+	close(pipefd[0]);
+	int	ret = 0;
+	waitpid(pid, &ret, 0);
+	if (ret)
+		throw (HttpException("CGI failed to execute", 500));
+	return (cgiOut);
+}
+
+bool	HttpResponse::isCGI(std::string const &command)
+{
+	if (command.find(".cgi") != std::string::npos
+		|| command.find(".php") != std::string::npos
+		|| command.find(".py") != std::string::npos
+		|| command.find(".pl") != std::string::npos
+		|| command.find(".sh") != std::string::npos
+		|| command.find(".exe") != std::string::npos
+		|| command.find("/cgi-bin/") != std::string::npos)
+		return (true);
+	return (false);
 }
 
 #include <iostream>
