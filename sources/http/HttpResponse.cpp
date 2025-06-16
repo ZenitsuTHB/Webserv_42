@@ -72,7 +72,7 @@ HttpResponse::~HttpResponse(void)
 }
 
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
-	_version("HTTP/1.1"), _index(false)
+	_version("HTTP/1.1"), _index(false), _serverConf(conf);
 {
 	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
@@ -91,10 +91,11 @@ HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	}
 }
 
+/*
 HttpResponse::HttpResponse(HttpResponse const &obj)
 {
 	*this = obj;
-}
+}*/
 
 /*
 =======================
@@ -103,6 +104,7 @@ Member methods
 */
 void	HttpResponse::searchGETendPoint(std::string &file)
 {
+	hola
 	struct stat	sb;
 
 	/*	*
@@ -113,10 +115,6 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 	 *	Check file permissions
 	 */
 	std::cout << "stat function argument : " << file << std::endl;
-//	if (file.length() >= 2){
-//		if (file.find('/'), file.length() - 2)
-//			file.erase(file.length() - 1);
-//	}
 	if (stat(file.c_str(), &sb) == -1)
 	{
 		/*	*
@@ -189,9 +187,54 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 	throw (HttpException("GET nothing File not faun", 404));
 }
 
+int	HttpResponse::checkFile(std::string const &file)
+{
+	hola
+	struct stat	sb;
+	int			ret;
+
+	stat.st_mode = 0;
+	if (stat(file.c_str(), &sb) == -1)
+	{
+		switch (errno)
+		{
+			case ENOTDIR:
+				return (ENOTDIR);
+			case ENOENT:
+				return (ENOENT):
+			case EACCES:
+				return (EACCES):
+			case ENAMETOOLONG:
+				return (ENAMETOOLONG):
+			case ELOOP:
+				return (ELOOP):
+			default:
+				return (0);
+		}
+	}
+	ret = 0;
+	if (S_ISREG(sb.st_mode))
+		return (sb.st_mode);
+	else if (S_ISDIR(sb.st_mode))
+		return (sb.st_mode);
+	return (0);
+}
+
+void	HttpResponse::getCgi(HttpResponse const &request)
+{
+	int	fileStat;
+
+	if (!isCgiAllowed(request.getPath(), _serverConf))
+		throw (HttpException("getCGI not allowed here", 403));
+	fileStat = checkFile(
+}
+
 void	HttpResponse::getResource(HttpRequest const &request)
 {
 	std::string		fileName = request.getPath();
+
+	if (isCgi(fileName))
+		return (getCgi(request));
 	/*	*
 	 *	Search the Endpoint
 	 */
@@ -474,7 +517,7 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	return false;
 }
 
-std::string HttpResponse::executeCGI(std::string const &command)
+std::string HttpResponse::executeCgi(std::string const &command)
 {
 	int	pipefd[2];
 	std::string	cgiOut;
@@ -528,7 +571,7 @@ std::string HttpResponse::executeCGI(std::string const &command)
 	return (cgiOut);
 }
 
-bool	HttpResponse::isCGI(std::string const &command)
+bool	HttpResponse::isCgi(std::string const &command)
 {
 	if (command.find(".cgi") != std::string::npos
 		|| command.find(".php") != std::string::npos

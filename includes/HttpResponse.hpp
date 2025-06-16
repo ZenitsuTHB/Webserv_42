@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/15 19:54:44 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/16 21:16:24 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ class	HttpResponse
 	public:
 		~HttpResponse( void );
 		HttpResponse( HttpRequest const &req, ServerConfig const &conf );
-		HttpResponse( HttpResponse const &obj );
+		//HttpResponse( HttpResponse const &obj );
 
 		HttpResponse	& operator = ( HttpResponse const &obj );
 
@@ -29,8 +29,9 @@ class	HttpResponse
 
 		static std::string	_fileType( std::string const &file );
 		static std::string	createError( int code, ServerConfig const &conf );
-		static std::string	executeCGI( std::string const &command );
-		static bool			isCGI( std::string const &command );
+
+		static std::string	executeCgi( std::string const &command );
+		static bool			isCgi( std::string const &command );
 		static bool			isCgiAllowed( std::string const &command,
 				ServerConfig const &server );
 
@@ -39,7 +40,10 @@ class	HttpResponse
 		void	postResource( HttpRequest const &request );
 		void	deleteResource( HttpRequest const &request );
 
+		void	getCgi( HttpResponse const &request );
+
 //		static bool			_validFile( std::string const &file );
+		static int			checkFile( std::string const &file );
 		static std::string	_indexFolder( std::string const &folder );
 
 		void		searchGETendPoint( std::string &file );
@@ -55,6 +59,7 @@ class	HttpResponse
 		Headers				_header;
 		std::string			_body;
 		BaseConfig const	*_route;
+		ServerConfig const	&_serverConf;
 		bool				_index;
 };
 
