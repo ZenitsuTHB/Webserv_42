@@ -30,7 +30,7 @@ class	HttpResponse
 		static std::string	_fileType( std::string const &file );
 		static std::string	createError( int code, ServerConfig const &conf );
 
-		static std::string	executeCgi( std::string const &command );
+		static std::string	executeCgi( std::string const &command, HttpRequest const &request);
 		static bool			isCgi( std::string const &command );
 		static bool			isCgiAllowed( std::string const &command,
 				ServerConfig const &server );

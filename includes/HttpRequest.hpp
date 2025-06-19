@@ -28,15 +28,18 @@ class	HttpRequest
 		Method				getMethod( void ) const { return (_method); };
 		std::string const	&getPath( void ) const { return (_path); };
 		std::string const	&getBody( void ) const { return (_body); };
+		std::string	const	&getQuery() const {return (_query);};
 		Headers const		&getHeaders( void ) const
 		{ return (_header);};
 
 		HttpRequest	& operator = ( HttpRequest const &obj );
 
+
 	private:
 		Method		_method;
 		std::string	_path;
 		std::string	_version;
+		std::string	_query;
 		Headers		_header;
 		std::string _body;
 };

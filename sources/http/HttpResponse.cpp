@@ -193,6 +193,7 @@ int	HttpResponse::checkFile(std::string const &file)
 
 	if (stat(file.c_str(), &sb) == -1)
 	{
+		return -1;
 		switch (errno)
 		{
 			case ENOTDIR:
@@ -246,7 +247,7 @@ void	HttpResponse::getCgi(HttpRequest const &request)
 		throw (HttpException("getCGI file not found", 404));
 	else if (!(fileStat & S_IXUSR))
 		throw (HttpException("getCGI file x deniedn", 404));
-	_body = executeCgi(fileName);
+	_body = executeCgi(fileName, request);
 	Headers::const_iterator it = request.getHeaders().find("Content-type");
 	if (it != request.getHeaders().end())
 		_header.insert(PairStr("Content-type", it->second));
@@ -549,7 +550,7 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	return false;
 }
 
-std::string HttpResponse::executeCgi(std::string const &command)
+std::string HttpResponse::executeCgi(std::string const &command, HttpRequest const &request)
 {
 	int	pipefd[2];
 	std::string	cgiOut;
@@ -576,10 +577,13 @@ std::string HttpResponse::executeCgi(std::string const &command)
 		close(pipefd[1]);
 
 		char	*argv[] = { const_cast<char*>(command.c_str()), NULL };
+		std::string	scritFile = "SCRIPT_FILENAME=" + command;
+		std::string	queryStr = "QUERY_STRING=" + request.getQuery();
 		char	*envp[] = {
 			const_cast<char*>("REQUEST_METHOD=GET"),
 			const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
-			const_cast<char*>("SCRIPT_FILENAME="),
+			const_cast<char*>(scritFile.c_str()),
+			const_cast<char*>(queryStr.c_str()),
 			NULL
 		};
 
