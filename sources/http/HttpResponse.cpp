@@ -31,7 +31,7 @@ static BaseConfig const	*assignRoute(ServerConfig const &conf,
 {
 	try 
 	{
-		return (&conf.getRoute(path));
+		return (conf.getLocation(path));
 	}
 	catch (...)
 	{
@@ -72,7 +72,7 @@ HttpResponse::~HttpResponse(void)
 }
 
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
-	_version("HTTP/1.1"), _index(false), _serverConf(conf);
+	_version("HTTP/1.1"), _serverConf(conf), _index(false)
 {
 	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
@@ -104,7 +104,6 @@ Member methods
 */
 void	HttpResponse::searchGETendPoint(std::string &file)
 {
-	hola
 	struct stat	sb;
 
 	/*	*
@@ -189,44 +188,74 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 
 int	HttpResponse::checkFile(std::string const &file)
 {
-	hola
 	struct stat	sb;
 	int			ret;
 
-	stat.st_mode = 0;
 	if (stat(file.c_str(), &sb) == -1)
 	{
 		switch (errno)
 		{
 			case ENOTDIR:
+				std::cout << "2" << std::endl;
 				return (ENOTDIR);
 			case ENOENT:
-				return (ENOENT):
+				std::cout << "3" << std::endl;
+				return (ENOENT);
 			case EACCES:
-				return (EACCES):
+				std::cout << "4" << std::endl;
+				return (EACCES);
 			case ENAMETOOLONG:
-				return (ENAMETOOLONG):
+				std::cout << "5" << std::endl;
+				return (ENAMETOOLONG);
 			case ELOOP:
-				return (ELOOP):
+				std::cout << "6" << std::endl;
+				return (ELOOP);
 			default:
+				std::cout << "7" << std::endl;
 				return (0);
 		}
 	}
 	ret = 0;
+	std::cout << "st_mode & S_IXUSR " << sb.st_mode << " & " << S_IXUSR
+		<< " = " << (sb.st_mode & S_IXUSR) << std::endl;
 	if (S_ISREG(sb.st_mode))
+	{
+				std::cout << "8" << std::endl;
 		return (sb.st_mode);
+	}
 	else if (S_ISDIR(sb.st_mode))
+	{
+				std::cout << "9" << std::endl;
 		return (sb.st_mode);
+	}
 	return (0);
 }
 
-void	HttpResponse::getCgi(HttpResponse const &request)
+void	HttpResponse::getCgi(HttpRequest const &request)
 {
-	int	fileStat;
+	std::string	fileName(request.getPath());
+	int			fileStat;
 
-	if (!isCgiAllowed(request.getPath(), _serverConf))
+	if (!isCgiAllowed(fileName, _serverConf))
 		throw (HttpException("getCGI not allowed here", 403));
-	fileStat = checkFile(
+	fileName.insert(0, _route->getRoot());
+	std::cout << "Looking for this file: " << fileName << std::endl;
+	fileStat = checkFile(fileName);
+	std::cout << "file stat: " << fileStat << std::endl;
+	if (!S_ISREG(fileStat))
+		throw (HttpException("getCGI file not found", 404));
+	else if (!(fileStat & S_IXUSR))
+		throw (HttpException("getCGI file x deniedn", 404));
+	_body = executeCgi(fileName);
+	Headers::const_iterator it = request.getHeaders().find("Content-type");
+	if (it != request.getHeaders().end())
+		_header.insert(PairStr("Content-type", it->second));
+	else
+		_header.insert(PairStr("Content-type", "text/plain"));
+	_header.insert(PairStr("Content-length",
+				Libft::itos(static_cast<int>(_body.length()))));
+	_code = 200;
+	//throw (HttpException("getCGI Not done yet", 500));
 }
 
 void	HttpResponse::getResource(HttpRequest const &request)
@@ -457,7 +486,7 @@ void	HttpResponse::getHeaderBody(
 	{
 		struct stat	sb;
 		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
-			throw (std::invalid_argument("Page not found"));
+			throw (std::invalid_argument("getHedBody Page not found"));
 		body = Libft::readFile(page);
 	}
 	catch (std::exception const &ex)
@@ -499,13 +528,16 @@ std::string	HttpResponse::createError(int code, ServerConfig const &conf)
 bool	HttpResponse::isCgiAllowed(std::string const &command,
 		ServerConfig const &server)
 {
-	RouteConfig	*route;
+	RouteConfig const	*route;
 
 	route = server.getLocation(command);
-
-	if (!route->isCgiAllowed())
+	if (!route->isCgiEnabled())
+	{
+		std::cout << "Adios not enable: " << route->getPath() << std::endl;
 		return false;
+	}
 	
+	std::cout << "Hola Mondo" << std::endl;
 	VectorStr const ext = route->getCgiExtensions();
 
 	for (size_t i = 0; i < ext.size(); i++)
@@ -589,22 +621,23 @@ bool	HttpResponse::isCgi(std::string const &command)
 #include "../../includes/ServerConfig.hpp"
 #include "../../includes/ParserConfig.hpp"
 
-/*int	main(int argc, char **av)
+int	main(int argc, char **argv)
 {
 	if (argc != 2)
 		return (1);
 	std::string	str =
-		"GET /TEST/this HTTP/3\r\n"
+		"GET /cgi-bin/hola.out HTTP/3\r\n"
 		"Host: http.cat\r\n"
+		"Content-type: plain/text\r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;\r\n"
 		"Accept-Language: en-US,en;q=0.5\r\n"
 		"Accept-Encoding: gzip, deflate, br, zstd\r\n"
 		"Connection: keep-alive\r\n"
 		"\t\v\r\f Priority\t\v\r\f :\t\v\r\f u=0, i\t\v\r\f \r\n\r\n"
-		"12345678901234567890123456789012345678901234567890";
+		"12345678901234567890123456789012345678901234567890\nHolaMundo\n";
 
 		std::string	resString;
-		ParserConfig					parser(av[1]);
+		ParserConfig					parser(argv[1]);
 	try
 	{
 		ServerConfig const	server = parser.getServers().front();
@@ -641,4 +674,4 @@ bool	HttpResponse::isCgi(std::string const &command)
 //		"Sec-Fetch-Mode: navigate\r\n"
 //		"Sec-Fetch-Site: none\r\n"
 //		"Sec-Fetch-User: ?1\r\n"
-*/
+

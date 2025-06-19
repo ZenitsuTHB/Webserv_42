@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerConfig.hpp                                   :+:      :+:    :+:   */
+/*  ServerConfig.hpp                                     :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:04:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/05 16:41:00 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/06/17 18:23:16 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class ServerConfig: public BaseConfig
 		in_port_t						getPort() const;
 		std::string const				&getServerName() const;
 		RouteConfig const				*getLocation(std::string const &request) const;
-		RouteConfig const				&getRoute(std::string const &path) const;
+//		RouteConfig const				&getRoute(std::string const &path) const;
 		std::vector<RouteConfig> const	&getRoutes() const;
 		unsigned int					getNumRoutes() const;
 		int								getBacklog() const;
