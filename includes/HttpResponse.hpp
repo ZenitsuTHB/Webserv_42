@@ -30,7 +30,8 @@ class	HttpResponse
 		static std::string	_fileType( std::string const &file );
 		static std::string	createError( int code, ServerConfig const &conf );
 
-		static std::string	executeCgi( std::string const &command, HttpRequest const &request);
+		static std::string	executeGetCgi( std::string const &command, HttpRequest const &request);
+		static std::string	executePostCgi( std::string const &command, HttpRequest const &request);
 		static bool			isCgi( std::string const &command );
 		static bool			isCgiAllowed( std::string const &command,
 				ServerConfig const &server );
@@ -41,6 +42,7 @@ class	HttpResponse
 		void	deleteResource( HttpRequest const &request );
 
 		void	getCgi( HttpRequest const &request );
+		void	postCgi(HttpRequest const &request);
 
 //		static bool			_validFile( std::string const &file );
 		static int			checkFile( std::string const &file );

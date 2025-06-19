@@ -11,6 +11,7 @@
 
 #include <cerrno>
 #include <fstream>
+#include <sstream>
 #include <utility>
 #include <cstdlib>
 #include <sys/stat.h>
@@ -247,7 +248,7 @@ void	HttpResponse::getCgi(HttpRequest const &request)
 		throw (HttpException("getCGI file not found", 404));
 	else if (!(fileStat & S_IXUSR))
 		throw (HttpException("getCGI file x deniedn", 404));
-	_body = executeCgi(fileName, request);
+	_body = executeGetCgi(fileName, request);
 	Headers::const_iterator it = request.getHeaders().find("Content-type");
 	if (it != request.getHeaders().end())
 		_header.insert(PairStr("Content-type", it->second));
@@ -257,6 +258,26 @@ void	HttpResponse::getCgi(HttpRequest const &request)
 				Libft::itos(static_cast<int>(_body.length()))));
 	_code = 200;
 	//throw (HttpException("getCGI Not done yet", 500));
+}
+
+void	HttpResponse::postCgi(HttpRequest const &request)
+{
+	std::string	output;
+	std::string	filename(request.getPath());
+
+	try
+	{
+		output = executePostCgi(filename, request);
+	}
+	catch (std::exception const &e)
+	{
+		std::cerr << "CGI execution failed: " << e.what() << std::endl;
+	}
+
+	_body = output;
+	std::string len = Libft::itos(static_cast<int>(output.length()));
+	_header.insert(make_pair("Content-length", len));
+	_code = 200;
 }
 
 void	HttpResponse::getResource(HttpRequest const &request)
@@ -334,6 +355,9 @@ void	HttpResponse::postResource(HttpRequest const &request)
 	 */
 	std::string			fileName(request.getPath());
 	searchPOSTendPoint(fileName);
+
+	if (isCgi(fileName))
+		return (postCgi(request));
 
 	std::string const	&body = request.getBody();
 	std::ofstream		file(fileName.c_str(), std::ios::binary);
@@ -550,7 +574,7 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	return false;
 }
 
-std::string HttpResponse::executeCgi(std::string const &command, HttpRequest const &request)
+std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest const &request)
 {
 	int	pipefd[2];
 	std::string	cgiOut;
@@ -605,6 +629,79 @@ std::string HttpResponse::executeCgi(std::string const &command, HttpRequest con
 	if (ret)
 		throw (HttpException("CGI failed to execute", 500));
 	return (cgiOut);
+}
+
+std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest const &request)
+{
+	int				stdoutPipe[2];
+	int				stdinPipe[2];
+	std::string		output;
+
+	if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1)
+		throw HttpException("CGI post pipe error", 500);
+
+	pid_t	pid = fork();
+	if (pid < 0)
+	{
+		close(stdoutPipe[0]); close(stdoutPipe[1]);
+		close(stdinPipe[0]); close(stdinPipe[1]);
+		throw HttpException("CGI post fork error", 500);
+	}
+	if (pid == 0)
+	{
+		dup2(stdoutPipe[1], STDOUT_FILENO);
+		dup2(stdinPipe[0], STDIN_FILENO);
+
+		close(stdoutPipe[0]); close(stdoutPipe[1]);
+		close(stdinPipe[0]); close(stdinPipe[1]);
+		
+		std::ostringstream	lengthStream;
+		lengthStream << request.getBody().length();
+
+		std::string	scriptFile = "SCRIPT_FILENAME=" + command;
+		std::string	requestMethod = "REQUEST_METHOD=POST";
+		std::string	contentLength = "CONTENT_LENGTH=" + lengthStream.str();
+
+		std::string	contentType = "CONTENT_TYPE=application/x-www-form-urlencoded";
+		std::string	queryString = "QUERY_STRING=" + request.getQuery();
+
+		char	*argv[] = { const_cast<char *>(command.c_str()), NULL };
+		char	*envp[] = {
+				const_cast<char *>("GATEWAY_INTERFACE-CGI/1.1"),
+				const_cast<char *>(requestMethod.c_str()),
+				const_cast<char *>(scriptFile.c_str()),
+				const_cast<char *>(contentLength.c_str()),
+				const_cast<char *>(contentType.c_str()),
+				const_cast<char *>(queryString.c_str()),
+				NULL
+		};
+
+		execve(command.c_str(), argv, envp);
+		std::string	err(strerror(errno));
+		throw HttpException("Execve failed: " + err, 500);
+	}
+	
+	close(stdoutPipe[1]); close(stdinPipe[0]);
+
+	std::string const	&body = request.getBody();
+	write(stdinPipe[1], body.c_str(), body.length());
+	close(stdinPipe[1]);
+
+	char	buffer[1024];
+	ssize_t	count;
+
+	while ((count = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0)
+		output.append(buffer, count);
+	close(stdoutPipe[0]);
+
+	int status = 0;
+	
+	waitpid(pid, &status, 0);
+	
+	if (status != 0)
+		throw HttpException("CGI failed to execute", 500);
+
+	return output;
 }
 
 bool	HttpResponse::isCgi(std::string const &command)
