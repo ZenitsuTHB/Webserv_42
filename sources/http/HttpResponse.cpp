@@ -265,14 +265,20 @@ void	HttpResponse::postCgi(HttpRequest const &request)
 	std::string	output;
 	std::string	filename(request.getPath());
 
+	/*
 	try
 	{
+	*/
 		output = executePostCgi(filename, request);
+	/*
+		std::cout << "Se ha executado efectivamente" << std::endl;
 	}
 	catch (std::exception const &e)
 	{
+		output.clear();
 		std::cerr << "CGI execution failed: " << e.what() << std::endl;
 	}
+	*/
 
 	_body = output;
 	std::string len = Libft::itos(static_cast<int>(output.length()));
@@ -506,6 +512,8 @@ void	HttpResponse::getHeaderBody(
 {
 	std::string	page;
 	page = const_cast<ServerConfig *>(&config)->getErrorPage(code);
+	if (!page.empty())
+	{
 	std::cerr << "Im reading this: " << page << std::endl;
 	try
 	{
@@ -518,6 +526,7 @@ void	HttpResponse::getHeaderBody(
 	{
 		body.clear();
 		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
+	}
 	}
 	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 	header.insert(PairStr("Content-length",
@@ -582,7 +591,7 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 	if (pipe(pipefd) == -1)
 	{
 		std::cerr << "Pipe error: " << strerror(errno) << std::endl;
-		throw (HttpException("CGI pipe error", 500));
+		throw (HttpException("get CGI pipe error", 500));
 	}
 
 	pid_t	pid = fork();
@@ -591,7 +600,7 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 		std::cerr << "Fork failed: " << strerror(errno) << std::endl;
 		close(pipefd[0]);
 		close(pipefd[1]);
-		throw (HttpException("CGI fork error", 500));
+		throw (HttpException("get CGI fork error", 500));
 	}
 
 	if (pid == 0)
@@ -612,7 +621,7 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 		};
 
 		execve(command.c_str(), argv, envp);
-		std::cerr << "Execve failed: " << strerror(errno) << std::endl;
+		std::cerr << "get CGI failed execve" << strerror(errno) << std::endl;
 		exit(127);
 	}
 	close(pipefd[1]);
@@ -627,7 +636,10 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 	int	ret = 0;
 	waitpid(pid, &ret, 0);
 	if (ret)
-		throw (HttpException("CGI failed to execute", 500));
+	{
+		std::cout << "this is da return of program: " << ret << std::endl;
+		throw (HttpException("get CGI failed program status code", 500));
+	}
 	return (cgiOut);
 }
 
@@ -655,6 +667,7 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		close(stdoutPipe[0]); close(stdoutPipe[1]);
 		close(stdinPipe[0]); close(stdinPipe[1]);
 		
+		//Como vas a convertir un string a un numero asi
 		std::ostringstream	lengthStream;
 		lengthStream << request.getBody().length();
 
@@ -677,8 +690,9 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		};
 
 		execve(command.c_str(), argv, envp);
+		std::cout << "post CGI failed execve" << strerror(errno) << std::endl;
 		std::string	err(strerror(errno));
-		throw HttpException("Execve failed: " + err, 500);
+		exit (127);
 	}
 	
 	close(stdoutPipe[1]); close(stdinPipe[0]);
@@ -699,7 +713,7 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	waitpid(pid, &status, 0);
 	
 	if (status != 0)
-		throw HttpException("CGI failed to execute", 500);
+		throw HttpException("CGI post failed program", 500);
 
 	return output;
 }
