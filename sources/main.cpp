@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/20 11:55:47 by adrmarqu          #+#    #+#             */
-/*  Updated: 2025/06/17 17:20:35 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/23 20:44:40 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ void signalHandler(int signum) {
 	g_shouldStop = 1;
 }
 
-/*
 int main(int ac, char **av)
 {
 	if (ac != 2) {
@@ -65,5 +64,4 @@ int main(int ac, char **av)
 		//exit(1);
 	}
 	return 0;
-}*/
-
+}

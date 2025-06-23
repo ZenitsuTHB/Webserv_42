@@ -731,6 +731,7 @@ bool	HttpResponse::isCgi(std::string const &command)
 	return (false);
 }
 
+/*
 #include <iostream>
 #include <cstdlib>
 #include "../../includes/ServerConfig.hpp"
@@ -789,4 +790,4 @@ int	main(int argc, char **argv)
 //		"Sec-Fetch-Mode: navigate\r\n"
 //		"Sec-Fetch-Site: none\r\n"
 //		"Sec-Fetch-User: ?1\r\n"
-
+*/
