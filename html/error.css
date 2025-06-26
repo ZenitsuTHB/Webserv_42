@@ -76,16 +76,15 @@ main {
     font-size: 2rem;
     margin-bottom: 10px;
     text-align: left;  /* Alinea h2 a la izquierda */
-    margin-left: 230px;
+    margin-left: 20px;
 }
 
 .error-content p {
     font-size: 1rem;
     line-height: 1.6;
     max-width: 600px;
-    text-align: left;  
-    margin-left: 230px;
-
+    margin-left: 20px;
+    text-align: center;
 }
 
 
