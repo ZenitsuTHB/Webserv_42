@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerManager.cpp                                  :+:      :+:    :+:   */
+/*  ServerManager.cpp                                    :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/13 15:31:02 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/06/28 19:19:11 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,11 +161,12 @@ std::string    responseMessage(std::string const &request, ServerConfig const &s
     }
     catch (const HttpException & ex)
     {
+		std::cerr << "HttpException launched for: " << ex.what() << std::endl;
         response = HttpResponse::createError(ex.whatCode(), server);
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "std::exception launched: " << e.what() << std::endl;
         response = HttpResponse::createError(500, server);
     }
     return (response);

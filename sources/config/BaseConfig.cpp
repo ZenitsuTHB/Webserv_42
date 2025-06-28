@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   BaseConfig.cpp                                     :+:      :+:    :+:   */
+/*  BaseConfig.cpp                                       :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:08:46 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 16:21:22 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/06/28 20:00:07 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,6 +247,12 @@ std::string const	BaseConfig::getErrorPage(int code)
 {
 	ErrorMap::iterator	it = errorPages.find(code);
 	
+	std::cerr << "I'm here" << std::endl;
+	for (ErrorMap::iterator	it = errorPages.begin();
+			it != errorPages.end(); ++it)
+	{
+		std::cout << it->first << ": " << it->second << std::endl;
+	}
 	if (it == errorPages.end())
 		return "";
 	return it->second;
