@@ -267,6 +267,8 @@ void	HttpResponse::postCgi(HttpRequest const &request)
 
 	try
 	{
+		if (!isCgiAllowed(filename, _serverConf))
+			throw (HttpException("getCGI not allowed here", 403));
 		output = executePostCgi(filename, request);
 	}
 	catch (std::exception const &e)
