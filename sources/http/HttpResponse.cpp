@@ -11,10 +11,13 @@
 
 #include <cerrno>
 #include <fstream>
+#include <sstream>
 #include <utility>
 #include <cstdlib>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
 #include "../../includes/HttpResponse.hpp"
 #include "../../includes/exceptions.hpp"
 #include "../../includes/Libft.hpp"
@@ -24,8 +27,17 @@
 Auxiliar Functions
 =======================
 */
-static BaseConfig const	*assignRoute(ServerConfig const &conf)
+static BaseConfig const	*assignRoute(ServerConfig const &conf,
+		std::string const &path)
 {
+	try 
+	{
+		return (conf.getLocation(path));
+	}
+	catch (...)
+	{
+		std::cerr << "This is Adri's fault" << std::endl;
+	}
 	return (&conf);
 }
 
@@ -42,7 +54,8 @@ std::string	getPath(BaseConfig const *conf)
 	return (path);
 }
 
-static bool	isAutoindex(BaseConfig const *conf)
+//BORRAR?
+bool	isAutoindex(BaseConfig const *conf)
 {
 	if (RouteConfig const *ptr = dynamic_cast<RouteConfig const *>(conf))
 		return (ptr->isAutoindex());
@@ -60,9 +73,9 @@ HttpResponse::~HttpResponse(void)
 }
 
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
-	_version("HTTP/1.1"), _index(false)
+	_version("HTTP/1.1"), _serverConf(conf), _index(false)
 {
-	_route = assignRoute(conf);
+	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
 	{
 		case GET:
@@ -79,10 +92,11 @@ HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	}
 }
 
+/*
 HttpResponse::HttpResponse(HttpResponse const &obj)
 {
 	*this = obj;
-}
+}*/
 
 /*
 =======================
@@ -101,10 +115,6 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 	 *	Check file permissions
 	 */
 	std::cout << "stat function argument : " << file << std::endl;
-//	if (file.length() >= 2){
-//		if (file.find('/'), file.length() - 2)
-//			file.erase(file.length() - 1);
-//	}
 	if (stat(file.c_str(), &sb) == -1)
 	{
 		/*	*
@@ -162,7 +172,8 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 		/*	*
 		 *	or create index
 		 */
-		if (isAutoindex(_route))
+		if (_route->isAutoindex())
+		//if (isAutoindex(_route))
 		{
 			std::cout << "File: " << file << std::endl;
 			_index = true;
@@ -176,9 +187,111 @@ void	HttpResponse::searchGETendPoint(std::string &file)
 	throw (HttpException("GET nothing File not faun", 404));
 }
 
+int	HttpResponse::checkFile(std::string const &file)
+{
+	struct stat	sb;
+	int			ret;
+
+	if (stat(file.c_str(), &sb) == -1)
+	{
+		return -1;
+		switch (errno)
+		{
+			case ENOTDIR:
+				std::cout << "2" << std::endl;
+				return (ENOTDIR);
+			case ENOENT:
+				std::cout << "3" << std::endl;
+				return (ENOENT);
+			case EACCES:
+				std::cout << "4" << std::endl;
+				return (EACCES);
+			case ENAMETOOLONG:
+				std::cout << "5" << std::endl;
+				return (ENAMETOOLONG);
+			case ELOOP:
+				std::cout << "6" << std::endl;
+				return (ELOOP);
+			default:
+				std::cout << "7" << std::endl;
+				return (0);
+		}
+	}
+	ret = 0;
+	std::cout << "st_mode & S_IXUSR " << sb.st_mode << " & " << S_IXUSR
+		<< " = " << (sb.st_mode & S_IXUSR) << std::endl;
+	if (S_ISREG(sb.st_mode))
+	{
+				std::cout << "8" << std::endl;
+		return (sb.st_mode);
+	}
+	else if (S_ISDIR(sb.st_mode))
+	{
+				std::cout << "9" << std::endl;
+		return (sb.st_mode);
+	}
+	return (0);
+}
+
+void	HttpResponse::getCgi(HttpRequest const &request)
+{
+	std::string	fileName(request.getPath());
+	int			fileStat;
+
+	if (!isCgiAllowed(fileName, _serverConf))
+		throw (HttpException("getCGI not allowed here", 403));
+	fileName.insert(0, _route->getRoot());
+	std::cout << "Looking for this file: " << fileName << std::endl;
+	fileStat = checkFile(fileName);
+	std::cout << "file stat: " << fileStat << std::endl;
+	if (!S_ISREG(fileStat))
+		throw (HttpException("getCGI file not found", 404));
+	else if (!(fileStat & S_IXUSR))
+		throw (HttpException("getCGI file x deniedn", 404));
+	_body = executeGetCgi(fileName, request);
+	Headers::const_iterator it = request.getHeaders().find("Content-type");
+	if (it != request.getHeaders().end())
+		_header.insert(PairStr("Content-type", it->second));
+	else
+		_header.insert(PairStr("Content-type", "text/plain"));
+	_header.insert(PairStr("Content-length",
+				Libft::itos(static_cast<int>(_body.length()))));
+	_code = 200;
+	//throw (HttpException("getCGI Not done yet", 500));
+}
+
+void	HttpResponse::postCgi(HttpRequest const &request)
+{
+	std::string	output;
+	std::string	filename(request.getPath());
+
+	/*
+	try
+	{
+	*/
+		output = executePostCgi(filename, request);
+	/*
+		std::cout << "Se ha executado efectivamente" << std::endl;
+	}
+	catch (std::exception const &e)
+	{
+		output.clear();
+		std::cerr << "CGI execution failed: " << e.what() << std::endl;
+	}
+	*/
+
+	_body = output;
+	std::string len = Libft::itos(static_cast<int>(output.length()));
+	_header.insert(make_pair("Content-length", len));
+	_code = 200;
+}
+
 void	HttpResponse::getResource(HttpRequest const &request)
 {
 	std::string		fileName = request.getPath();
+
+	if (isCgi(fileName))
+		return (getCgi(request));
 	/*	*
 	 *	Search the Endpoint
 	 */
@@ -248,6 +361,9 @@ void	HttpResponse::postResource(HttpRequest const &request)
 	 */
 	std::string			fileName(request.getPath());
 	searchPOSTendPoint(fileName);
+
+	if (isCgi(fileName))
+		return (postCgi(request));
 
 	std::string const	&body = request.getBody();
 	std::ofstream		file(fileName.c_str(), std::ios::binary);
@@ -396,18 +512,21 @@ void	HttpResponse::getHeaderBody(
 {
 	std::string	page;
 	page = const_cast<ServerConfig *>(&config)->getErrorPage(code);
+	if (!page.empty())
+	{
 	std::cerr << "Im reading this: " << page << std::endl;
 	try
 	{
 		struct stat	sb;
 		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
-			throw (std::invalid_argument("Page not found"));
+			throw (std::invalid_argument("getHedBody Page not found"));
 		body = Libft::readFile(page);
 	}
 	catch (std::exception const &ex)
 	{
 		body.clear();
 		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
+	}
 	}
 	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 	header.insert(PairStr("Content-length",
@@ -440,27 +559,201 @@ std::string	HttpResponse::createError(int code, ServerConfig const &conf)
 	return (response);
 }
 
+bool	HttpResponse::isCgiAllowed(std::string const &command,
+		ServerConfig const &server)
+{
+	RouteConfig const	*route;
+
+	route = server.getLocation(command);
+	if (!route->isCgiEnabled())
+	{
+		std::cout << "Adios not enable: " << route->getPath() << std::endl;
+		return false;
+	}
+	
+	std::cout << "Hola Mondo" << std::endl;
+	VectorStr const ext = route->getCgiExtensions();
+
+	for (size_t i = 0; i < ext.size(); i++)
+	{
+		int	len = command.length() - ext[i].length();
+		if (len >= 0 && ext[i] == command.substr(len))
+			return (true);
+	}
+	return false;
+}
+
+std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest const &request)
+{
+	int	pipefd[2];
+	std::string	cgiOut;
+
+	if (pipe(pipefd) == -1)
+	{
+		std::cerr << "Pipe error: " << strerror(errno) << std::endl;
+		throw (HttpException("get CGI pipe error", 500));
+	}
+
+	pid_t	pid = fork();
+	if (pid < 0)
+	{
+		std::cerr << "Fork failed: " << strerror(errno) << std::endl;
+		close(pipefd[0]);
+		close(pipefd[1]);
+		throw (HttpException("get CGI fork error", 500));
+	}
+
+	if (pid == 0)
+	{
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[0]);
+		close(pipefd[1]);
+
+		char	*argv[] = { const_cast<char*>(command.c_str()), NULL };
+		std::string	scritFile = "SCRIPT_FILENAME=" + command;
+		std::string	queryStr = "QUERY_STRING=" + request.getQuery();
+		char	*envp[] = {
+			const_cast<char*>("REQUEST_METHOD=GET"),
+			const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
+			const_cast<char*>(scritFile.c_str()),
+			const_cast<char*>(queryStr.c_str()),
+			NULL
+		};
+
+		execve(command.c_str(), argv, envp);
+		std::cerr << "get CGI failed execve" << strerror(errno) << std::endl;
+		exit(127);
+	}
+	close(pipefd[1]);
+
+	char		buffer[1024];
+	ssize_t		count;
+
+	while ((count = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+		cgiOut.append(buffer, count);
+
+	close(pipefd[0]);
+	int	ret = 0;
+	waitpid(pid, &ret, 0);
+	if (ret)
+	{
+		std::cout << "this is da return of program: " << ret << std::endl;
+		throw (HttpException("get CGI failed program status code", 500));
+	}
+	return (cgiOut);
+}
+
+std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest const &request)
+{
+	int				stdoutPipe[2];
+	int				stdinPipe[2];
+	std::string		output;
+
+	if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1)
+		throw HttpException("CGI post pipe error", 500);
+
+	pid_t	pid = fork();
+	if (pid < 0)
+	{
+		close(stdoutPipe[0]); close(stdoutPipe[1]);
+		close(stdinPipe[0]); close(stdinPipe[1]);
+		throw HttpException("CGI post fork error", 500);
+	}
+	if (pid == 0)
+	{
+		dup2(stdoutPipe[1], STDOUT_FILENO);
+		dup2(stdinPipe[0], STDIN_FILENO);
+
+		close(stdoutPipe[0]); close(stdoutPipe[1]);
+		close(stdinPipe[0]); close(stdinPipe[1]);
+		
+		//Como vas a convertir un string a un numero asi
+		std::ostringstream	lengthStream;
+		lengthStream << request.getBody().length();
+
+		std::string	scriptFile = "SCRIPT_FILENAME=" + command;
+		std::string	requestMethod = "REQUEST_METHOD=POST";
+		std::string	contentLength = "CONTENT_LENGTH=" + lengthStream.str();
+
+		std::string	contentType = "CONTENT_TYPE=application/x-www-form-urlencoded";
+		std::string	queryString = "QUERY_STRING=" + request.getQuery();
+
+		char	*argv[] = { const_cast<char *>(command.c_str()), NULL };
+		char	*envp[] = {
+				const_cast<char *>("GATEWAY_INTERFACE-CGI/1.1"),
+				const_cast<char *>(requestMethod.c_str()),
+				const_cast<char *>(scriptFile.c_str()),
+				const_cast<char *>(contentLength.c_str()),
+				const_cast<char *>(contentType.c_str()),
+				const_cast<char *>(queryString.c_str()),
+				NULL
+		};
+
+		execve(command.c_str(), argv, envp);
+		std::cout << "post CGI failed execve" << strerror(errno) << std::endl;
+		std::string	err(strerror(errno));
+		exit (127);
+	}
+	
+	close(stdoutPipe[1]); close(stdinPipe[0]);
+
+	std::string const	&body = request.getBody();
+	write(stdinPipe[1], body.c_str(), body.length());
+	close(stdinPipe[1]);
+
+	char	buffer[1024];
+	ssize_t	count;
+
+	while ((count = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0)
+		output.append(buffer, count);
+	close(stdoutPipe[0]);
+
+	int status = 0;
+	
+	waitpid(pid, &status, 0);
+	
+	if (status != 0)
+		throw HttpException("CGI post failed program", 500);
+
+	return output;
+}
+
+bool	HttpResponse::isCgi(std::string const &command)
+{
+	if (command.find(".cgi") != std::string::npos
+		|| command.find(".php") != std::string::npos
+		|| command.find(".py") != std::string::npos
+		|| command.find(".pl") != std::string::npos
+		|| command.find(".sh") != std::string::npos
+		|| command.find(".exe") != std::string::npos
+		|| command.find("/cgi-bin/") != std::string::npos)
+		return (true);
+	return (false);
+}
+
+/*
 #include <iostream>
 #include <cstdlib>
 #include "../../includes/ServerConfig.hpp"
 #include "../../includes/ParserConfig.hpp"
 
-/*int	main(int argc, char **av)
+int	main(int argc, char **argv)
 {
 	if (argc != 2)
 		return (1);
 	std::string	str =
-		"GET /TEST/this HTTP/3\r\n"
+		"GET /cgi-bin/hola.out HTTP/3\r\n"
 		"Host: http.cat\r\n"
+		"Content-type: plain/text\r\n"
 		"Accept: text/html,application/xhtml+xml,application/xml;\r\n"
 		"Accept-Language: en-US,en;q=0.5\r\n"
 		"Accept-Encoding: gzip, deflate, br, zstd\r\n"
 		"Connection: keep-alive\r\n"
 		"\t\v\r\f Priority\t\v\r\f :\t\v\r\f u=0, i\t\v\r\f \r\n\r\n"
-		"12345678901234567890123456789012345678901234567890";
+		"12345678901234567890123456789012345678901234567890\nHolaMundo\n";
 
 		std::string	resString;
-		ParserConfig					parser(av[1]);
+		ParserConfig					parser(argv[1]);
 	try
 	{
 		ServerConfig const	server = parser.getServers().front();

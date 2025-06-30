@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/11 15:53:14 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/06/17 16:54:33 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ class	HttpResponse
 	public:
 		~HttpResponse( void );
 		HttpResponse( HttpRequest const &req, ServerConfig const &conf );
-		HttpResponse( HttpResponse const &obj );
+		//HttpResponse( HttpResponse const &obj );
 
 		HttpResponse	& operator = ( HttpResponse const &obj );
 
@@ -30,12 +30,22 @@ class	HttpResponse
 		static std::string	_fileType( std::string const &file );
 		static std::string	createError( int code, ServerConfig const &conf );
 
+		static std::string	executeGetCgi( std::string const &command, HttpRequest const &request);
+		static std::string	executePostCgi( std::string const &command, HttpRequest const &request);
+		static bool			isCgi( std::string const &command );
+		static bool			isCgiAllowed( std::string const &command,
+				ServerConfig const &server );
+
 	private:
 		void	getResource( HttpRequest const &request );
 		void	postResource( HttpRequest const &request );
 		void	deleteResource( HttpRequest const &request );
 
+		void	getCgi( HttpRequest const &request );
+		void	postCgi(HttpRequest const &request);
+
 //		static bool			_validFile( std::string const &file );
+		static int			checkFile( std::string const &file );
 		static std::string	_indexFolder( std::string const &folder );
 
 		void		searchGETendPoint( std::string &file );
@@ -51,6 +61,7 @@ class	HttpResponse
 		Headers				_header;
 		std::string			_body;
 		BaseConfig const	*_route;
+		ServerConfig const	&_serverConf;
 		bool				_index;
 };
 

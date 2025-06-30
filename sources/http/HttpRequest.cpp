@@ -59,6 +59,13 @@ HttpRequest::HttpRequest(std::string const &req)
 			throw (HttpException("Wrong header format", 400));
 		_header.insert(header);
 	}
+	std::string::size_type	pos = _path.find('?');
+	std::string	path = _path.substr(0, pos);
+	if (pos != std::string::npos)
+		_query = _path.substr(pos + 1);
+	else
+		_query = "";
+	
 }
 
 void	HttpRequest::print(void) const
@@ -95,6 +102,7 @@ HttpRequest	&HttpRequest:: operator = (HttpRequest const &obj)
 	}
 	return (*this);
 }
+
 /*
 int	main(void)
 {

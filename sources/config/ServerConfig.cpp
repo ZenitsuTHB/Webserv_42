@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerConfig.cpp                                   :+:      :+:    :+:   */
+/*  ServerConfig.cpp                                     :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/05 16:43:50 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/06/17 20:35:43 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,12 +216,22 @@ std::string const	&ServerConfig::getServerName() const
 	return serverName;
 }
 
-RouteConfig const	&ServerConfig::getRoute(std::string const &path) const
+RouteConfig const	*ServerConfig::getLocation(std::string const &request) const
 {
-	for (size_t i = 0; i < routes.size(); i++)
-		if (routes[i].getPath() == path)
-			return routes[i];
-	throw std::runtime_error("Location not found");
+	RouteConfig const	*best = NULL;
+	size_t				longest = 0;
+
+	std::vector<RouteConfig>::const_iterator	it = routes.begin();
+	for (; it != routes.end(); it++)
+	{
+		std::string const	path = it->getPath();
+		if (request.compare(0, path.length(), path) == 0 && path.length() > longest)
+		{
+			longest = path.length();
+			best = &(*it);
+		}
+	}
+	return best;
 }
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
