@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 12:51:21 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/05 16:40:27 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/06/30 18:22:16 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,14 +18,6 @@
 #include "Http.hpp"
 
 typedef std::map<int, std::string>	ErrorMap;
-
-/*enum	HttpMetthod
-{
-	GET = 0,
-	POST,
-	DELETE,
-	SIZE
-};*/
 
 class RouteConfig: public BaseConfig
 {

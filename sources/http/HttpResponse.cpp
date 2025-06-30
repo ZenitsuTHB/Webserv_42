@@ -575,14 +575,15 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	
 	std::cout << "Hola Mondo" << std::endl;
 	VectorStr const ext = route->getCgiExtensions();
-
+	
+	/*
 	for (size_t i = 0; i < ext.size(); i++)
 	{
 		int	len = command.length() - ext[i].length();
 		if (len >= 0 && ext[i] == command.substr(len))
 			return (true);
-	}
-	return false;
+	}*/
+	return true;
 }
 
 std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest const &request)
