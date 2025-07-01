@@ -155,9 +155,13 @@ std::string    responseMessage(std::string const &request, ServerConfig const &s
     try
     {
         HttpRequest requestObj(request);
+		std::cout << "###################Request###########" << std::endl;
+		requestObj.print();
+		std::cout << "###################Response###########" << std::endl;
         HttpResponse responseObj(requestObj, server);
 
         response = responseObj.generate();
+		std::cout << response << std::endl << std::endl;
     }
     catch (const HttpException & ex)
     {

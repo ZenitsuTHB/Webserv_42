@@ -75,6 +75,7 @@ HttpResponse::~HttpResponse(void)
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	_version("HTTP/1.1"), _serverConf(conf), _index(false)
 {
+	std::cout << "This is length, this is the end: " << req.getBody().length() << std::endl;
 	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
 	{
