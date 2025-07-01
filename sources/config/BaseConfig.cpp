@@ -23,6 +23,35 @@ void	BaseConfig::sentError(std::string msg) const
 	throw std::invalid_argument("<BaseConfig> : " + msg);
 }
 
+void	BaseConfig::setPath(VectorStr const &data)
+{
+	if (data.size() != 1)
+		sentError("Syntax error: multiple path -> location [path]");
+
+	path = cleanLine(data[0]);
+
+	if (path[0] != '/')
+		sentError("Syntax error: bad start [/] -> location /... -> " + path);
+}
+
+// limit_except/methods/allowed_methods [methods(GET, POST, DELETE)]
+// default: 000
+
+void	BaseConfig::addMethods(VectorStr const &data)
+{
+	for (unsigned int i = 0; i < data.size(); i++)
+	{
+		if (data[i] == "GET")
+			methods.set(GET);
+		else if (data[i] == "POST")
+			methods.set(POST);
+		else if (data[i] == "DELETE")
+			methods.set(DELETE);
+		else
+			sentError("The methods are GET, POST, DELETE: " + data[i]);
+	}
+}
+
 // autoindex [on | off]
 // default: off
 
@@ -244,6 +273,23 @@ std::string const	&BaseConfig::getRoot() const
 VectorStr const	&BaseConfig::getIndexFiles() const
 {
 	return indexFiles;
+}
+
+std::string const	&BaseConfig::getPath() const
+{
+	return path;
+}
+
+std::bitset<SIZE> const	&BaseConfig::getMethods() const
+{
+	return methods;
+}
+
+bool	BaseConfig::isAllowed(Method method) const
+{
+	if (methods.test(method))
+		return true;
+	return false;
 }
 
 ErrorMap const	&BaseConfig::getErrorPages() const

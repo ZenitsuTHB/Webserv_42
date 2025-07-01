@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/05 16:41:48 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/07/01 18:01:49 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,35 +18,6 @@ RouteConfig::~RouteConfig() {}
 void	RouteConfig::sentError(std::string msg) const
 {
 	throw std::invalid_argument("<RouteConfig> : " + msg);
-}
-
-void	RouteConfig::setPath(VectorStr const &data)
-{
-	if (data.size() != 1)
-		sentError("Syntax error: multiple path -> location [path]");
-
-	path = cleanLine(data[0]);
-
-	if (path[0] != '/')
-		sentError("Syntax error: bad start [/] -> location /... -> " + path);
-}
-
-// limit_except/methods/allowed_methods [methods(GET, POST, DELETE)]
-// default: 000
-
-void	RouteConfig::addMethods(VectorStr const &data)
-{
-	for (unsigned int i = 0; i < data.size(); i++)
-	{
-		if (data[i] == "GET")
-			methods.set(GET);
-		else if (data[i] == "POST")
-			methods.set(POST);
-		else if (data[i] == "DELETE")
-			methods.set(DELETE);
-		else
-			sentError("The methods are GET, POST, DELETE: " + data[i]);
-	}
 }
 
 // cgi_pass/cgi_path [address]
@@ -88,23 +59,6 @@ void	RouteConfig::setCgiEnable(VectorStr const &data)
 		cgiEnable = false;
 	else
 		sentError("Syntax error: cgi -> cgi_enable [on | off]");
-}
-
-std::string const	&RouteConfig::getPath() const
-{
-	return path;
-}
-
-std::bitset<SIZE> const	&RouteConfig::getMethods() const
-{
-	return methods;
-}
-
-bool	RouteConfig::isAllowed(Method method) const
-{
-	if (methods.test(method))
-		return true;
-	return false;
 }
 
 std::string const	&RouteConfig::getCgiPath() const

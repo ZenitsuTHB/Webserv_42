@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 15:51:47 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/01 18:10:46 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,15 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <bitset>
+#include "Http.hpp"
 
 #define MAX_SIZE_CLIENT 104857600
 #define MIN_SIZE_CLIENT 10240
 
 typedef std::map<int, std::string>	ErrorMap;
 typedef std::vector<std::string>	VectorStr;
+typedef std::bitset<SIZE>			BitMet;
 
 class BaseConfig
 {
@@ -30,6 +33,8 @@ class BaseConfig
 		BaseConfig();
 		virtual ~BaseConfig();
 
+		void	setPath(VectorStr const &data);
+		void	addMethods(VectorStr const &data);
 		void	setAutoindex(VectorStr const &data);
 		void	setAutoindex(bool autoindex);
 		void	setRoot(VectorStr const &data);
@@ -43,6 +48,9 @@ class BaseConfig
 		void	setMaxSize(size_t size);
 
 		bool				isAutoindex() const;
+		std::string const	&getPath() const;
+		BitMet const		&getMethods() const;
+		bool				isAllowed(Method method) const;
 		std::string const	&getRoot() const;
 		VectorStr const		&getIndexFiles() const;
 		ErrorMap const		&getErrorPages() const;
@@ -56,6 +64,8 @@ class BaseConfig
 	protected:
 
 		bool			autoindex;
+		std::string		path;
+		BitMet			methods;
 		std::string		root;
 		VectorStr		indexFiles;
 		ErrorMap		errorPages;
