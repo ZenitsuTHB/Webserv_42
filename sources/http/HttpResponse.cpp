@@ -487,13 +487,51 @@ std::string	HttpResponse::_fileType(std::string const &file)
 		type = Http::getFileType("html");
 	else if (file.find(".css") != std::string::npos)
 		type = Http::getFileType("css");
+	else if (file.find(".js") != std::string::npos)
+		type = Http::getFileType("js");
+	else if (file.find(".json") != std::string::npos)
+		type = Http::getFileType("json");
+	else if (file.find(".xml") != std::string::npos)
+		type = Http::getFileType("xml");
+	else if (file.find(".pdf") != std::string::npos)
+		type = Http::getFileType("pdf");
+	else if (file.find(".zip") != std::string::npos)
+		type = Http::getFileType("zip");
+	else if (file.find(".png") != std::string::npos)
+		type = Http::getFileType("png");
+	else if (file.find(".jpeg") != std::string::npos)
+		type = Http::getFileType("jpeg");
+	else if (file.find(".jpg") != std::string::npos)
+		type = Http::getFileType("jpg");
+	else if (file.find(".gif") != std::string::npos)
+		type = Http::getFileType("gif");
+	else if (file.find(".webp") != std::string::npos)
+		type = Http::getFileType("webp");
+	else if (file.find(".mpeg") != std::string::npos)
+		type = Http::getFileType("mpeg");
+	else if (file.find(".ogg") != std::string::npos)
+		type = Http::getFileType("ogg");
+	else if (file.find(".mp4") != std::string::npos)
+		type = Http::getFileType("mp4");
+	else if (file.find(".webm") != std::string::npos)
+		type = Http::getFileType("webm");
+	else if (file.find(".ogg") != std::string::npos)
+		type = Http::getFileType("ogg");
 	else
 		type.assign("text/plain");
 	return (type);
 }
-std::string	HttpResponse::_indexFolder(std::string const &folder)
+std::string	HttpResponse::_indexFolder(std::string &folder)
 {
-	(void)folder;
+	std::string	index;
+	std::string	fileLine;
+
+	index = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
+		"  <meta charset=\"UTF-8\">\n  <title>Index of /my-folder</title>\n"
+		"</head>\n<body>\n  <h1>Index of /my-folder</h1>\n  <ul>\n"
+		"  </ul>\n</body>\n</html>";
+	folder = "index.html";
+	fileLine = "    <li><a href=\"file\">file</a></li>\n";
 	return ("Folder Indexado\r\n");
 }
 
@@ -524,14 +562,17 @@ void	HttpResponse::getHeaderBody(
 		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
 			throw (std::invalid_argument("getHedBody Page not found"));
 		body = Libft::readFile(page);
+		header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 	}
 	catch (std::exception const &ex)
 	{
 		body.clear();
+		header.insert(PairStr("Content-type", "text/plain"));
 		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
 	}
 	}
-	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+	//header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+	//Now is done inside try
 	header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(body.length()))));
 }
