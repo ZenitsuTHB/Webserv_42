@@ -602,21 +602,21 @@ void	HttpResponse::getHeaderBody(
 	page = const_cast<ServerConfig *>(&config)->getErrorPage(code);
 	if (!page.empty())
 	{
-	std::cerr << "Im reading this: " << page << std::endl;
-	try
-	{
-		struct stat	sb;
-		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
-			throw (std::invalid_argument("getHedBody Page not found"));
-		body = Libft::readFile(page);
-		header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
-	}
-	catch (std::exception const &ex)
-	{
-		body.clear();
-		header.insert(PairStr("Content-type", "text/plain"));
-		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
-	}
+		std::cerr << "Im reading this: " << page << std::endl;
+		try
+		{
+			struct stat	sb;
+			if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
+				throw (std::invalid_argument("getHedBody Page not found"));
+			body = Libft::readFile(page);
+			header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+		}
+		catch (std::exception const &ex)
+		{
+			body.clear();
+			header.insert(PairStr("Content-type", "text/plain"));
+			std::cerr << "Failed to get error Page" << ex.what() << std::endl;
+		}
 	}
 	//header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 	//Now is done inside try
