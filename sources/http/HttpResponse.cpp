@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include "../../includes/HttpResponse.hpp"
 #include "../../includes/exceptions.hpp"
 #include "../../includes/Libft.hpp"
@@ -521,17 +523,62 @@ std::string	HttpResponse::_fileType(std::string const &file)
 		type.assign("text/plain");
 	return (type);
 }
+
+/*	*
+ *	Autoindex plantilla	*/
+/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Index of /my-folder</title>
+</head>
+<body>
+  <h1>Index of /my-folder</h1>
+  <ul>
+    <li><a href="file">file</a></li>
+  </ul>
+</body>
+</html>
+*/
 std::string	HttpResponse::_indexFolder(std::string &folder)
 {
+	return ("Folder Indexado\r\n");
 	std::string	index;
 	std::string	fileLine;
 
-	index = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n"
-		"  <meta charset=\"UTF-8\">\n  <title>Index of /my-folder</title>\n"
-		"</head>\n<body>\n  <h1>Index of /my-folder</h1>\n  <ul>\n"
-		"  </ul>\n</body>\n</html>";
+	index = "<!DOCTYPE html>\n"
+		"<html lang=\"en\">\n"
+		"<head>\n"
+		"  <meta charset=\"UTF-8\">\n"
+		"	<title>Index of Folder</title>\n"
+		"</head>\n"
+		"<body>\n"
+		"	<h1>Index of Folder</h1>\n"
+		"  <ul>\n"
+		"    <li><a href=\".\">.</a></li>\n"
+		"    <li><a href=\"..\">..</a></li>\n";
+/*		"  </ul>\n"
+		"</body>\n"
+		"</html>"*/
+
+	DIR				*directory;
+
+	directory = opendir(folder.c_str());
+	if (!directory)
+		throw (HttpException("Autoindex Failed to open Dir", 500));
+	//Add Files to the Index
+	for (struct dirent *entity = readdir(directory);
+			entity != NULL; entity = readdir(directory))
+	{
+	//	file line: "    <li><a href=\"file\">file</a></li>\n";
+		fileLine.assign("    <li><a href=\"").append(entity->d_name);
+		fileLine.append("\">").append(entity->d_name).append("</a></li>\n");
+		index.append(fileLine);
+	}
+	closedir(directory);
+	index.append("  </ul>\n</body>\n</html>\n");
 	folder = "index.html";
-	fileLine = "    <li><a href=\"file\">file</a></li>\n";
 	return ("Folder Indexado\r\n");
 }
 
