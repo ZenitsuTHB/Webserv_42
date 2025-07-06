@@ -18,6 +18,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
 #include "../../includes/HttpResponse.hpp"
 #include "../../includes/exceptions.hpp"
 #include "../../includes/Libft.hpp"
@@ -75,6 +77,7 @@ HttpResponse::~HttpResponse(void)
 HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 	_version("HTTP/1.1"), _serverConf(conf), _index(false)
 {
+	std::cout << "This is length, this is the end: " << req.getBody().length() << std::endl;
 	_route = assignRoute(conf, req.getPath());
 	switch (req.getMethod())
 	{
@@ -487,14 +490,97 @@ std::string	HttpResponse::_fileType(std::string const &file)
 		type = Http::getFileType("html");
 	else if (file.find(".css") != std::string::npos)
 		type = Http::getFileType("css");
+	else if (file.find(".js") != std::string::npos)
+		type = Http::getFileType("js");
+	else if (file.find(".json") != std::string::npos)
+		type = Http::getFileType("json");
+	else if (file.find(".xml") != std::string::npos)
+		type = Http::getFileType("xml");
+	else if (file.find(".pdf") != std::string::npos)
+		type = Http::getFileType("pdf");
+	else if (file.find(".zip") != std::string::npos)
+		type = Http::getFileType("zip");
+	else if (file.find(".png") != std::string::npos)
+		type = Http::getFileType("png");
+	else if (file.find(".jpeg") != std::string::npos)
+		type = Http::getFileType("jpeg");
+	else if (file.find(".jpg") != std::string::npos)
+		type = Http::getFileType("jpg");
+	else if (file.find(".gif") != std::string::npos)
+		type = Http::getFileType("gif");
+	else if (file.find(".webp") != std::string::npos)
+		type = Http::getFileType("webp");
+	else if (file.find(".mpeg") != std::string::npos)
+		type = Http::getFileType("mpeg");
+	else if (file.find(".ogg") != std::string::npos)
+		type = Http::getFileType("ogg");
+	else if (file.find(".mp4") != std::string::npos)
+		type = Http::getFileType("mp4");
+	else if (file.find(".webm") != std::string::npos)
+		type = Http::getFileType("webm");
+	else if (file.find(".ogg") != std::string::npos)
+		type = Http::getFileType("ogg");
 	else
 		type.assign("text/plain");
 	return (type);
 }
-std::string	HttpResponse::_indexFolder(std::string const &folder)
+
+/*	*
+ *	Autoindex plantilla	*/
+/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Index of /my-folder</title>
+</head>
+<body>
+  <h1>Index of /my-folder</h1>
+  <ul>
+    <li><a href="file">file</a></li>
+  </ul>
+</body>
+</html>
+*/
+std::string	HttpResponse::_indexFolder(std::string &folder)
 {
-	(void)folder;
-	return ("Folder Indexado\r\n");
+	//return ("Folder Indexado\r\n");
+	std::string	index;
+	std::string	fileLine;
+
+	index = "<!DOCTYPE html>\n"
+		"<html lang=\"en\">\n"
+		"<head>\n"
+		"  <meta charset=\"UTF-8\">\n"
+		"	<title>Index of Folder</title>\n"
+		"</head>\n"
+		"<body>\n"
+		"	<h1>Index of Folder</h1>\n"
+		"  <ul>\n";
+//		"    <li><a href=\".\">.</a></li>\n"
+//		"    <li><a href=\"..\">..</a></li>\n";
+/*		"  </ul>\n"
+		"</body>\n"
+		"</html>"*/
+
+	DIR				*directory;
+
+	directory = opendir(folder.c_str());
+	if (!directory)
+		throw (HttpException("Autoindex Failed to open Dir", 500));
+	//Add Files to the Index
+	for (struct dirent *entity = readdir(directory);
+			entity != NULL; entity = readdir(directory))
+	{
+	//	file line: "    <li><a href=\"file\">file</a></li>\n";
+		fileLine.assign("    <li><a href=\"").append(entity->d_name);
+		fileLine.append("\">").append(entity->d_name).append("</a></li>\n");
+		index.append(fileLine);
+	}
+	closedir(directory);
+	index.append("  </ul>\n</body>\n</html>\n");
+	folder = "index.html";
+	return (index);
 }
 
 HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
@@ -525,16 +611,17 @@ void	HttpResponse::getHeaderBody(
 			if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
 				throw (std::invalid_argument("getHedBody Page not found"));
 			body = Libft::readFile(page);
+			header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 		}
 		catch (std::exception const &ex)
 		{
 			body.clear();
+			header.insert(PairStr("Content-type", "text/plain"));
 			std::cerr << "Failed to get error Page" << ex.what() << std::endl;
 		}
 	}
-	else
-		body.clear();
-	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+	//header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
+	//Now is done inside try
 	header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(body.length()))));
 }

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerManager.hpp                                  :+:      :+:    :+:   */
+/*  ServerManager.hpp                                    :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/07/02 15:10:10 by avolcy           ###   ########.fr       */
+/*  Updated: 2025/07/06 21:09:01 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ private:
         
         READ_BUFFER_SIZE = 8192,      // 8KB read buffer
         MAX_HEADER_SIZE = 8192,       // 8KB max for headers
-        MAX_BODY_SIZE = 1024 * 1024,  // 1MB max for body
+        MAX_BODY_SIZE = 1024 * 1024 * 1024,  // 1MB max for body
         MAX_TOTAL_REQUEST_SIZE = MAX_HEADER_SIZE + MAX_BODY_SIZE
     };
 

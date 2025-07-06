@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ServerManager.cpp                                  :+:      :+:    :+:   */
+/*  ServerManager.cpp                                    :+:      :+:    :+:  */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/07/06 18:57:12 by adrmarqu         ###   ########.fr       */
+/*  Updated: 2025/07/06 21:09:22 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,9 @@ std::string    responseMessage(std::string const &request, ServerConfig const &s
     try
     {
         HttpRequest requestObj(request);
+		std::cout << "###################Request###########" << std::endl;
+		requestObj.print();
+		std::cout << "###################Response###########" << std::endl;
         HttpResponse responseObj(requestObj, server);
 
         response = responseObj.generate();

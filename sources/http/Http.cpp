@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/04/23 21:18:52 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/05/12 19:19:43 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/07/05 18:11:27 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,9 +100,23 @@ std::map< std::string, std::string >	createFileTypes(void)
 {
 	std::map< std::string, std::string >	map;
 
-	map["html"] = "text/html";
-	map["image"] = "image/jpeg";
-	map["css"] = "text/css";
+	map["html"] =	"text/html";
+	map["css"] =	"text/css";
+	map["js"] =		"application/javascript";
+	map["json"] =	"application/json";
+	map["xml"] =	"application/xml";
+	map["pdf"] =	"application/pdf";
+	map["zip"] =	"application/zip";
+	map["png"] =	"image/png";
+	map["jpeg"] =	"image/jpeg";
+	map["jpg"] =	"image/jpg";
+	map["gif"] =	"image/gif";
+	map["webp"] =	"image/webp";
+	map["mpeg"] =	"audio/mpeg";
+	map["ogg"] =	"audio/ogg";
+	map["mp4"] =	"video/mp4";
+	map["webm"] =	"video/webm";
+	map["ogg"] =	"video/ogg";
 	return (map);
 }
 

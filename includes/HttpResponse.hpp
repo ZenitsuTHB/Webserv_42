@@ -6,7 +6,7 @@
 /*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
 /*                                                 +#+#+#+#+#+   +#+          */
 /*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/17 16:54:33 by mvelazqu           ###   ########.fr      */
+/*  Updated: 2025/07/05 18:14:31 by mvelazqu           ###   ########.fr      */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ class	HttpResponse
 
 //		static bool			_validFile( std::string const &file );
 		static int			checkFile( std::string const &file );
-		static std::string	_indexFolder( std::string const &folder );
+		static std::string	_indexFolder( std::string &folder );
 
 		void		searchGETendPoint( std::string &file );
 		void		searchPOSTendPoint( std::string &file );
