@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*  ServerManager.cpp                                    :+:      :+:    :+:  */
+/*   ServerManager.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*  Updated: 2025/06/28 19:19:11 by mvelazqu           ###   ########.fr      */
+/*   Updated: 2025/07/04 16:09:02 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,9 @@ void ServerManager::run() {
 }
 
 void ServerManager::handleNewConnection(Server* server) {
+
     int client_fd = server->acceptConnection();
     if (client_fd == -1) return;
-
     _client_to_server[client_fd] = server;
     addToEpoll(client_fd, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }
@@ -175,14 +175,7 @@ std::string    responseMessage(std::string const &request, ServerConfig const &s
 void ServerManager::handleClientData(int client_fd, uint32_t events) {
     (void)events;
     Server* server = _client_to_server[client_fd];
-
     std::string& clientBuffer = _buffers[client_fd];
-
-    if (clientBuffer.size() > MAX_TOTAL_REQUEST_SIZE) {
-        std::cerr << "[ServerManager] Request too large from client: " << client_fd << std::endl;
-        handleClientDisconnect(client_fd);
-        return;
-    }
 
     char buffer[READ_BUFFER_SIZE];
     ssize_t bytes_read;
@@ -190,52 +183,58 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
     while ((bytes_read = read(client_fd, buffer, sizeof(buffer)))) {
         if (bytes_read <= 0) break;
 
-        if (clientBuffer.size() + bytes_read > MAX_TOTAL_REQUEST_SIZE) {
-            std::cerr << "[ServerManager] Request size limit exceeded from client: "
-                      << client_fd << std::endl;
-            handleClientDisconnect(client_fd);
-            return;
-        }
-
         clientBuffer.append(buffer, bytes_read);
 
         size_t headerEnd = clientBuffer.find("\r\n\r\n");
-        if (headerEnd == std::string::npos)
+        if (headerEnd == std::string::npos) {
+            if (clientBuffer.size() > MAX_HEADER_SIZE) {
+                handleClientDisconnect(client_fd);
+            }
             continue;
-
-        std::string headers = clientBuffer.substr(0, headerEnd);
-        size_t contentLength = 0;
-        bool hasContentLength = headers.find("Content-Length:") != std::string::npos;
-
-        if (hasContentLength) {
-            if (!parseContentLength(headers, contentLength)) {
-                std::cerr << "[ServerManager] Malformed Content-Length header from client: "
-                          << client_fd << std::endl;
-                handleClientDisconnect(client_fd);
-                return;
-            }
-
-            if (contentLength > MAX_BODY_SIZE) {
-                std::cerr << "[ServerManager] Content-Length too large from client: "
-                          << client_fd << std::endl;
-                handleClientDisconnect(client_fd);
-                return;
-            }
-
-            size_t bodySize = clientBuffer.size() - (headerEnd + 4);
-            if (bodySize < contentLength)
-                continue;
         }
-        try {
-            std::string rawRequest = clientBuffer.substr(0, headerEnd + 4 + contentLength);
+
+        // Parse headers only once
+        if (!_requestHeadersParsed[client_fd]) {
+            std::string headers = clientBuffer.substr(0, headerEnd);
+            size_t contentLength = 0;
             
-            //Prepare cleaned HTTP string
-            std::string cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
+            if (headers.find("Content-Length:") != std::string::npos) {
+                if (!parseContentLength(headers, contentLength)) {
+                    handleClientDisconnect(client_fd);
+                    return;
+                }
+                _contentLengths[client_fd] = contentLength;
+            }
+            _requestHeadersParsed[client_fd] = true;
+        }
+
+        // For POST with body, wait until we have all data
+        size_t bodySize = clientBuffer.size() - (headerEnd + 4);
+        if (_contentLengths.count(client_fd) && 
+            bodySize < _contentLengths[client_fd]) {
+            continue;
+        }
+
+        try {
+            std::string rawRequest = clientBuffer.substr(0, headerEnd + 4 + _contentLengths[client_fd]);
+            
+            // For binary data, avoid any processing that might modify the body
+            std::string cleaned;
+            if (rawRequest.find("Content-Type: image/") != std::string::npos) {
+                cleaned = rawRequest; // Skip processing for images
+            } else {
+                cleaned = parsereq::prepareRequestForMax(rawRequest, client_fd);
+            }
+
             std::string fullResponse = responseMessage(cleaned, server->getConfig());
             _writeBuffers[client_fd] = fullResponse;
             modifyEpoll(client_fd, EPOLLOUT | EPOLLET | EPOLLRDHUP);
-            clientBuffer.erase(0, headerEnd + 4 + contentLength);
-            //flushWriteBuffer(client_fd);
+            clientBuffer.erase(0, headerEnd + 4 + _contentLengths[client_fd]);
+
+            // Clean up state
+            _contentLengths.erase(client_fd);
+            _requestHeadersParsed.erase(client_fd);
+
             if (parsereq::shouldCloseConnection(cleaned)) {
                 _pendingClose[client_fd] = true;
             }
@@ -243,14 +242,7 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
             std::cerr << "[ERROR] Failed to prepare request for HttpRequest: " << e.what() << std::endl;
             handleClientDisconnect(client_fd);
         }
-
         break;
-    }
-
-    if (clientBuffer.size() > MAX_HEADER_SIZE &&
-        clientBuffer.find("\r\n\r\n") == std::string::npos) {
-        std::cerr << "[ServerManager] Header too large from client: " << client_fd << std::endl;
-        handleClientDisconnect(client_fd);
     }
 }
 
@@ -273,7 +265,8 @@ void ServerManager::flushWriteBuffer(int client_fd) {
         _writeBuffers[client_fd] = response.substr(sent);
         return;
     }
-
+    _contentLengths.erase(client_fd);
+    _requestHeadersParsed.erase(client_fd);
     // Full response sent
     //shutdown(client_fd, SHUT_WR) this signal EOF, tells the kernel to flush any buffered 
     //output and sends a FIN packet to the client, indicating that the server is done writing.
@@ -292,6 +285,8 @@ void ServerManager::flushWriteBuffer(int client_fd) {
 
 
 void ServerManager::handleClientDisconnect(int client_fd) {
+    _contentLengths.erase(client_fd);
+    _requestHeadersParsed.erase(client_fd);
     removeFromEpoll(client_fd);
     _client_to_server.erase(client_fd);
     _buffers.erase(client_fd);

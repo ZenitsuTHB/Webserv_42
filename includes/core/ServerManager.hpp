@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/03 14:00:00 by avolcy            #+#    #+#             */
-/*   Updated: 2025/06/13 16:10:24 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/07/02 15:10:10 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,9 @@ private:
     ServerMap                   _fd_to_server;
     ServerMap                   _client_to_server;
     std::map<int, bool>         _pendingClose;
+    
+    std::map<int, size_t>       _contentLengths;
+    std::map<int, bool>         _requestHeadersParsed;
 
     // Private methode
     void handleNewConnection(Server* server);
