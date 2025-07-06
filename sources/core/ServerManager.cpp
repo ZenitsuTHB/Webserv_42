@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/07/04 16:09:02 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/07/06 18:57:12 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,16 +158,22 @@ std::string    responseMessage(std::string const &request, ServerConfig const &s
         HttpResponse responseObj(requestObj, server);
 
         response = responseObj.generate();
+		std::cout << std::endl << "#####RESonse#####" << std::endl << response << std::endl << "FIn"
+			<< std::endl;
     }
     catch (const HttpException & ex)
     {
 		std::cerr << "HttpException launched for: " << ex.what() << std::endl;
         response = HttpResponse::createError(ex.whatCode(), server);
+		std::cout << std::endl << "#####RESonse#####" << std::endl << response << std::endl << "FIn"
+			<< std::endl;
     }
     catch(const std::exception& e)
     {
         std::cerr << "std::exception launched: " << e.what() << std::endl;
         response = HttpResponse::createError(500, server);
+		std::cout << std::endl << "#####RESonse#####" << std::endl << response << std::endl << "FIn"
+			<< std::endl;
     }
     return (response);
 }

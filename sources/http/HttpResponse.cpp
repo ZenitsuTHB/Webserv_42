@@ -195,6 +195,7 @@ int	HttpResponse::checkFile(std::string const &file)
 	if (stat(file.c_str(), &sb) == -1)
 	{
 		return -1;
+		/*
 		switch (errno)
 		{
 			case ENOTDIR:
@@ -215,7 +216,7 @@ int	HttpResponse::checkFile(std::string const &file)
 			default:
 				std::cout << "7" << std::endl;
 				return (0);
-		}
+		}*/
 	}
 	ret = 0;
 	std::cout << "st_mode & S_IXUSR " << sb.st_mode << " & " << S_IXUSR
@@ -513,23 +514,26 @@ void	HttpResponse::getHeaderBody(
 		)
 {
 	std::string	page;
-	page = const_cast<ServerConfig *>(&config)->getErrorPage(code);
+	page = config.getErrorPage(code);
+	std::cout << "This is page: " << page << " and this code: " << code << std::endl;
 	if (!page.empty())
 	{
-	std::cerr << "Im reading this: " << page << std::endl;
-	try
-	{
-		struct stat	sb;
-		if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
-			throw (std::invalid_argument("getHedBody Page not found"));
-		body = Libft::readFile(page);
+		std::cerr << "Im reading this: " << page << std::endl;
+		try
+		{
+			struct stat	sb;
+			if (stat(page.c_str(), &sb) == -1 || !S_ISREG(sb.st_mode))
+				throw (std::invalid_argument("getHedBody Page not found"));
+			body = Libft::readFile(page);
+		}
+		catch (std::exception const &ex)
+		{
+			body.clear();
+			std::cerr << "Failed to get error Page" << ex.what() << std::endl;
+		}
 	}
-	catch (std::exception const &ex)
-	{
+	else
 		body.clear();
-		std::cerr << "Failed to get error Page" << ex.what() << std::endl;
-	}
-	}
 	header.insert(PairStr("Content-type", HttpResponse::_fileType(page)));
 	header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(body.length()))));
@@ -552,11 +556,12 @@ std::string	HttpResponse::createError(int code, ServerConfig const &conf)
 	getHeaderBody(code, body, header, conf);
 	for (Headers::iterator it = header.begin(); it != header.end(); ++it)
 		response.append(it->first).append(": ").append(it->second).append(CRLF);
-	response.append(Libft::itos(static_cast<int>(body.length()))).append(CRLF);
+	//response.append(Libft::itos(static_cast<int>(body.length()))).append(CRLF);
 	response.append(CRLF);
 	/*	*
 	 *	Body
 	 */
+	std::cout << "This is the Body in ERrrorr: " << body << std::endl;
 	response.append(body);
 	return (response);
 }
@@ -576,14 +581,15 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	std::cout << "Hola Mondo" << std::endl;
 	VectorStr const ext = route->getCgiExtensions();
 	
-	/*
 	for (size_t i = 0; i < ext.size(); i++)
 	{
-		int	len = command.length() - ext[i].length();
-		if (len >= 0 && ext[i] == command.substr(len))
-			return (true);
-	}*/
-	return true;
+		size_t	pos = command.find(ext[i]);
+		if (pos == std::string::npos)
+			continue ;
+		if (command.length() - pos == ext[i].length())
+			return true;
+	}
+	return false;
 }
 
 std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest const &request)

@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/07/01 18:10:46 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/06 18:54:35 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ class BaseConfig
 		std::string const	&getRoot() const;
 		VectorStr const		&getIndexFiles() const;
 		ErrorMap const		&getErrorPages() const;
-		std::string const	getErrorPage(int code);
+		std::string const	getErrorPage(int code) const;
 		int					getReturnCode() const;
 		std::string const	&getRedirectUrl() const;
 		size_t				getMaxSize() const;

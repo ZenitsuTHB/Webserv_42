@@ -297,16 +297,17 @@ ErrorMap const	&BaseConfig::getErrorPages() const
 	return errorPages;
 }
 
-std::string const	BaseConfig::getErrorPage(int code)
+std::string const	BaseConfig::getErrorPage(int code) const
 {
-	ErrorMap::iterator	it = errorPages.find(code);
+	ErrorMap::const_iterator	it = errorPages.find(code);
 	
+	/*
 	std::cerr << "I'm here" << std::endl;
 	for (ErrorMap::iterator	it = errorPages.begin();
 			it != errorPages.end(); ++it)
 	{
 		std::cout << it->first << ": " << it->second << std::endl;
-	}
+	}*/
 	if (it == errorPages.end())
 		return "";
 	return it->second;

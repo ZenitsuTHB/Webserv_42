@@ -62,7 +62,10 @@ HttpRequest::HttpRequest(std::string const &req)
 	std::string::size_type	pos = _path.find('?');
 	std::string	path = _path.substr(0, pos);
 	if (pos != std::string::npos)
+	{
 		_query = _path.substr(pos + 1);
+		_path.erase(pos);
+	}
 	else
 		_query = "";
 	
