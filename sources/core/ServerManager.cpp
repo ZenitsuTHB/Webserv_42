@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/01 20:22:24 by avolcy            #+#    #+#             */
-/*   Updated: 2025/07/02 15:12:07 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/07/04 16:09:02 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,9 @@ void ServerManager::run() {
 }
 
 void ServerManager::handleNewConnection(Server* server) {
+
     int client_fd = server->acceptConnection();
     if (client_fd == -1) return;
-
     _client_to_server[client_fd] = server;
     addToEpoll(client_fd, EPOLLIN | EPOLLET | EPOLLRDHUP);
 }
@@ -177,15 +177,11 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
     Server* server = _client_to_server[client_fd];
     std::string& clientBuffer = _buffers[client_fd];
 
-    // ... [keep existing size checks]
-
     char buffer[READ_BUFFER_SIZE];
     ssize_t bytes_read;
 
     while ((bytes_read = read(client_fd, buffer, sizeof(buffer)))) {
         if (bytes_read <= 0) break;
-
-        // ... [keep existing size checks]
 
         clientBuffer.append(buffer, bytes_read);
 
@@ -246,7 +242,6 @@ void ServerManager::handleClientData(int client_fd, uint32_t events) {
             std::cerr << "[ERROR] Failed to prepare request for HttpRequest: " << e.what() << std::endl;
             handleClientDisconnect(client_fd);
         }
-
         break;
     }
 }
