@@ -13,6 +13,7 @@
 #include "../../includes/BaseConfig.hpp"
 #include <cstdlib>
 #include <sstream>
+#include <unistd.h>
 
 BaseConfig::~BaseConfig() {}
 
@@ -73,6 +74,12 @@ void	BaseConfig::setAutoindex(bool autoindex)
 	this->autoindex = autoindex;
 }
 
+std::string	BaseConfig::getAbsolute(std::string const &dir)
+{
+	std::string cwd = getcwd(NULL, 0);
+	return cwd += dir;
+}
+
 // root [URL]
 // default: html
 
@@ -87,7 +94,10 @@ void	BaseConfig::setRoot(VectorStr const &data)
 	root = cleanLine(data[0]);
 	
 	if (root[0] != '/')
-		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
+	{
+		root = getAbsolute(root);
+		// sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
+	}
 }
 
 void	BaseConfig::setRoot(std::string const &root)
@@ -95,7 +105,10 @@ void	BaseConfig::setRoot(std::string const &root)
 	this->root = cleanLine(root);
 	
 	if (root[0] != '/')
-		sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
+	{
+		this->root = getAbsolute(this->root);
+		// sentError("Syntax error: bad start [/] -> root [/URL] -> " + root);
+	}
 }
 
 // index [URLS]
@@ -125,7 +138,12 @@ void	BaseConfig::addErrorPage(VectorStr const &data)
 		if (data[i].size() != 3 || !isValidCode(num))
 			sentError("(error_page) : That code does not exists : " + data[i]);
 		
-		errorPages.insert(std::make_pair(num, data.back()));
+		std::string url = data.back();
+		url = cleanLine(url);
+		if (url[0] == '/')
+			url = getAbsolute(url);
+
+		errorPages.insert(std::make_pair(num, url));
 	}
 }
 
@@ -179,8 +197,12 @@ void	BaseConfig::setReturn(VectorStr const &data)
 		if (data[0].size() != 3 || !isValidCode(num))
 			sentError("(return) : That code does not exists : " + data[0]);
 
+		std::string url = cleanLine(data[1]);
+		if (url[0] == '/')
+			url = getAbsolute(url);
+
 		returnCode = num;
-		redirectUrl = data[1];
+		redirectUrl = url;
 	}
 	else
 		sentError("Sintax error -> return (optional)[code] [URL]");

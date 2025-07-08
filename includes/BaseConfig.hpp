@@ -77,8 +77,9 @@ class BaseConfig
 		
 	private:
 
-		bool	isValidCode(int num) const;
-		size_t	getBytes(std::string const &val);
+		std::string	getAbsolute(std::string const &dir);
+		bool		isValidCode(int num) const;
+		size_t		getBytes(std::string const &val);
 
 };
 
