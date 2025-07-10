@@ -34,7 +34,7 @@ class	HttpResponse
 		static std::string	executePostCgi( std::string const &command, HttpRequest const &request);
 		static bool			isCgi( std::string const &command );
 		static bool			isCgiAllowed( std::string const &command,
-				ServerConfig const &server );
+				ServerConfig const &server, Method method );
 
 	private:
 		void	getResource( HttpRequest const &request );

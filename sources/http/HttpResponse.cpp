@@ -242,7 +242,7 @@ void	HttpResponse::getCgi(HttpRequest const &request)
 	std::string	fileName(request.getPath());
 	int			fileStat;
 
-	if (!isCgiAllowed(fileName, _serverConf))
+	if (!isCgiAllowed(fileName, _serverConf, GET))
 		throw (HttpException("getCGI not allowed here", 403));
 	fileName.insert(0, _route->getRoot());
 	std::cout << "Looking for this file: " << fileName << std::endl;
@@ -273,7 +273,7 @@ void	HttpResponse::postCgi(HttpRequest const &request)
 	try
 	{
 	*/
-		if (!isCgiAllowed(filename, _serverConf))
+		if (!isCgiAllowed(filename, _serverConf, POST))
 			throw (HttpException("getCGI not allowed here", 403));
 		output = executePostCgi(filename, request);
 	/*
@@ -654,18 +654,18 @@ std::string	HttpResponse::createError(int code, ServerConfig const &conf)
 }
 
 bool	HttpResponse::isCgiAllowed(std::string const &command,
-		ServerConfig const &server)
+		ServerConfig const &server, Method method)
 {
 	RouteConfig const	*route;
 
 	route = server.getLocation(command);
-	if (!route->isCgiEnabled())
+	if (!route->isCgiEnabled() || !route->isAllowed(method))
 	{
 		std::cout << "Adios not enable: " << route->getPath() << std::endl;
 		return false;
 	}
 	
-	std::cout << "Hola Mondo" << std::endl;
+	std::cout << "Cgi permitido, metodo permitido" << std::endl;
 	VectorStr const ext = route->getCgiExtensions();
 	
 	for (size_t i = 0; i < ext.size(); i++)
@@ -744,6 +744,14 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	int				stdoutPipe[2];
 	int				stdinPipe[2];
 	std::string		output;
+	std::string		cmd;
+
+	char	*cwd = getcwd(NULL, 0);
+	cmd = cwd;
+	free(cwd);
+
+	cmd.append("/html");
+	cmd.append(command);
 
 	if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1)
 		throw HttpException("CGI post pipe error", 500);
@@ -757,9 +765,16 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	}
 	if (pid == 0)
 	{
-		dup2(stdoutPipe[1], STDOUT_FILENO);
-		dup2(stdinPipe[0], STDIN_FILENO);
-
+		if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1)
+		{
+			perror("dup2 stdout");
+			exit(1);
+		}
+		if (dup2(stdinPipe[0], STDIN_FILENO) == -1)
+		{
+			perror("dup2 stdin");
+			exit(1);
+		}
 		close(stdoutPipe[0]); close(stdoutPipe[1]);
 		close(stdinPipe[0]); close(stdinPipe[1]);
 		
@@ -767,16 +782,16 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		std::ostringstream	lengthStream;
 		lengthStream << request.getBody().length();
 
-		std::string	scriptFile = "SCRIPT_FILENAME=" + command;
+		std::string	scriptFile = "SCRIPT_FILENAME=" + cmd;
 		std::string	requestMethod = "REQUEST_METHOD=POST";
 		std::string	contentLength = "CONTENT_LENGTH=" + lengthStream.str();
 
 		std::string	contentType = "CONTENT_TYPE=application/x-www-form-urlencoded";
 		std::string	queryString = "QUERY_STRING=" + request.getQuery();
 
-		char	*argv[] = { const_cast<char *>(command.c_str()), NULL };
+		char	*argv[] = { const_cast<char *>(cmd.c_str()), NULL };
 		char	*envp[] = {
-				const_cast<char *>("GATEWAY_INTERFACE-CGI/1.1"),
+				const_cast<char *>("GATEWAY_INTERFACE=CGI/1.1"),
 				const_cast<char *>(requestMethod.c_str()),
 				const_cast<char *>(scriptFile.c_str()),
 				const_cast<char *>(contentLength.c_str()),
@@ -784,11 +799,11 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 				const_cast<char *>(queryString.c_str()),
 				NULL
 		};
-
-		execve(command.c_str(), argv, envp);
+	
+		execve(cmd.c_str(), argv, envp);
 		std::cout << "post CGI failed execve" << strerror(errno) << std::endl;
 		std::string	err(strerror(errno));
-		exit (127);
+		exit(127);
 	}
 	
 	close(stdoutPipe[1]); close(stdinPipe[0]);
@@ -808,6 +823,9 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	
 	waitpid(pid, &status, 0);
 	
+	std::cout << "STATUS: " << status << std::endl;
+	std::cout << "OUTPUT: " << output << std::endl;
+
 	if (status != 0)
 		throw HttpException("CGI post failed program", 500);
 
