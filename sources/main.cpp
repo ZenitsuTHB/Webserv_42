@@ -36,8 +36,8 @@ int main(int ac, char **av)
 
 	try {
 		ParserConfig parser(av[1]);
-		const std::vector<ServerConfig>& configs = parser.getServers();
-
+		/*const std::vector<ServerConfig>& configs = parser.getServers();
+		
 		if (configs.empty()) {
 			std::cerr << "Error: No servers defined in config file." << std::endl;
 			return 1;
@@ -55,7 +55,7 @@ int main(int ac, char **av)
 		signal(SIGTERM, signalHandler);
 		signal(SIGHUP, signalHandler);
 		manager.run();
-
+*/
 		std::cout << "[MAIN] Servers shut down gracefully." << std::endl;
 	}
 	catch (std::exception const &e)

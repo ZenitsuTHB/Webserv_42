@@ -76,8 +76,16 @@ void	BaseConfig::setAutoindex(bool autoindex)
 
 std::string	BaseConfig::getAbsolute(std::string const &dir)
 {
-	std::string cwd = getcwd(NULL, 0);
-	return cwd += dir;
+	char	*pwd = getcwd(NULL, 0);
+	
+	std::string	cwd = pwd;
+	
+	free(pwd);
+
+	if (cwd != "/")
+		cwd += "/";
+
+	return cwd.append(dir);
 }
 
 // root [URL]
@@ -140,9 +148,8 @@ void	BaseConfig::addErrorPage(VectorStr const &data)
 		
 		std::string url = data.back();
 		url = cleanLine(url);
-		if (url[0] == '/')
+		if (url[0] != '/')
 			url = getAbsolute(url);
-
 		errorPages.insert(std::make_pair(num, url));
 	}
 }
@@ -198,7 +205,7 @@ void	BaseConfig::setReturn(VectorStr const &data)
 			sentError("(return) : That code does not exists : " + data[0]);
 
 		std::string url = cleanLine(data[1]);
-		if (url[0] == '/')
+		if (url[0] != '/')
 			url = getAbsolute(url);
 
 		returnCode = num;
