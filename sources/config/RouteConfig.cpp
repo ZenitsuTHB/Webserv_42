@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/07/01 18:01:49 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/12 14:53:59 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,21 @@ void	RouteConfig::setCgiEnable(VectorStr const &data)
 		sentError("Syntax error: cgi -> cgi_enable [on | off]");
 }
 
+// upload_path [path]
+// default: html/upload
+
+void	RouteConfig::setUploadPath(VectorStr const &data)
+{
+	if (data.size() != 1)
+		sentError("Syntax error: upload_path [path]");
+	if (uploadPath != "")
+		sentError("You cannot have multiple upload path");
+	uploadPath = cleanLine(data[0]);
+	if (uploadPath[0] != '/')
+		uploadPath = getAbsolute(uploadPath);
+		
+}
+
 std::string const	&RouteConfig::getCgiPath() const
 {
 	return cgiPath;
@@ -69,6 +84,11 @@ std::string const	&RouteConfig::getCgiPath() const
 VectorStr const	&RouteConfig::getCgiExtensions() const
 {
 	return cgiExtensions;
+}
+
+std::string const	&RouteConfig::getUploadPath() const
+{
+	return uploadPath;
 }
 
 bool	RouteConfig::isCgiEnabled() const
@@ -90,6 +110,8 @@ void	RouteConfig::addDefault(BaseConfig const &base)
 		indexFiles = base.getIndexFiles();
 	if (!clientMaxBodySize)
 		clientMaxBodySize = base.getMaxSize();
+	if (uploadPath.empty())
+		uploadPath = root.append("/uploads");
 }
 
 // Display all the data of the route

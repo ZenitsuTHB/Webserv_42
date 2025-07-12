@@ -233,6 +233,16 @@ RouteConfig const	*ServerConfig::getLocation(std::string const &request) const
 	}
 	return best;
 }
+		
+RouteConfig const	&ServerConfig::getRoute(std::string const &path) const
+{
+	for (size_t i = 0; i < routes.size(); i++)
+	{
+		if (routes[i].getPath() == path)
+			return routes[i];
+	}
+	return routes[0];
+}
 
 std::vector<RouteConfig> const	&ServerConfig::getRoutes() const
 {

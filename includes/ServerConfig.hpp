@@ -32,7 +32,7 @@ class ServerConfig: public BaseConfig
 		in_port_t						getPort() const;
 		std::string const				&getServerName() const;
 		RouteConfig const				*getLocation(std::string const &request) const;
-//		RouteConfig const				&getRoute(std::string const &path) const;
+		RouteConfig const				&getRoute(std::string const &path) const;
 		std::vector<RouteConfig> const	&getRoutes() const;
 		unsigned int					getNumRoutes() const;
 		int								getBacklog() const;

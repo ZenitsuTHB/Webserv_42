@@ -6,7 +6,7 @@
 /*   By: adrmarqu <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 19:04:23 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/07/06 18:54:35 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/12 13:36:26 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,10 +74,10 @@ class BaseConfig
 		size_t			clientMaxBodySize;
 
 		std::string		cleanLine(std::string const &path) const;
+		std::string		getAbsolute(std::string const &dir);
 		
 	private:
 
-		std::string	getAbsolute(std::string const &dir);
 		bool		isValidCode(int num) const;
 		size_t		getBytes(std::string const &val);
 

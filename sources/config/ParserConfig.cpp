@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/06/01 16:12:23 by avolcy           ###   ########.fr       */
+/*   Updated: 2025/07/12 13:33:12 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,6 +205,8 @@ void	ParserConfig::addRouteVar(std::string const &var, VectorStr values, RouteCo
 		route.addCgiExtension(values);
 	else if (var == "cgi_enable")
 		route.setCgiEnable(values);
+	else if (var == "upload_path")
+		route.setUploadPath(values);
 	else
 		sentError("The directive " + var + " in the route does not exists in this proyect!");
 }

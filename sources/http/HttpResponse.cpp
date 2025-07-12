@@ -679,11 +679,49 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	return false;
 }
 
+std::string const	&HttpResponse::getCgiPath(std::string const &location) const
+{	
+	std::string	cleanLoc(location);
+	size_t	pos = 0;
+
+	for (size_t i = location.length() - 1; i > 0; i--)
+	{
+		if (location[i] == '/')
+		{
+			cleanLoc.erase(i);
+			break ;
+		}
+	}
+	for (size_t i = 0; i < cleanLoc.length(); i++)
+	{
+		if (cleanLoc[i] == '/')
+			pos = i;
+	}
+	cleanLoc.erase(0, pos);
+	return _serverConf.getRoute(cleanLoc).getCgiPath();
+}
+
+std::string const	&HttpResponse::getPathUpload(std::string const &location) const
+{
+	std::string	cleanLoc(location);
+
+	for (size_t i = location.length() - 1; i > 0; i--)
+	{
+		if (location[i] == '/')
+		{
+			cleanLoc.erase(i);
+			break ;
+		}
+	}
+	return _serverConf.getRoute(cleanLoc).getUploadPath();
+}
+
 std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest const &request)
 {
 	int	pipefd[2];
 	std::string	cgiOut;
 
+	getCgiPath(command);
 	if (pipe(pipefd) == -1)
 	{
 		std::cerr << "Pipe error: " << strerror(errno) << std::endl;
@@ -701,18 +739,29 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 
 	if (pid == 0)
 	{
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[0]);
-		close(pipefd[1]);
+		if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+		{
+			perror("dup2 get");
+			exit(1);
+		}
 
-		char	*argv[] = { const_cast<char*>(command.c_str()), NULL };
+		close(pipefd[0]); close(pipefd[1]);
+
+		char	*argv[] = {
+			const_cast<char *>(getCgiPath(command).c_str()),
+			const_cast<char*>(command.c_str()),
+			NULL
+		};
+		
 		std::string	scritFile = "SCRIPT_FILENAME=" + command;
 		std::string	queryStr = "QUERY_STRING=" + request.getQuery();
+		
 		char	*envp[] = {
 			const_cast<char*>("REQUEST_METHOD=GET"),
 			const_cast<char*>("GATEWAY_INTERFACE=CGI/1.1"),
 			const_cast<char*>(scritFile.c_str()),
 			const_cast<char*>(queryStr.c_str()),
+			const_cast<char*>("REDIRECT_STATUS=200"),
 			NULL
 		};
 
@@ -752,7 +801,7 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 
 	cmd.append("/html");
 	cmd.append(command);
-
+		
 	if (pipe(stdoutPipe) == -1 || pipe(stdinPipe) == -1)
 		throw HttpException("CGI post pipe error", 500);
 
@@ -765,42 +814,44 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	}
 	if (pid == 0)
 	{
-		if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1)
+		if (dup2(stdoutPipe[1], STDOUT_FILENO) == -1 || dup2(stdinPipe[0], STDIN_FILENO) == -1)
 		{
-			perror("dup2 stdout");
+			perror("dup2 post");
 			exit(1);
 		}
-		if (dup2(stdinPipe[0], STDIN_FILENO) == -1)
-		{
-			perror("dup2 stdin");
-			exit(1);
-		}
+
 		close(stdoutPipe[0]); close(stdoutPipe[1]);
 		close(stdinPipe[0]); close(stdinPipe[1]);
 		
-		//Como vas a convertir un string a un numero asi
 		std::ostringstream	lengthStream;
 		lengthStream << request.getBody().length();
 
 		std::string	scriptFile = "SCRIPT_FILENAME=" + cmd;
-		std::string	requestMethod = "REQUEST_METHOD=POST";
 		std::string	contentLength = "CONTENT_LENGTH=" + lengthStream.str();
-
 		std::string	contentType = "CONTENT_TYPE=application/x-www-form-urlencoded";
 		std::string	queryString = "QUERY_STRING=" + request.getQuery();
+		std::string	uploadPath = "UPLOAD_PATH=" + getPathUpload(command);
 
-		char	*argv[] = { const_cast<char *>(cmd.c_str()), NULL };
+		std::string	cgiPath = getCgiPath(cmd);
+
+		char	*argv[] = {
+			const_cast<char *>(cgiPath.c_str()),
+			const_cast<char*>(cmd.c_str()),
+			NULL
+		};
 		char	*envp[] = {
 				const_cast<char *>("GATEWAY_INTERFACE=CGI/1.1"),
-				const_cast<char *>(requestMethod.c_str()),
+				const_cast<char *>("REQUEST_METHOD=POST"),
 				const_cast<char *>(scriptFile.c_str()),
 				const_cast<char *>(contentLength.c_str()),
 				const_cast<char *>(contentType.c_str()),
 				const_cast<char *>(queryString.c_str()),
+				const_cast<char *>(uploadPath.c_str()),
+				const_cast<char *>("REDIRECT_STATUS=200"),
 				NULL
 		};
 	
-		execve(cmd.c_str(), argv, envp);
+		execve(cgiPath.c_str(), argv, envp);
 		std::cout << "post CGI failed execve" << strerror(errno) << std::endl;
 		std::string	err(strerror(errno));
 		exit(127);
@@ -809,8 +860,11 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	close(stdoutPipe[1]); close(stdinPipe[0]);
 
 	std::string const	&body = request.getBody();
-	write(stdinPipe[1], body.c_str(), body.length());
+	ssize_t	written = write(stdinPipe[1], body.c_str(), body.length());
 	close(stdinPipe[1]);
+
+	if (written < 0 || static_cast<size_t>(written) != body.length())
+		throw HttpException("CGI post failes to write body", 500);
 
 	char	buffer[1024];
 	ssize_t	count;
@@ -823,9 +877,6 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	
 	waitpid(pid, &status, 0);
 	
-	std::cout << "STATUS: " << status << std::endl;
-	std::cout << "OUTPUT: " << output << std::endl;
-
 	if (status != 0)
 		throw HttpException("CGI post failed program", 500);
 
