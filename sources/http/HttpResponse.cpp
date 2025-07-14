@@ -667,7 +667,7 @@ bool	HttpResponse::isCgiAllowed(std::string const &command,
 	
 	std::cout << "Cgi permitido, metodo permitido" << std::endl;
 	VectorStr const ext = route->getCgiExtensions();
-	
+
 	for (size_t i = 0; i < ext.size(); i++)
 	{
 		size_t	pos = command.find(ext[i]);
@@ -885,16 +885,7 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 
 bool	HttpResponse::isCgi(std::string const &command)
 {
-	/*if (command.find(".cgi") != std::string::npos
-		|| command.find(".php") != std::string::npos
-		|| command.find(".py") != std::string::npos
-		|| command.find(".pl") != std::string::npos
-		|| command.find(".sh") != std::string::npos
-		|| command.find(".exe") != std::string::npos
-		|| command.find("/cgi-bin/") != std::string::npos)
-		return (true);
-	*/
-	if (command.find("/cgi-bin/") != std::string::npos)
+	if (command.find("/cgi-bin") != std::string::npos)
 		return true;
 	return (false);
 }
