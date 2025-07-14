@@ -885,7 +885,6 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 
 bool	HttpResponse::isCgi(std::string const &command)
 {
-	std::cout << "COMMAND: " << command << std::endl;
 	/*if (command.find(".cgi") != std::string::npos
 		|| command.find(".php") != std::string::npos
 		|| command.find(".py") != std::string::npos
