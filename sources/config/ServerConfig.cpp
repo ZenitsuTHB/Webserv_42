@@ -231,6 +231,9 @@ RouteConfig const	*ServerConfig::getLocation(std::string const &request) const
 			best = &(*it);
 		}
 	}
+	std::cout << "This is Request: " << request << std::endl;
+	std::cout << "This is the Best: \"" << best->getPath() << "\"" << std::endl;
+	std::cout << "This is its route: " << best->getRoot() << std::endl;
 	return best;
 }
 		
@@ -265,8 +268,8 @@ void	ServerConfig::addDefault()
 {
 	if (root.empty())
 		root = "/html";
-	if (indexFiles.empty())
-		indexFiles.push_back("index.html");
+	//if (indexFiles.empty())
+	//	indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
 		setMaxSize(MAX_SIZE_CLIENT);
 	if (ipStr.empty())

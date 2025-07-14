@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 13:46:42 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/07/12 14:53:59 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/14 17:31:09 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,7 +111,10 @@ void	RouteConfig::addDefault(BaseConfig const &base)
 	if (!clientMaxBodySize)
 		clientMaxBodySize = base.getMaxSize();
 	if (uploadPath.empty())
-		uploadPath = root.append("/uploads");
+	{
+		uploadPath = root;
+		uploadPath.append("/uploads");
+	}
 }
 
 // Display all the data of the route
