@@ -6,7 +6,7 @@ print("Content-Type: text/plain\r\n")
 
 data = sys.stdin.read(int(os.environ.get("CONTENT_LENGTH", 0)))
 
-upload_dir = os.environ.get("UPLOAD_PATH", "../uploads")
+#upload_dir = os.environ.get("UPLOAD_PATH", "../uploads")
 
 upload_dir = os.environ.get("UPLOAD_PATH")
 

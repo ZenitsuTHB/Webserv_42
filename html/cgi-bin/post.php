@@ -5,6 +5,11 @@ if (!$uploadPath) {
     $uploadPath = "/tmp";
 }
 
+if (!is_dir($uploadPath))
+{
+	exit(1);
+}
+
 $filename = $uploadPath . "/datos_guardados.txt";
 
 $data = file_get_contents("php://input");
