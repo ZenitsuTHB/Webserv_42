@@ -267,7 +267,7 @@ int	ServerConfig::getBacklog() const
 void	ServerConfig::addDefault()
 {
 	if (root.empty())
-		root = "/html";
+		root = getAbsolute("html");
 	//if (indexFiles.empty())
 	//	indexFiles.push_back("index.html");
 	if (clientMaxBodySize == 0)
