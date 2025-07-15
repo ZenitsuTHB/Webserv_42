@@ -279,7 +279,7 @@ void	ServerConfig::addDefault()
 		port = 8000;
 	}
 	if (serverName.empty())
-		serverName = "default";
+		serverName = "";
 	if (backlog == -1)
 		backlog = 100;
 

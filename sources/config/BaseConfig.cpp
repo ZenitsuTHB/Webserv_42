@@ -17,7 +17,7 @@
 
 BaseConfig::~BaseConfig() {}
 
-BaseConfig::BaseConfig(): autoindex(false), returnCode(-1), clientMaxBodySize(0) {}
+BaseConfig::BaseConfig(): autoindex(true), returnCode(-1), clientMaxBodySize(0) {}
 
 void	BaseConfig::sentError(std::string msg) const
 {	
@@ -76,6 +76,9 @@ void	BaseConfig::setAutoindex(bool autoindex)
 
 std::string	BaseConfig::getAbsolute(std::string const &dir)
 {
+	if (dir[0] == '/')
+		return dir;
+
 	char	*pwd = getcwd(NULL, 0);
 	
 	std::string	cwd = pwd;
@@ -191,7 +194,7 @@ void	BaseConfig::setReturn(VectorStr const &data)
 	if (data.size() == 1)
 	{
 		returnCode = 302;
-		redirectUrl = data[0];
+		redirectUrl = getAbsolute(data[0]);
 	}
 	else if (data.size() == 2)
 	{
