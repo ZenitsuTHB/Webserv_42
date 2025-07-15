@@ -720,8 +720,8 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 {
 	int	pipefd[2];
 	std::string	cgiOut;
+	std::string	fullPath = getCgiPath(command);
 
-	getCgiPath(command);
 	if (pipe(pipefd) == -1)
 	{
 		std::cerr << "Pipe error: " << strerror(errno) << std::endl;
@@ -748,7 +748,7 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 		close(pipefd[0]); close(pipefd[1]);
 
 		char	*argv[] = {
-			const_cast<char *>(getCgiPath(command).c_str()),
+			const_cast<char *>(fullPath.c_str()),
 			const_cast<char*>(command.c_str()),
 			NULL
 		};
@@ -766,10 +766,32 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 		};
 
 		execve(command.c_str(), argv, envp);
-		std::cerr << "get CGI failed execve" << strerror(errno) << std::endl;
+		perror("execve failed");
 		exit(127);
 	}
 	close(pipefd[1]);
+	
+	fd_set	readfds;
+	FD_ZERO(&readfds);
+	FD_SET(pipefd[0], &readfds);
+
+	struct timeval	timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
+
+	int ready = select(pipefd[0] + 1, &readfds, NULL, NULL, &timeout);
+	if (ready == -1)
+	{
+		close(pipefd[0]);
+		throw HttpException("CGI select error", 500);
+	}
+	else if (ready == 0)
+	{
+		kill(pid, SIGKILL);
+		waitpid(pid, NULL, 0);
+		close(pipefd[0]);
+		throw HttpException("CGI timeout", 504);
+	}
 
 	char		buffer[1024];
 	ssize_t		count;
@@ -778,14 +800,22 @@ std::string HttpResponse::executeGetCgi(std::string const &command, HttpRequest 
 		cgiOut.append(buffer, count);
 
 	close(pipefd[0]);
-	int	ret = 0;
-	waitpid(pid, &ret, 0);
-	if (ret)
+	int	status = 0;
+	waitpid(pid, &status, 0);
+
+	if (WIFSIGNALED(status))
+		throw HttpException("CGI terminated by signal", 500);
+	if (WIFEXITED(status))
 	{
-		std::cout << "this is da return of program: " << ret << std::endl;
-		throw (HttpException("get CGI failed program status code", 500));
+		int exitStatus = WEXITSTATUS(status);
+		if (exitStatus == 127)
+			throw HttpException("CGI exec failed", 500);
+		else if (exitStatus != 0)
+			throw HttpException("CGI exited with error", 500);
 	}
-	return (cgiOut);
+	else
+		throw HttpException("CGI unknown failure", 500);
+	return cgiOut;
 }
 
 std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest const &request)
@@ -831,7 +861,6 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		std::string	contentType = "CONTENT_TYPE=application/x-www-form-urlencoded";
 		std::string	queryString = "QUERY_STRING=" + request.getQuery();
 		std::string	uploadPath = "UPLOAD_PATH=" + getPathUpload(command);
-
 		std::string	cgiPath = getCgiPath(cmd);
 
 		char	*argv[] = {
@@ -852,8 +881,7 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		};
 	
 		execve(cgiPath.c_str(), argv, envp);
-		std::cout << "post CGI failed execve" << strerror(errno) << std::endl;
-		std::string	err(strerror(errno));
+		perror("execve failed");
 		exit(127);
 	}
 	
@@ -866,6 +894,28 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 	if (written < 0 || static_cast<size_t>(written) != body.length())
 		throw HttpException("CGI post failes to write body", 500);
 
+	fd_set	readfds;
+	FD_ZERO(&readfds);
+	FD_SET(stdoutPipe[0], &readfds);
+
+	struct timeval	timeout;
+	timeout.tv_sec = 5;
+	timeout.tv_usec = 0;
+
+	int ready = select(stdoutPipe[0] + 1, &readfds, NULL, NULL, &timeout);
+	if (ready == -1)
+	{
+		close(stdoutPipe[0]);
+		throw HttpException("CGI select error", 500);
+	}
+	else if (ready == 0)
+	{
+		kill(pid, SIGKILL);
+		waitpid(pid, NULL, 0);
+		close(stdoutPipe[0]);
+		throw HttpException("CGI timeout", 504);
+	}
+
 	char	buffer[1024];
 	ssize_t	count;
 
@@ -873,13 +923,21 @@ std::string HttpResponse::executePostCgi(std::string const &command, HttpRequest
 		output.append(buffer, count);
 	close(stdoutPipe[0]);
 
-	int status = 0;
-	
+	int status = 0;	
 	waitpid(pid, &status, 0);
 	
-	if (status != 0)
-		throw HttpException("CGI post failed program", 500);
-
+	if (WIFSIGNALED(status))
+		throw HttpException("CGI terminated by signal", 500);
+	if (WIFEXITED(status))
+	{
+		int	exitStatus = WEXITSTATUS(status);
+		if (exitStatus == 127)
+			throw HttpException("CGI exec failed", 500);
+		else if (exitStatus != 0)
+			throw HttpException("CGI exeited with error", 500);
+	}
+	else
+		throw HttpException("CGI unknown failure", 500);
 	return output;
 }
 
