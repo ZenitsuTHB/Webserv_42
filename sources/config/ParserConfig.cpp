@@ -6,7 +6,7 @@
 /*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/24 14:09:31 by adrmarqu          #+#    #+#             */
-/*   Updated: 2025/07/12 13:33:12 by adrmarqu         ###   ########.fr       */
+/*   Updated: 2025/07/15 15:09:07 by adrmarqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ ParserConfig::ParserConfig(std::string input)
 		line.clear(); a.clear(); b.clear();
 	}
 
+	/*
 	// Check if some server has the same ip-port tha other
 
 	for (unsigned int i = 0; i < _servers.size(); i++)
@@ -66,7 +67,7 @@ ParserConfig::ParserConfig(std::string input)
 			if (i != j && _servers[j].getIp() == ip && _servers[j].getPort() == port)
 				sentError("You cannot have two servers with the same [ip]:[port]");
 	}
-
+*/
 	//for (size_t i = 0; i < _servers.size(); i++)
 	//	_servers[i].display();
 }
