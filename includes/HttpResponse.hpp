@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                         :::      ::::::::  */
-/*  HttpResponse.hpp                                     :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/05/07 17:02:43 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/07/05 18:14:31 by mvelazqu           ###   ########.fr      */
+/*                                                        :::      ::::::::   */
+/*   HttpResponse.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/05/07 17:02:43 by velazqu           #+#    #+#             */
+/*   Updated: 2025/07/15 19:25:34 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ class	HttpResponse
 
 		std::string			executeGetCgi( std::string const &command, HttpRequest const &request);
 		std::string			executePostCgi( std::string const &command, HttpRequest const &request);
-		static bool			isCgi( std::string const &command );
+		static bool			isCgi( std::string const &command);
 		static bool			isCgiAllowed( std::string const &command,
 				ServerConfig const &server, Method method );
 
@@ -46,10 +46,14 @@ class	HttpResponse
 
 		std::string const	&getPathUpload(std::string const &location) const;
 		std::string const	&getCgiPath(std::string const &location) const;
+		std::string const 	&getRequestPath(HttpRequest const &request);
 
 //		static bool			_validFile( std::string const &file );
 		static int			checkFile( std::string const &file );
-		static std::string	_indexFolder( std::string &folder );
+		// static std::string	_indexFolder( std::string &folder );
+		std::string _indexFolder(std::string &folder, std::string const &requestPath);
+
+
 
 		void		searchGETendPoint( std::string &file );
 		void		searchPOSTendPoint( std::string &file );
@@ -66,6 +70,8 @@ class	HttpResponse
 		BaseConfig const	*_route;
 		ServerConfig const	&_serverConf;
 		bool				_index;
+		std::string			_requestPath;
+
 };
 
 #endif

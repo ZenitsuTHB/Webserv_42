@@ -1,15 +1,15 @@
 /* ************************************************************************** */
-/*                                                         :::      ::::::::  */
-/*  HttpResponse.cpp                                     :+:      :+:    :+:  */
-/*                                                     +:+ +:+         +:+    */
-/*  By: mvelazqu <mvelazqu@student.42barcelona.c     +#+  +:+       +#+       */
-/*                                                 +#+#+#+#+#+   +#+          */
-/*  Created: 2025/05/07 17:02:47 by mvelazqu            #+#    #+#            */
-/*  Updated: 2025/06/11 15:55:52 by mvelazqu           ###   ########.fr      */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   HttpResponse.cpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avolcy <avolcy@student.42.fr>              +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 0025/06/11 15:55:52 by velazqu           #+#    #+#             */
+/*   Updated: 2025/07/15 19:25:24 by avolcy           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <cerrno>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -79,6 +79,7 @@ HttpResponse::HttpResponse(HttpRequest const &req, ServerConfig const &conf):
 {
 	std::cout << "This is length, this is the end: " << req.getBody().length() << std::endl;
 	_route = assignRoute(conf, req.getPath());
+	_requestPath = req.getPath();
 	switch (req.getMethod())
 	{
 		case GET:
@@ -306,7 +307,7 @@ void	HttpResponse::getResource(HttpRequest const &request)
 	 *	Tha Body
 	 */
 	if (_index)
-		_body = _indexFolder(fileName);
+		_body = _indexFolder(fileName, request.getPath());
 	else
 		_body = Libft::readFile(fileName);
 	/*	*
@@ -314,10 +315,10 @@ void	HttpResponse::getResource(HttpRequest const &request)
 	 */
 	_header.insert(PairStr("Content-length",
 				Libft::itos(static_cast<int>(_body.length()))));
-//	if (_index)
-//		_header.insert(PairStr("Content-type", "text/html"));
-//	else
-	_header.insert(PairStr("Content-type", _fileType(fileName)));
+	if (_index)
+		_header.insert(PairStr("Content-type", "text/html"));
+	else
+		_header.insert(PairStr("Content-type", _fileType(fileName)));
 	/*	*
 	 *	Setting status line
 	 */
@@ -542,9 +543,56 @@ std::string	HttpResponse::_fileType(std::string const &file)
 </body>
 </html>
 */
-std::string	HttpResponse::_indexFolder(std::string &folder)
+// std::string	HttpResponse::_indexFolder(std::string &folder, std::string const &requestPath)
+// {
+// 	//return ("Folder Indexado\r\n");
+// 	std::string	index;
+// 	std::string	fileLine;
+
+// 	index = "<!DOCTYPE html>\n"
+// 		"<html lang=\"en\">\n"
+// 		"<head>\n"
+// 		"  <meta charset=\"UTF-8\">\n"
+// 		"	<title>Index of Folder</title>\n"
+// 		"</head>\n"
+// 		"<body>\n"
+// 		"	<h1>Index of Folder</h1>\n"
+// 		"  <ul>\n";
+// //		"    <li><a href=\".\">.</a></li>\n"
+// //		"    <li><a href=\"..\">..</a></li>\n";
+// /*		"  </ul>\n"
+// 		"</body>\n"
+// 		"</html>"*/
+
+// 	DIR				*directory;
+
+// 	directory = opendir(folder.c_str());
+// 	if (!directory)
+// 		throw (HttpException("Autoindex Failed to open Dir", 500));
+// 	//Add Files to the Index
+// 	for (struct dirent *entity = readdir(directory);
+// 			entity != NULL; entity = readdir(directory))
+// 	{
+// 	//	file line: "    <li><a href=\"file\">file</a></li>\n";
+// 		// fileLine.assign("    <li><a href=\"").append(entity->d_name);
+// 		// fileLine.append("\">").append(entity->d_name).append("</a></li>\n");
+// 		fileLine.assign("    <li><a href=\"")
+//     .append(requestPath.c_str()) // o basePath
+//     .append("/")
+//     .append(entity->d_name)
+//     .append("\">")
+//     .append(entity->d_name)
+//     .append("</a></li>\n");
+
+// 		index.append(fileLine);
+// 	}
+// 	closedir(directory);
+// 	index.append("  </ul>\n</body>\n</html>\n");
+// 	folder = "index.html";
+// 	return (index);
+// }
+std::string	HttpResponse::_indexFolder(std::string &folder, std::string const &requestPath)
 {
-	//return ("Folder Indexado\r\n");
 	std::string	index;
 	std::string	fileLine;
 
@@ -552,36 +600,42 @@ std::string	HttpResponse::_indexFolder(std::string &folder)
 		"<html lang=\"en\">\n"
 		"<head>\n"
 		"  <meta charset=\"UTF-8\">\n"
-		"	<title>Index of Folder</title>\n"
+		"  <title>Index of Folder</title>\n"
 		"</head>\n"
 		"<body>\n"
-		"	<h1>Index of Folder</h1>\n"
+		"  <h1>Index of Folder</h1>\n"
 		"  <ul>\n";
-//		"    <li><a href=\".\">.</a></li>\n"
-//		"    <li><a href=\"..\">..</a></li>\n";
-/*		"  </ul>\n"
-		"</body>\n"
-		"</html>"*/
 
-	DIR				*directory;
-
-	directory = opendir(folder.c_str());
+	DIR	*directory = opendir(folder.c_str());
 	if (!directory)
 		throw (HttpException("Autoindex Failed to open Dir", 500));
-	//Add Files to the Index
+
 	for (struct dirent *entity = readdir(directory);
 			entity != NULL; entity = readdir(directory))
 	{
-	//	file line: "    <li><a href=\"file\">file</a></li>\n";
-		fileLine.assign("    <li><a href=\"").append(entity->d_name);
-		fileLine.append("\">").append(entity->d_name).append("</a></li>\n");
-		index.append(fileLine);
+		fileLine = "    <li><a href=\"";
+		fileLine += requestPath;
+
+		// Agrega '/' si no está al final
+		if (requestPath.empty() || requestPath[requestPath.length() - 1] != '/')
+			fileLine += "/";
+
+		fileLine += entity->d_name;
+		fileLine += "\">";
+		fileLine += entity->d_name;
+		fileLine += "</a></li>\n";
+
+		index += fileLine;
 	}
+
 	closedir(directory);
-	index.append("  </ul>\n</body>\n</html>\n");
+	index += "  </ul>\n</body>\n</html>\n";
+
 	folder = "index.html";
-	return (index);
+	return index;
 }
+
+
 
 HttpResponse	&HttpResponse:: operator = (HttpResponse const &obj)
 {
